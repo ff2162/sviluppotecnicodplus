@@ -1,0 +1,21 @@
+{
+  "name": "DPlus MACH1 Configurator",
+  "short_name": "MACH1",
+  "start_url": "Test_3.75.html",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#e31e24",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "logo-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "logo-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
