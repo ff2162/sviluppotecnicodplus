@@ -3,8 +3,8 @@ const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './logo-192.png',
-  './logo-512.png'
+  './logo-icon-192.png',
+  './logo-icon-512.png'
 ];
 
 // Installazione: scarica i file nella cache
