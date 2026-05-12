@@ -1,7 +1,7 @@
 {
   "name": "DPlus MACH1 Configurator",
   "short_name": "MACH1",
-  "start_url": "Test_3.75.html",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#121212",
   "theme_color": "#e31e24",
