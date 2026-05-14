@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPlus MACH1 26v1 - v3.74 (Final Visual Fix)</title>
+    <title>DPlus MACH1 26v1 - v3.85 (Full Engine & Diagnostics Layout)</title>
     <style>
         :root { 
             --red: #e31e24; 
@@ -36,9 +36,28 @@
         #motor-box { position: absolute; left: 62px; bottom: 0; width: 70px; height: 60px; background: #222; z-index: 6; border: 1px solid #444; border-radius: 5px 5px 0 0; }
         #cover-led { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); width: 10px; height: 38px; background: #400; border-radius: 3px; transition: background 0.3s; }
         
+        /* FOTOCELLULA H50cm */
+        #photocell-case {
+            position: absolute; right: 50px; bottom: 45px; width: 16px; height: 38px;
+            background: #222; border: 1px solid #444; border-radius: 4px 0 0 4px;
+            z-index: 8; display: flex; flex-direction: column; align-items: center;
+            box-shadow: -3px 3px 10px rgba(0,0,0,0.6); cursor: pointer;
+        }
+        #photo-led {
+            width: 8px; height: 8px; background: #443000; border-radius: 50%;
+            margin-top: 3px; transition: background 0.1s, box-shadow 0.1s;
+        }
+        .photo-lens { width: 8px; height: 16px; background: #050505; border-radius: 8px; margin-top: 4px; border: 1px solid #111; }
+
+        /* ANIMAZIONI LED FISICI E DIAGNOSTICI */
         .led-on { background: #ff3333 !important; box-shadow: 0 0 25px #ff0000; }
         .led-breath { animation: breath 2.5s ease-in-out infinite; background: #ff0000; }
+        
+        .photo-led-on { background: var(--lamp-yellow) !important; box-shadow: 0 0 15px var(--lamp-yellow); }
+        .photo-led-breath { animation: photoBreath 2s ease-in-out infinite; background: var(--lamp-yellow); }
+        
         @keyframes breath { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; box-shadow: 0 0 25px #ff0000; } }
+        @keyframes photoBreath { 0%, 100% { opacity: 0.15; box-shadow: none; } 50% { opacity: 1; box-shadow: 0 0 12px var(--lamp-yellow); } }
         
         #flasher { position: absolute; top: -40px; left: 7px; width: 40px; height: 40px; z-index: 10; }
         .f-on { fill: var(--lamp-yellow) !important; filter: drop-shadow(0 0 25px var(--lamp-yellow)) drop-shadow(0 0 10px var(--lamp-yellow)); }
@@ -71,16 +90,21 @@
         .remote-case { width: 95px; background: #222; padding: 18px; border-radius: 30px; border: 2px solid #444; display: flex; flex-direction: column; align-items: center; box-shadow: 0 8px 20px #000; }
         .remote-led { width: 9px; height: 9px; background: #300; border-radius: 50%; margin-bottom: 12px; }
         .remote-led.active { background: #0f0; box-shadow: 0 0 12px #0f0; }
-        .remote-logo { height: 18px; margin-bottom: 12px; }
 
         .btn { width: 65px; height: 65px; background: #333; border-radius: 50%; border: 2px solid #111; color: #ccc; font-weight: bold; font-size: 22px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 5px 0 #000; outline: none; transition: 0.1s; }
         .btn:active, .btn-active { transform: translateY(3px); box-shadow: 0 2px 0 #000; background: var(--red) !important; color: #fff !important; }
 
-        /* LED RADIO SCHEDA */
-        .radio-led-box { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-        .radio-led { width: 12px; height: 12px; background: #300; border-radius: 50%; border: 2px solid #111; box-shadow: inset 0 0 3px #000; transition: background 0.1s, box-shadow 0.1s; }
-        .radio-led.active { background: #ff3333; box-shadow: 0 0 12px #ff0000; }
-        .radio-led-lbl { font-size: 9px; color: #888; font-weight: bold; letter-spacing: 0.5px; }
+        /* NUOVA GRIGLIA LED SCHEDA (GRAFICA UNIFORME) */
+        .led-grid { display: flex; flex-direction: column; gap: 14px; align-items: center; width: 100%; }
+        .led-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .diag-box { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 32px; }
+        .diag-led { width: 12px; height: 12px; background: #300; border-radius: 50%; border: 2px solid #111; box-shadow: inset 0 0 3px #000; transition: background 0.1s, box-shadow 0.1s; }
+        
+        .diag-led.active { background: #ff3333; box-shadow: 0 0 12px #ff0000; }
+        .diag-led.intermittent { animation: fastBlink 0.2s step-end infinite; background: #ff3333; box-shadow: 0 0 12px #ff0000; }
+        @keyframes fastBlink { 50% { opacity: 0; } }
+        
+        .diag-lbl { font-size: 9px; color: #888; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase; }
 
         /* COLONNA DESTRA */
         .right-col { flex: 1.1; display: flex; flex-direction: column; gap: 20px; }
@@ -108,7 +132,7 @@
 <body>
 
 <div class="header-bar">
-    <img src="D-Plus_Logo.svg" alt="D-Plus Automation" class="logo-main">
+    <img src="D-Plus_Logo.svg" alt="D-Plus Automation" class="logo-main" onerror="this.src='https://placehold.co/200x50/111/e31e24?text=D-PLUS+LOGO'">
     <div style="text-align: right; font-size: 10px; color: #444;">HIGH PERFORMANCE GATE CONTROL</div>
 </div>
 
@@ -120,6 +144,12 @@
         </svg>
     </div>
     <div id="col-stop"></div>
+    
+    <div id="photocell-case" title="Clicca per simulare ostacolo (Interruzione Raggio)">
+        <div id="photo-led"></div>
+        <div class="photo-lens"></div>
+    </div>
+
     <div id="motor-box"><div id="cover-led"></div></div>
     <div id="gate-leaf"></div>
 </div>
@@ -129,31 +159,68 @@
         <div id="mach-panel">
             <div class="board-title">MACH1 26v1</div>
             <div id="display" class="blink">--</div>
-            <div style="display:flex; justify-content:space-around; align-items:center; margin-bottom: 25px;">
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 25px; gap: 10px;">
                 <button id="keyA" class="btn">A</button>
-                <div style="display:flex; gap:20px;">
-                    <div class="radio-led-box">
-                        <div id="boardLedR1" class="radio-led"></div>
-                        <span class="radio-led-lbl">RADIO1</span>
+                
+                <div class="led-grid">
+                    <div class="led-row" style="gap: 25px;">
+                        <div class="diag-box">
+                            <span class="diag-lbl">Radio1</span>
+                            <div id="boardLedR1" class="diag-led"></div>
+                        </div>
+                        <div class="diag-box">
+                            <span class="diag-lbl">Radio2</span>
+                            <div id="boardLedR2" class="diag-led"></div>
+                        </div>
                     </div>
-                    <div class="radio-led-box">
-                        <div id="boardLedR2" class="radio-led"></div>
-                        <span class="radio-led-lbl">RADIO2</span>
+                    
+                    <div class="led-row">
+                        <div class="diag-box">
+                            <span class="diag-lbl" style="color:var(--red)">FCA</span>
+                            <div id="boardLedFCA" class="diag-led"></div>
+                        </div>
+                        <div class="diag-box">
+                            <span class="diag-lbl" style="color:var(--red)">FCC</span>
+                            <div id="boardLedFCC" class="diag-led"></div>
+                        </div>
+                        <div class="diag-box">
+                            <span class="diag-lbl" style="color:var(--lamp-yellow)">Foto</span>
+                            <div id="boardLedFoto" class="diag-led"></div>
+                        </div>
+                        <div class="diag-box">
+                            <span class="diag-lbl" style="color:var(--lamp-yellow)">Foto2</span>
+                            <div id="boardLedFoto2" class="diag-led"></div>
+                        </div>
+                        <div class="diag-box">
+                            <span class="diag-lbl" style="color:var(--red)">STOP</span>
+                            <div id="boardLedStop" class="diag-led active"></div>
+                        </div>
+                        <div class="diag-box">
+                            <span class="diag-lbl" style="color:#0f0">Start</span>
+                            <div id="boardLedStart" class="diag-led"></div>
+                        </div>
+                        <div class="diag-box">
+                            <span class="diag-lbl" style="color:#0f0">AP</span>
+                            <div id="boardLedAP" class="diag-led"></div>
+                        </div>
                     </div>
                 </div>
+
                 <button id="keyB" class="btn">B</button>
             </div>
+            
             <div class="remote-row">
                 <div class="remote-case">
                     <div id="remLed" class="remote-led"></div>
-                    <img src="D-Plus_Logo.svg" alt="D-Plus" class="remote-logo">
+                    <div style="font-size:10px; font-weight:bold; color:#555; margin-bottom:8px;">D-PLUS</div>
                     <button id="btnRem1" class="btn" style="width:55px; height:55px; margin-bottom:12px;">1</button>
                     <button id="btnRem2" class="btn" style="width:55px; height:55px;">2</button>
                 </div>
                 <div style="font-size: 12px; color: #888; line-height: 1.4;">
-                    <b style="color:#aaa;">Step-by-Step Logic:</b><br>
-                    1. Open > 2. Stop<br>3. Reverse > 4. Stop<br><br>
-                    <small>Board A/B keys mirror remote 1/2</small>
+                    <b style="color:#aaa;">Auto-Apprendimento (AA):</b><br>
+                    Tieni premuto B (3s) da cancello chiuso.<br><br>
+                    <small>Clicca la fotocellula per simulare l'impegno: il LED <b>Foto</b> lampeggerà.</small>
                 </div>
             </div>
         </div>
@@ -185,7 +252,7 @@
 </div>
 
 <div class="footer-info">
-    <div>SW VERSION: 3.74 | UPDATED: 11/05/2026</div>
+    <div>SW VERSION: 3.85 | BASE CORE: MACH1 26v1</div>
     <div>Dplus System Automation s.r.l. Schio (VI) Italy</div>
 </div>
 
@@ -194,18 +261,20 @@
     let mode = "IDLE", gateState = "CLOSED", lastDir = "CLOSING", leafPos = 0.0, isPedestrian = false;
     let lastTime = 0, autoTimer = null, flashInt = null, preFlashTimeout = null;
     let atOption = 1;
+    let aaPhase = 0, aaMeasuredTime = 0;
+    let isPhotoAligned = true; // Stato Raggio Fotocellula Principale
 
     const menuKeys = ['LS', 'AT', 'VN', 'VR', 'SR', 'SO', 'CA', 'FC', 'AP', 'FL', 'CL'];
     const maxVals = { LS: 3, AT: 1, VN: 4, VR: 4, SR: 3, SO: 4, CA: 4, FC: 1, AP: 2, FL: 3, CL: 3 };
     const langCodes = ["IT", "EN", "ES", "FR"];
 
-    let config = { LS: 1, AT: 0, VN: 2, VR: 2, SR: 1, SO: 0, CA: 0, FC: 0, AP: 0, FL: 3, CL: 3 };
-    const saved = localStorage.getItem('DPlus_Mach_3.74');
+    let config = { LS: 1, AT: 0, VN: 2, VR: 2, SR: 1, SO: 0, CA: 0, FC: 0, AP: 0, FL: 3, CL: 3, TRAVEL_TIME: 10 };
+    const saved = localStorage.getItem('DPlus_Mach_3.81');
     if (saved) config = JSON.parse(saved);
 
     const langDB = {
         IT: {
-            READY: "Pronto. Tieni premuto A (2s) per il Menu.",
+            READY: "Pronto. Tieni premuto A (2s) per il Menu. B (3s) per Auto-Apprendimento.",
             SAVE_MSG: "B per cambiare valore. A+B insieme per Salvare.",
             SAVING: "Salvataggio in corso...",
             LRN: "In attesa segnale radio...",
@@ -224,7 +293,7 @@
             }
         },
         EN: {
-            READY: "Ready. Hold A (2s) for Menu.",
+            READY: "Ready. Hold A (2s) for Menu. B (3s) for Auto-Learning.",
             SAVE_MSG: "B to change value. A+B together to Save.",
             SAVING: "Saving settings...",
             LRN: "Waiting for radio signal...",
@@ -243,7 +312,7 @@
             }
         },
         ES: {
-            READY: "Listo. Mantenga A (2s) para Menú.",
+            READY: "Listo. Mantenga A (2s) para Menú. B (3s) para Auto-Aprendizaje.",
             SAVE_MSG: "B para cambiar. A+B para Guardar.",
             SAVING: "Guardando...",
             LRN: "Esperando señal...",
@@ -262,7 +331,7 @@
             }
         },
         FR: {
-            READY: "Prêt. Maintenir A (2s) pour Menu.",
+            READY: "Prêt. Maintenir A (2s) pour Menu. B (3s) pour Auto-Apprentissage.",
             SAVE_MSG: "B pour changer. A+B pour Sauvegarder.",
             SAVING: "Enregistrement...",
             LRN: "Attente signal...",
@@ -282,7 +351,24 @@
         }
     };
 
-    const disp = document.getElementById('display'), leaf = document.getElementById('gate-leaf'), bulb = document.getElementById('f-bulb'), cLed = document.getElementById('cover-led'), infoText = document.getElementById('info-text');
+    const disp = document.getElementById('display'), leaf = document.getElementById('gate-leaf'), 
+          bulb = document.getElementById('f-bulb'), cLed = document.getElementById('cover-led'), 
+          pLed = document.getElementById('photo-led'), infoText = document.getElementById('info-text'),
+          boardLedFoto = document.getElementById('boardLedFoto');
+
+    // GESTIONE CLICK FOTOCELLULA: IMPEGNO OSTACOLO
+    document.getElementById('photocell-case').onclick = () => {
+        isPhotoAligned = !isPhotoAligned;
+        
+        // Logica richiesta: normalmente SPento, si accende INTERMITTENTE quando impegnato
+        boardLedFoto.classList.toggle('intermittent', !isPhotoAligned);
+        
+        // Inversione marcia immediata per sicurezza se il cancello sta chiudendo
+        if (!isPhotoAligned && (gateState === "CLOSING" || gateState === "PRE_CLOSE")) {
+            lastDir = "OPENING";
+            runGate("OPENING", isPedestrian);
+        }
+    };
 
     function refreshTable() {
         const curL = langCodes[config.LS] || "EN";
@@ -296,6 +382,7 @@
     }
 
     function updateLeds(moving, flashS = false) {
+        // Gestione Cover LED Motore
         cLed.classList.remove('led-on', 'led-breath');
         const cl = config.CL;
         if (moving) {
@@ -305,6 +392,11 @@
             if (cl === 0) cLed.classList.add('led-on');
             else if (cl === 3) cLed.classList.add('led-breath');
         }
+
+        // Gestione LED Giallo Fotocellula Viewport
+        pLed.classList.remove('photo-led-on', 'photo-led-breath');
+        if (moving) { if (flashS) pLed.classList.add('photo-led-on'); } 
+        else { pLed.classList.add('photo-led-breath'); }
     }
 
     function toggleFlash(active) {
@@ -325,18 +417,55 @@
         let dt = (timestamp - lastTime) / 1000;
         lastTime = timestamp;
 
+        // Aggiornamento LED Finecorsa
+        document.getElementById('boardLedFCA').classList.toggle('active', leafPos >= 0.99);
+        document.getElementById('boardLedFCC').classList.toggle('active', leafPos <= 0.01);
+
         if (gateState === "OPENING" || gateState === "CLOSING") {
-            const srP = [0.04, 0.06, 0.08, 0.10][config.SR];
-            const target = isPedestrian ? [0.2, 0.3, 0.4][config.AP] : 1.0;
-            let slow = (gateState==="OPENING" && leafPos > target-srP) || (gateState==="CLOSING" && leafPos < srP);
-            const speed = slow ? 0.05 : 0.12;
+            let speed = 0.12; 
+
+            if (mode === "AA") {
+                speed = 0.06; 
+                if (aaPhase === 3) {
+                    aaMeasuredTime += dt;
+                    disp.innerText = Math.floor(aaMeasuredTime).toString().padStart(2, '0');
+                }
+            } else {
+                const srP = [0.04, 0.06, 0.08, 0.10][config.SR];
+                const target = isPedestrian ? [0.2, 0.3, 0.4][config.AP] : 1.0;
+                let slow = (gateState==="OPENING" && leafPos > target-srP) || (gateState==="CLOSING" && leafPos < srP);
+                speed = slow ? 0.05 : 0.12;
+            }
             
             if (gateState === "OPENING") {
                 leafPos += speed * dt;
-                if (leafPos >= target) { leafPos = target; gateState = "OPEN"; endMove(); startAuto(); }
+                const targetMax = mode === "AA" ? 1.0 : (isPedestrian ? [0.2, 0.3, 0.4][config.AP] : 1.0);
+                if (leafPos >= targetMax) {
+                    leafPos = targetMax;
+                    if (mode === "AA" && aaPhase === 1) {
+                        aaPhase = 2; gateState = "STOPPED"; toggleFlash(false);
+                        setTimeout(() => { aaPhase = 3; aaMeasuredTime = 0; runGate("CLOSING", false); }, 1000);
+                    } else { gateState = "OPEN"; endMove(); startAuto(); }
+                }
             } else {
-                leafPos -= speed * dt;
-                if (leafPos <= 0) { leafPos = 0; gateState = "CLOSED"; endMove(); }
+                // Inibizione/Inversione chiusura se fotocellula oscurata
+                if (!isPhotoAligned && mode !== "AA") {
+                    lastDir = "OPENING"; runGate("OPENING", isPedestrian);
+                } else {
+                    leafPos -= speed * dt;
+                    if (leafPos <= 0) {
+                        leafPos = 0; gateState = "CLOSED";
+                        if (mode === "AA" && aaPhase === 3) {
+                            aaPhase = 4; endMove(); mode = "IDLE";
+                            disp.innerText = "OK"; disp.classList.remove('blink');
+                            config.TRAVEL_TIME = Math.round(aaMeasuredTime / 2); 
+                            localStorage.setItem('DPlus_Mach_3.81', JSON.stringify(config));
+                            setTimeout(() => { if(mode === "IDLE") { disp.innerText = "--"; disp.classList.add('blink'); } }, 2000);
+                            return; 
+                        }
+                        endMove();
+                    }
+                }
             }
             leaf.style.transform = `translateX(-${leafPos * 100}%)`;
         }
@@ -344,97 +473,84 @@
     }
     requestAnimationFrame(physics);
 
-    function endMove() { toggleFlash(false); if(mode==="IDLE") { disp.innerText="--"; disp.classList.add('blink'); } }
+    function endMove() { 
+        toggleFlash(false); 
+        if(mode==="IDLE") { disp.innerText="--"; disp.classList.add('blink'); } 
+    }
 
     function startAuto() {
         if (config.CA > 0 && gateState === "OPEN") {
             const d = [0, 3, 7, 10, 15][config.CA];
-            autoTimer = setTimeout(() => { if(gateState==="OPEN") runGate("CLOSING", isPedestrian); }, d * 1000);
+            autoTimer = setTimeout(() => { if(gateState==="OPEN" && isPhotoAligned) runGate("CLOSING", isPedestrian); }, d * 1000);
         }
     }
 
     function runGate(ns, ped) {
-        clearTimeout(preFlashTimeout);
-        clearTimeout(autoTimer);
-        lastTime = performance.now();
-        isPedestrian = ped;
+        if (ns === "CLOSING" && !isPhotoAligned && mode !== "AA") return;
+        clearTimeout(preFlashTimeout); clearTimeout(autoTimer);
+        lastTime = performance.now(); isPedestrian = ped;
 
-        if (config.FL === 0 || config.FL === 1) {
+        if (mode !== "AA" && (config.FL === 0 || config.FL === 1)) {
             gateState = (ns === "OPENING") ? "PRE_OPEN" : "PRE_CLOSE";
             toggleFlash(true);
             if(mode==="IDLE") { disp.innerText = (ns === "OPENING" ? "OP" : "CL"); disp.classList.add('blink-fast'); }
             preFlashTimeout = setTimeout(() => {
-                gateState = ns;
-                preFlashTimeout = null;
-                lastTime = performance.now();
+                if (ns === "CLOSING" && !isPhotoAligned) { endMove(); gateState = "OPEN"; return; }
+                gateState = ns; preFlashTimeout = null; lastTime = performance.now();
                 if(mode==="IDLE") { disp.classList.remove('blink-fast'); }
             }, 2500);
         } else {
-            gateState = ns;
-            toggleFlash(true);
+            gateState = ns; toggleFlash(true);
             if(mode==="IDLE") { disp.innerText = (ns==="OPENING"?"OP":"CL"); disp.classList.remove('blink'); }
+            else if (mode === "AA" && aaPhase === 1) { disp.innerText = "AA"; disp.classList.remove('blink'); }
         }
     }
 
     function triggerCommand(ped) {
-        if (config.FC === 1) {
-            if (gateState !== "CLOSED" && gateState !== "OPEN" && gateState !== "STOPPED") return;
-        }
+        if (mode === "AA") return;
+        if (config.FC === 1 && (gateState !== "CLOSED" && gateState !== "OPEN" && gateState !== "STOPPED")) return;
 
-        document.getElementById('remLed').classList.add('active');
-        setTimeout(() => document.getElementById('remLed').classList.remove('active'), 200);
+        // Visual Feedback impulso input su scheda (se in ingresso Start/AP)
+        const ledTrg = ped ? document.getElementById('boardLedAP') : document.getElementById('boardLedStart');
+        if (ledTrg) { ledTrg.classList.add('active'); setTimeout(() => ledTrg.classList.remove('active'), 300); }
 
         if (gateState === "PRE_OPEN" || gateState === "PRE_CLOSE") {
-            clearTimeout(preFlashTimeout);
-            preFlashTimeout = null;
+            clearTimeout(preFlashTimeout); preFlashTimeout = null;
             lastDir = (gateState === "PRE_OPEN") ? "OPENING" : "CLOSING";
-            gateState = "STOPPED";
-            if(mode==="IDLE") { disp.classList.remove('blink-fast'); }
-            endMove();
-            return;
+            gateState = "STOPPED"; if(mode==="IDLE") { disp.classList.remove('blink-fast'); }
+            endMove(); return;
         }
 
         if (gateState === "CLOSED") { lastDir = "OPENING"; runGate("OPENING", ped); }
         else if (gateState === "OPEN") { lastDir = "CLOSING"; runGate("CLOSING", ped); }
         else if (gateState === "OPENING" || gateState === "CLOSING") { lastDir = gateState; gateState = "STOPPED"; endMove(); }
-        else if (gateState === "STOPPED") { let next = (lastDir === "OPENING") ? "CLOSING" : "OPENING"; lastDir = next; runGate(next, ped); }
+        else if (gateState === "STOPPED") { 
+            let next = (lastDir === "OPENING") ? "CLOSING" : "OPENING"; 
+            lastDir = next; runGate(next, ped); 
+        }
     }
 
-    /* GESTIONE PRESSIONE TELECOMANDO (RF SIMULATOR) */
     function handleRemotePress(channel) {
-        // 1. Accensione temporanea del LED Radio sulla scheda
         const rLed = document.getElementById(channel === 1 ? 'boardLedR1' : 'boardLedR2');
         if (rLed) rLed.classList.add('active');
         setTimeout(() => { if (rLed) rLed.classList.remove('active'); }, 300);
 
-        // 2. Lampeggio LED sul case del telecomando
         document.getElementById('remLed').classList.add('active');
         setTimeout(() => document.getElementById('remLed').classList.remove('active'), 200);
 
-        // 3. Logica AT in apprendimento
         if (mode === "AT_LEARNING") {
-            disp.innerText = "OK";
-            disp.classList.remove('blink');
-            mode = "AT_SAVING";
+            disp.innerText = "OK"; disp.classList.remove('blink'); mode = "AT_SAVING";
             const curL = langCodes[config.LS] || "EN";
             const successMsg = curL === "IT" ? "Codice memorizzato con successo!" : 
                                curL === "ES" ? "¡Código guardado con éxito!" : 
                                curL === "FR" ? "Code enregistré avec succès!" : "Code saved successfully!";
             infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL]||langDB["EN"]).LABELS.AT[0]}</b><br><span style="color:#0f0; font-weight:bold;">${successMsg}</span>`;
-            
-            // Ritorno automatico al sottomenu AT per inserire un altro telecomando
-            setTimeout(() => {
-                mode = "MENU";
-                updateMenu();
-            }, 1200);
-            return;
+            setTimeout(() => { mode = "MENU"; updateMenu(); }, 1200); return;
         }
-
-        // 4. Funzionamento normale (IDLE)
         triggerCommand(channel === 2);
     }
 
-    let isAP=false, isBP=false, is1P=false, is2P=false, hATimer=null, cTimer=null, currentIdx=0;
+    let isAP=false, isBP=false, is1P=false, is2P=false, hATimer=null, hBTimer=null, cTimer=null, currentIdx=0;
 
     function updateMenu() {
         const k = menuKeys[currentIdx], curL = langCodes[config.LS] || "EN";
@@ -448,26 +564,18 @@
 
     function updateMenuAT() {
         const curL = langCodes[config.LS] || "EN";
-        disp.innerText = atOption;
-        disp.classList.remove('blink');
-        const title = curL === "IT" ? "Apprendim. Telecomando" : 
-                      curL === "ES" ? "Aprender Mando" : 
-                      curL === "FR" ? "Apprentissage" : "Remote Learning";
-        const optDesc = atOption === 1 ? (curL === "IT" ? "1 (Apertura Totale)" : "1 (Total Opening)") : 
-                                         (curL === "IT" ? "2 (Apertura Pedonale)" : "2 (Pedestrian Opening)");
-        const helpMsg = curL === "IT" ? "Premi B per selezionare 1 o 2.<br>Premi A per confermare (Go)." :
-                        curL === "ES" ? "Pulse B para seleccionar 1 o 2.<br>Pulse A para confirmar (Go)." :
-                        curL === "FR" ? "Appuyez sur B pour choisir 1 ou 2.<br>Appuyez sur A pour valider (Go)." :
-                        "Press B to select 1 or 2.<br>Press A to confirm (Go).";
+        disp.innerText = atOption; disp.classList.remove('blink');
+        const title = curL === "IT" ? "Apprendim. Telecomando" : curL === "ES" ? "Aprender Mando" : curL === "FR" ? "Apprentissage" : "Remote Learning";
+        const optDesc = atOption === 1 ? (curL === "IT" ? "1 (Apertura Totale)" : "1 (Total Opening)") : (curL === "IT" ? "2 (Apertura Pedonale)" : "2 (Pedestrian Opening)");
+        const helpMsg = curL === "IT" ? "Premi B per selezionare 1 o 2.<br>Premi A per confermare (Go)." : "Press B to select 1 or 2.<br>Press A to confirm (Go).";
         infoText.innerHTML = `<b style="color:var(--red);">${title}</b><br>Opzione: <b>${optDesc}</b><br><br><small style="color:#888;">${helpMsg}</small>`;
     }
 
     function save() {
         mode = "SAVING"; disp.innerText = "OK"; disp.classList.remove('blink');
-        localStorage.setItem('DPlus_Mach_3.74', JSON.stringify(config));
+        localStorage.setItem('DPlus_Mach_3.81', JSON.stringify(config));
         setTimeout(() => { 
-            mode = "IDLE"; disp.innerText = "--"; disp.classList.add('blink'); 
-            refreshTable(); 
+            mode = "IDLE"; disp.innerText = "--"; disp.classList.add('blink'); refreshTable(); 
             infoText.innerHTML = `<b style="color:var(--red);">Status Motor:</b><br>${(langDB[langCodes[config.LS]]||langDB["EN"]).READY}`;
         }, 1200);
     }
@@ -478,52 +586,24 @@
             isAP = true; document.getElementById('keyA').classList.add('btn-active');
             if (mode === "IDLE") hATimer = setTimeout(() => { mode="MENU"; currentIdx=0; updateMenu(); }, 2000);
             else if (mode === "EDIT_AT") {
-                mode = "AT_LEARNING";
-                disp.innerText = "Go";
-                disp.classList.add('blink');
+                mode = "AT_LEARNING"; disp.innerText = "Go"; disp.classList.add('blink');
                 const curL = langCodes[config.LS] || "EN";
-                const waitMsg = curL === "IT" ? "In attesa segnale radio..." :
-                                curL === "ES" ? "Esperando señal..." :
-                                curL === "FR" ? "Attente signal..." : "Waiting for radio signal...";
-                const title = curL === "IT" ? "Apprendim. Telecomando" : 
-                              curL === "ES" ? "Aprender Mando" : 
-                              curL === "FR" ? "Apprentissage" : "Remote Learning";
-                const optDesc = atOption === 1 ? (curL === "IT" ? "1 (Totale)" : "1 (Total)") : 
-                                                 (curL === "IT" ? "2 (Pedonale)" : "2 (Pedestrian)");
+                const waitMsg = curL === "IT" ? "In attesa segnale radio..." : "Waiting for radio signal...";
+                const title = curL === "IT" ? "Apprendim. Telecomando" : "Remote Learning";
+                const optDesc = atOption === 1 ? (curL === "IT" ? "1 (Totale)" : "1 (Total)") : (curL === "IT" ? "2 (Pedonale)" : "2 (Pedestrian)");
                 infoText.innerHTML = `<b style="color:var(--red);">${title}</b><br>Opzione: <b>${optDesc}</b><br><br><span style="color:#ffeb3b;" class="blink">${waitMsg}</span><br><br><small style="color:#888;">Premi il tasto 1 o 2 sul telecomando per memorizzare.<br>Premi A per annullare.</small>`;
             }
-            else if (mode === "AT_LEARNING") {
-                mode = "MENU";
-                updateMenu();
-            }
+            else if (mode === "AT_LEARNING") { mode = "MENU"; updateMenu(); }
             else if (isBP && mode !== "IDLE" && mode !== "EDIT_AT" && mode !== "AT_LEARNING") cTimer = setTimeout(save, 1500);
         } else if (k === 'b' && !isBP) {
             isBP = true; document.getElementById('keyB').classList.add('btn-active');
-            if (mode === "MENU") { 
-                if (menuKeys[currentIdx] === 'AT') {
-                    mode = "EDIT_AT";
-                    atOption = 1;
-                    updateMenuAT();
-                } else {
-                    mode = "EDIT"; updateMenu(); 
-                }
-            } 
-            else if (mode === "EDIT_AT") {
-                atOption = (atOption === 1) ? 2 : 1;
-                updateMenuAT();
-            }
-            else if (mode === "EDIT") { 
-                config[menuKeys[currentIdx]] = (config[menuKeys[currentIdx]]+1) > maxVals[menuKeys[currentIdx]] ? 0 : config[menuKeys[currentIdx]]+1;
-                refreshTable(); updateMenu();
-            }
+            if (mode === "IDLE") { hBTimer = setTimeout(() => { mode = "AA"; aaPhase = 1; aaMeasuredTime = 0; disp.classList.remove('blink'); runGate("OPENING", false); }, 3000); }
+            else if (mode === "MENU") { if (menuKeys[currentIdx] === 'AT') { mode = "EDIT_AT"; atOption = 1; updateMenuAT(); } else { mode = "EDIT"; updateMenu(); } } 
+            else if (mode === "EDIT_AT") { atOption = (atOption === 1) ? 2 : 1; updateMenuAT(); }
+            else if (mode === "EDIT") { config[menuKeys[currentIdx]] = (config[menuKeys[currentIdx]]+1) > maxVals[menuKeys[currentIdx]] ? 0 : config[menuKeys[currentIdx]]+1; refreshTable(); updateMenu(); }
             if (isAP && mode !== "IDLE" && mode !== "EDIT_AT" && mode !== "AT_LEARNING") cTimer = setTimeout(save, 1500);
-        } else if (k === '1' && !is1P) {
-            is1P = true; document.getElementById('btnRem1').classList.add('btn-active'); 
-            handleRemotePress(1);
-        } else if (k === '2' && !is2P) {
-            is2P = true; document.getElementById('btnRem2').classList.add('btn-active'); 
-            handleRemotePress(2);
-        }
+        } else if (k === '1' && !is1P) { is1P = true; document.getElementById('btnRem1').classList.add('btn-active'); handleRemotePress(1); }
+        else if (k === '2' && !is2P) { is2P = true; document.getElementById('btnRem2').classList.add('btn-active'); handleRemotePress(2); }
     };
 
     window.onkeyup = (e) => {
@@ -536,13 +616,10 @@
             else if (mode === "EDIT") { mode = "MENU"; updateMenu(); }
         } else if (k === 'b') {
             isBP = false; document.getElementById('keyB').classList.remove('btn-active');
-            clearTimeout(cTimer);
+            clearTimeout(hBTimer); clearTimeout(cTimer);
             if (mode === "IDLE") triggerCommand(true); 
-        } else if (k === '1') {
-            is1P = false; document.getElementById('btnRem1').classList.remove('btn-active');
-        } else if (k === '2') {
-            is2P = false; document.getElementById('btnRem2').classList.remove('btn-active');
-        }
+        } else if (k === '1') { is1P = false; document.getElementById('btnRem1').classList.remove('btn-active'); }
+        else if (k === '2') { is2P = false; document.getElementById('btnRem2').classList.remove('btn-active'); }
     };
 
     document.getElementById('btnRem1').onmousedown = () => { if(!is1P) { document.getElementById('btnRem1').classList.add('btn-active'); handleRemotePress(1); } };
