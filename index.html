@@ -246,8 +246,8 @@
                     </div>
                     <div class="quick-help">
                         <b style="color:#ccc;">Auto-Apprendimento:</b><br>
-                        Tieni premuto <b>B</b> (3s) ad anta chiusa.<br>
-                        <span style="color:#a88;">Tocca la fotocellula per simulare l'ostacolo (LED Foto lampeggia).</span>
+                        Hold down <b>B</b> (3") with door closed.<br>
+                        <span style="color:#a88;">Touch the photocell to simulate the obstacle (LED Foto flashes) After 15" automatic exit from the menu.</span>
                     </div>
                 </div>
             </div>
@@ -583,6 +583,7 @@
             row.classList.add('active-row');
             row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
+        resetConfigTimeout();
     }
 
     function updateMenuAT() {
@@ -596,21 +597,33 @@
         else optText = curL === "IT" ? "0 (Cancella)" : "0 (Erase)";
 
         infoText.innerHTML = `<b style="color:var(--red);">${atLabel}</b><br>Option: <b>${optText}</b><br><br><small style="color:#888;">Tap B to change.<br>Tap A to confirm.</small>`;
+        resetConfigTimeout();
     }
 
     function save() {
+        clearTimeout(configTimeout); // Ferma il timer di inattività
         mode = "SAVING"; disp.innerText = "OK"; disp.classList.remove('blink');
         localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config));
         setTimeout(() => { 
             mode = "IDLE"; disp.innerText = "--"; disp.classList.add('blink'); refreshTable(); 
-            infoText.innerHTML = `<b style="color:var(--red);">Status Motor:</b><br>${(langDB[langCodes[config.LS]]||langDB["EN"]).READY}`;
+    //        infoText.innerHTML = `<b style="color:var(--red);">Status Motor:</b><br>${(langDB[langCodes[config.LS]]||langDB["EN"]).READY}`;
         }, 1200);
     }
 
     // --- GESTIONE AVANZATA EVENTI APP CON FILTRI ---
-    let holdTimerA = null, holdTimerB = null, saveTimer = null;
+    let holdTimerA = null, holdTimerB = null, saveTimer = null, configTimeout = null;
     let isPressedA = false, isPressedB = false;
     let isLongPressA = false, isLongPressB = false;
+
+    function resetConfigTimeout() {
+    clearTimeout(configTimeout);
+    // Attiva il timer solo se siamo all'interno del menu
+    if (["MENU", "EDIT", "EDIT_AT", "AT_LEARNING"].includes(mode)) {
+        configTimeout = setTimeout(() => {
+            save(); // Se passano 15 secondi, emula A+B uscendo e salvando
+        }, 15000);
+    }
+}
 
     function pressA() {
         if(isPressedA) return; isPressedA = true;
@@ -627,6 +640,7 @@
             mode = "AT_LEARNING"; disp.innerText = "Go"; disp.classList.add('blink');
             const msg = curL === "IT" ? "In attesa segnale radio..." : "Waiting for radio signal...";
             infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL]||langDB["EN"]).LABELS.AT[0]}</b><br><span style="color:#ffeb3b;" class="blink">${msg}</span>`;
+            resetConfigTimeout();
         } else if (mode === "AT_LEARNING") { 
             mode = "MENU"; updateMenu(); 
         }
