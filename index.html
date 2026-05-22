@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>DPlus MACH1 26v1 - PRO Telemetry Edition</title>
+    <style>
+        :root { 
+            --red: #e31e24; 
+            --panel: #1a1a1a; 
+            --display: #000; 
+            --gate-blue: #2c3e50; 
+            --led-red: #ff0000; 
+            --lamp-yellow: #ffeb3b; 
+            --bg-app: #121212;
+        }
+        
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body { 
+            background: var(--bg-app); 
+            color: #fff; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            margin: 0; 
+            padding: env(safe-area-inset-top, 10px) env(safe-area-inset-right, 10px) env(safe-area-inset-bottom, 10px) env(safe-area-inset-left, 10px);
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100dvh;
+            touch-action: manipulation; 
+            user-select: none;
+            -webkit-user-select: none;
+            overflow-x: hidden;
+        }
+        
+        .app-container {
+            width: 100%;
+            max-width: 950px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 10px 5px;
+        }
+
+        /* TESTATA */
+        .header-bar { 
+            width: 100%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 5px 0 10px 0; 
+        }
+        .logo-main { height: 40px; filter: drop-shadow(0 0 8px rgba(227, 30, 36, 0.4)); }
+        .app-subtitle { font-size: 9px; color: #555; font-weight: 700; letter-spacing: 0.5px; text-align: right; }
+
+        /* AREA SIMULAZIONE CANCELLO */
+        #viewport { 
+            width: 100%; 
+            height: 160px; 
+            position: relative; 
+            background: #1a1a1a; 
+            border-radius: 16px; 
+            border-bottom: 6px solid #333; 
+            overflow: hidden; 
+            box-shadow: inset 0 0 40px #000, 0 8px 20px rgba(0,0,0,0.5);
+        }
+        #col-motor { position: absolute; left: 12%; bottom: 0; width: 45px; height: 125px; background: #333; z-index: 2; border: 1px solid #444; }
+        #col-stop { position: absolute; right: 12%; bottom: 0; width: 25px; height: 125px; background: #333; z-index: 2; border: 1px solid #444; }
+        
+        #motor-box { position: absolute; left: calc(12% - 6px); bottom: 0; width: 57px; height: 50px; background: #222; z-index: 6; border: 1px solid #444; border-radius: 5px 5px 0 0; }
+        #cover-led { position: absolute; left: 50%; top: 10px; transform: translateX(-50%); width: 8px; height: 30px; background: #400; border-radius: 3px; transition: background 0.3s; }
+        
+        /* FOTOCELLULA */
+        #photocell-case {
+            position: absolute; right: calc(12% + 25px); bottom: 35px; width: 15px; height: 34px;
+            background: #222; border: 1px solid #444; border-radius: 4px 0 0 4px;
+            z-index: 8; display: flex; flex-direction: column; align-items: center;
+            box-shadow: -3px 3px 10px rgba(0,0,0,0.6); cursor: pointer;
+        }
+        #photo-led { width: 7px; height: 7px; background: #443000; border-radius: 50%; margin-top: 3px; transition: 0.1s; }
+        .photo-lens { width: 7px; height: 14px; background: #050505; border-radius: 7px; margin-top: 3px; border: 1px solid #111; }
+
+        /* ANIMAZIONI LED */
+        .led-on { background: #ff3333 !important; box-shadow: 0 0 20px #ff0000; }
+        .led-breath { animation: breath 2.5s ease-in-out infinite; background: #ff0000; }
+        .photo-led-on { background: var(--lamp-yellow) !important; box-shadow: 0 0 12px var(--lamp-yellow); }
+        .photo-led-breath { animation: photoBreath 2s ease-in-out infinite; background: var(--lamp-yellow); }
+        
+        @keyframes breath { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; box-shadow: 0 0 20px #ff0000; } }
+        @keyframes photoBreath { 0%, 100% { opacity: 0.15; box-shadow: none; } 50% { opacity: 1; box-shadow: 0 0 10px var(--lamp-yellow); } }
+        
+        #flasher { position: absolute; top: -35px; left: 5px; width: 35px; height: 35px; z-index: 10; }
+        .f-on { fill: var(--lamp-yellow) !important; filter: drop-shadow(0 0 20px var(--lamp-yellow)); }
+        .f-off { fill: #430 !important; }
+
+        #gate-leaf { 
+            position: absolute; width: calc(76% - 65px); height: 80px; bottom: 10px; left: calc(12% + 40px); 
+            background: repeating-linear-gradient(90deg, var(--gate-blue), var(--gate-blue) 35px, #1a252f 37px); 
+            border: 2px solid #111; z-index: 5; transform: translateX(0%); will-change: transform;
+        }
+
+        /* GRIGLIE E PANNELLI SCHEDA */
+        .main-layout { display: flex; flex-direction: column; gap: 20px; width: 100%; }
+        @media (min-width: 768px) { .main-layout { flex-direction: row; align-items: stretch; } }
+        
+        .central-col { flex: 1.2; display: flex; flex-direction: column; }
+        #mach-panel { 
+            background: var(--panel); border-radius: 22px; padding: 20px; 
+            border: 1px solid #333; box-shadow: 0 12px 30px rgba(0,0,0,0.7);
+            display: flex; flex-direction: column; height: 100%; justify-content: space-between;
+        }
+        
+        .board-title { color: var(--red); font-weight: 900; font-size: 22px; font-style: italic; text-align: center; margin-bottom: 12px; letter-spacing: 1px; text-shadow: 0 0 10px rgba(227,30,36,0.5); }
+        
+        #display { 
+            background: var(--display); height: 85px; border-radius: 12px; display: flex; 
+            justify-content: center; align-items: center; font-family: 'Courier New', monospace; 
+            font-size: 55px; color: #f00; border: 3px solid #111; margin-bottom: 20px; 
+            box-shadow: inset 0 0 15px #900; font-weight: bold;
+        }
+        
+        .controls-matrix { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 20px; }
+        
+        .btn { 
+            width: 58px; height: 58px; background: #333; border-radius: 50%; 
+            border: 2px solid #111; color: #ccc; font-weight: bold; font-size: 20px; 
+            display: flex; justify-content: center; align-items: center; 
+            box-shadow: 0 4px 0 #000; outline: none; transition: all 0.08s ease; 
+            cursor: pointer; flex-shrink: 0;
+        }
+        .btn:active, .btn-active { transform: translateY(3px); box-shadow: 0 1px 0 #000; background: var(--red) !important; color: #fff !important; }
+
+        .led-grid { display: flex; flex-direction: column; gap: 12px; align-items: center; flex-grow: 1; overflow: hidden; }
+        .led-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; width: 100%; }
+        @media (max-width: 380px) { .led-row { gap: 5px; } }
+
+        .diag-box { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 28px; }
+        .diag-led { width: 11px; height: 11px; background: #300; border-radius: 50%; border: 2px solid #111; box-shadow: inset 0 0 2px #000; transition: 0.1s; }
+        
+        .diag-led.active { background: #ff3333; box-shadow: 0 0 10px #ff0000; }
+        .diag-led.intermittent { animation: fastBlink 0.2s step-end infinite; background: #ff3333; box-shadow: 0 0 10px #ff0000; }
+        @keyframes fastBlink { 50% { opacity: 0; } }
+        
+        .diag-lbl { font-size: 8px; color: #888; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; }
+
+        /* SEZIONE COMANDI REMOTI E INFO RAPIDE */
+        .remote-row { display: flex; gap: 15px; align-items: center; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 16px; border: 1px solid #252525; }
+        .remote-case { min-width: 95px; background: #222; padding: 12px 14px; border-radius: 24px; border: 2px solid #444; display: flex; flex-direction: column; align-items: center; box-shadow: 0 6px 15px #000; }
+        .remote-led { width: 8px; height: 8px; background: #300; border-radius: 50%; margin-bottom: 6px; }
+        .remote-led.active { background: #0f0; box-shadow: 0 0 10px #0f0; }
+        .remote-logo { margin-bottom: 10px; height: 13px; display: flex; align-items: center; justify-content: center; width: 100%; }
+        .remote-logo img { height: 100%; max-width: 75px; filter: drop-shadow(0 0 2px rgba(227,30,36,0.3)); }
+        .remote-btn-group { display: flex; gap: 8px; }
+        .btn-rem { width: 42px; height: 42px; font-size: 15px; }
+
+        .quick-help { font-size: 11px; color: #888; line-height: 1.3; flex-grow: 1; }
+
+        /* COLONNA DESTRA (TABELLA E STATUS) */
+        .right-col { flex: 1; display: flex; flex-direction: column; gap: 15px; min-width: 0; }
+        
+        .table-wrapper { width: 100%; overflow-x: auto; border-radius: 10px; background: #161616; border: 1px solid #222; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: left; min-width: 260px; }
+        th { background: #222; padding: 8px 10px; color: var(--red); font-size: 9.5px; text-transform: uppercase; font-weight: 800; }
+        td { padding: 8px 10px; border-bottom: 1px solid #222; white-space: nowrap; }
+        .td-desc { white-space: normal; width: 100%; }
+        .active-row { background: rgba(227, 30, 36, 0.2); border-left: 4px solid var(--red); }
+        
+        #info-box { background: #1a1a1a; border-radius: 14px; padding: 15px; border-left: 4px solid var(--red); font-size: 13px; line-height: 1.5; box-shadow: 0 6px 18px rgba(0,0,0,0.4); flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
+        
+        .blink { animation: blk 1s step-end infinite; }
+        .blink-fast { animation: blk 0.4s step-end infinite; }
+        @keyframes blk { 50% { opacity: 0; } }
+
+        /* FOOTER */
+        .footer-info { width: 100%; text-align: center; font-size: 10px; color: #555; padding-top: 10px; border-top: 1px solid #222; margin-top: auto; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    
+    <div class="header-bar">
+        <img src="D-Plus_Logo.svg" alt="D-Plus Automation" class="logo-main" onerror="this.src='https://placehold.co/180x40/111/e31e24?text=D-PLUS+LOGO'">
+        <div class="app-subtitle">MACH1 ENGINE<br>PRO TELEMETRY APP</div>
+    </div>
+
+    <div id="viewport">
+        <div id="col-motor">
+            <svg id="flasher" viewBox="0 0 100 120">
+                <path id="f-bulb" class="f-off" d="M30,100 Q30,20 50,20 Q70,20 70,100 Z" />
+                <rect x="15" y="100" width="70" height="20" fill="#222" rx="2" />
+            </svg>
+        </div>
+        <div id="col-stop"></div>
+        
+        <div id="photocell-case" title="Tocca per simulare ostacolo">
+            <div id="photo-led"></div>
+            <div class="photo-lens"></div>
+        </div>
+
+        <div id="motor-box"><div id="cover-led"></div></div>
+        
+        <div id="gate-leaf"></div>
+    </div>
+
+    <div class="main-layout">
+        
+        <div class="central-col">
+            <div id="mach-panel">
+                <div>
+                    <div class="board-title">MACH1 26v1</div>
+                    <div id="display" class="blink">--</div>
+                    
+                    <div class="controls-matrix">
+                        <button id="keyA" class="btn">A</button>
+                        
+                        <div class="led-grid">
+                            <div class="led-row" style="gap: 20px;">
+                                <div class="diag-box"><span class="diag-lbl">Radio1</span><div id="boardLedR1" class="diag-led"></div></div>
+                                <div class="diag-box"><span class="diag-lbl">Radio2</span><div id="boardLedR2" class="diag-led"></div></div>
+                            </div>
+                            
+                            <div class="led-row">
+                                <div class="diag-box"><span class="diag-lbl" style="color:var(--red)">FCA</span><div id="boardLedFCA" class="diag-led"></div></div>
+                                <div class="diag-box"><span class="diag-lbl" style="color:var(--red)">FCC</span><div id="boardLedFCC" class="diag-led"></div></div>
+                                <div class="diag-box"><span class="diag-lbl" style="color:var(--lamp-yellow)">Foto</span><div id="boardLedFoto" class="diag-led"></div></div>
+                                <div class="diag-box"><span class="diag-lbl" style="color:var(--lamp-yellow)">Foto2</span><div id="boardLedFoto2" class="diag-led"></div></div>
+                                <div class="diag-box"><span class="diag-lbl" style="color:var(--red)">STOP</span><div id="boardLedStop" class="diag-led active"></div></div>
+                                <div class="diag-box"><span class="diag-lbl" style="color:#0f0">Start</span><div id="boardLedStart" class="diag-led"></div></div>
+                                <div class="diag-box"><span class="diag-lbl" style="color:#0f0">AP</span><div id="boardLedAP" class="diag-led"></div></div>
+                            </div>
+                        </div>
+
+                        <button id="keyB" class="btn">B</button>
+                    </div>
+                </div>
+                
+                <div class="remote-row">
+                    <div class="remote-case">
+                        <div id="remLed" class="remote-led"></div>
+                        <div class="remote-logo">
+                            <img src="D-Plus_Logo.svg" alt="D-Plus" onerror="this.style.display='none';">
+                        </div>
+                        <div class="remote-btn-group">
+                            <button id="btnRem1" class="btn btn-rem">1</button>
+                            <button id="btnRem2" class="btn btn-rem">2</button>
+                        </div>
+                    </div>
+                    <div class="quick-help">
+                        <b style="color:#ccc;">Ostacolo (Fotocellula):</b><br>
+                        Tocca il sensore nel disegno per simulare l'ostacolo.<br>
+                        <span style="color:#a88;">In Chiusura &rarr; Inverte in apertura a velocità rallentata escludendo CA.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="right-col">
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>Par</th><th>Description</th><th style="text-align:right;">Val</th></tr></thead>
+                    <tbody id="menu-table">
+                        <tr id="r-LS"><td>LS</td><td class="td-desc" id="lbl-LS">System Language</td><td id="v-LS" style="text-align:right; font-weight:bold;">EN</td></tr>
+                        <tr id="r-AT"><td>AT</td><td class="td-desc" id="lbl-AT">Remote Learning</td><td id="v-AT" style="text-align:right;">0</td></tr>
+                        <tr id="r-VN"><td>VN</td><td class="td-desc" id="lbl-VN">Motor Speed</td><td id="v-VN" style="text-align:right;">2</td></tr>
+                        <tr id="r-VR"><td>VR</td><td class="td-desc" id="lbl-VR">Slow Speed</td><td id="v-VR" style="text-align:right;">2</td></tr>
+                        <tr id="r-SR"><td>SR</td><td class="td-desc" id="lbl-SR">Slow Space</td><td id="v-SR" style="text-align:right;">1</td></tr>
+                        <tr id="r-SO"><td>SO</td><td class="td-desc" id="lbl-SO">Obstacle Sens.</td><td id="v-SO" style="text-align:right;">0</td></tr>
+                        <tr id="r-CA"><td>CA</td><td class="td-desc" id="lbl-CA">Auto Close</td><td id="v-CA" style="text-align:right;">0</td></tr>
+                        <tr id="r-FC"><td>FC</td><td class="td-desc" id="lbl-FC">Condo Mode</td><td id="v-FC" style="text-align:right;">0</td></tr>
+                        <tr id="r-AP"><td>AP</td><td class="td-desc" id="lbl-AP">Pedestrian Open</td><td id="v-AP" style="text-align:right;">0</td></tr>
+                        <tr id="r-FL"><td>FL</td><td class="td-desc" id="lbl-FL">Flasher Mode</td><td id="v-FL" style="text-align:right;">3</td></tr>
+                        <tr id="r-CL"><td>CL</td><td class="td-desc" id="lbl-CL">Cover LED</td><td id="v-CL" style="text-align:right;">3</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="info-box">
+                <span id="info-text">Caricamento Telemetria...</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-info">
+        MACH1 APP SIMULATOR PRO v4.2 | DPLUS AUTOMATION
+    </div>
+
+</div>
+
+<script>
+    // --- STATO DEL SISTEMA ---
+    let mode = "IDLE", gateState = "CLOSED", lastDir = "CLOSING", leafPos = 0.0, isPedestrian = false;
+    let lastTime = 0, autoTimer = null, flashInt = null, preFlashTimeout = null;
+    let atOption = 1;
+    let isPhotoAligned = true; 
+    let isReducedSpeed = false; // Riapertura lenta da fotocellula
+    let excludeAutoClose = false; // Flag per saltare la chiusura automatica
+
+    const menuKeys = ['LS', 'AT', 'VN', 'VR', 'SR', 'SO', 'CA', 'FC', 'AP', 'FL', 'CL'];
+    const maxVals = { LS: 3, AT: 1, VN: 4, VR: 4, SR: 3, SO: 4, CA: 4, FC: 1, AP: 2, FL: 3, CL: 3 };
+    const langCodes = ["IT", "EN", "ES", "FR"];
+
+    let config = { LS: 0, AT: 0, VN: 2, VR: 2, SR: 1, SO: 0, CA: 0, FC: 0, AP: 0, FL: 3, CL: 3 };
+    const saved = localStorage.getItem('DPlus_Mach_App_Config');
+    if (saved) { try { config = JSON.parse(saved); } catch(e){} }
+
+    const langDB = {
+        IT: {
+            READY: "Pronto.",
+            SAVE_MSG: "Tocca B per cambiare. A+B per Salvare.",
+            SAVING: "Salvataggio in corso...",
+            LRN: "In attesa segnale radio...",
+            LABELS: {
+                LS: ["Lingua Sistema", "0: IT Italiano | 1: EN English | 2: ES Spagnolo | 3: FR Francese"],
+                AT: ["Apprendim. Telecomando", "Premi B per scegliere l'opzione (1: Totale, 2: Pedonale, 0: Cancella)."],
+                VN: ["Velocità Motore", "0: Minima | 1-3: Intermedi | 4: Massima"],
+                VR: ["Velocità Rallentamento", "0: Minima | 1-3: Intermedi | 4: Max (50% di VN)"],
+                SR: ["Spazio Rallentamento", "0: 4% | 1: 6% | 2: 8% | 3: 10% della corsa."],
+                SO: ["Sensibilità Ostacolo", "0: Off | 1-3: Intermedi | 4: Massima"],
+                CA: ["Chiusura Automatica", "0: Off | 1: 3s | 2: 7s | 3: 10s | 4: 15s"],
+                FC: ["Funzione Condominiale", "0: Disattivato | 1: Attivato (Inibisce comandi in marcia)"],
+                AP: ["Apertura Pedonale", "0: 20% | 1: 30% | 2: 40% dell'apertura totale."],
+                FL: ["Lampeggiante", "0: Pre-Lamp Fisso | 1: Pre-Lamp Int. | 2: Fisso | 3: Intermittente"],
+                CL: ["Cover LED", "0: Sempre ON | 1: ON in marcia | 2: Lampeggia | 3: Breath in Standby"]
+            }
+        },
+        EN: {
+            READY: "Ready.",
+            SAVE_MSG: "Tap B to change. A+B to Save.",
+            SAVING: "Saving settings...",
+            LRN: "Waiting for radio signal...",
+            LABELS: {
+                LS: ["System Language", "0: IT | 1: EN | 2: ES | 3: FR"],
+                AT: ["Remote Learning", "Press B to choose option."],
+                VN: ["Motor Speed", "0: Min | 1-3: Med | 4: Max"],
+                VR: ["Slow Speed", "0: Min | 1-3: Med | 4: Max"],
+                SR: ["Slowdown Space", "0: 4% | 1: 6% | 2: 8% | 3: 10%"],
+                SO: ["Obstacle Sensitivity", "0: Disabled | 1-3: Med | 4: Max Sensitivity"],
+                CA: ["Auto Close", "0: Disabled | 1: 3s | 2: 7s | 3: 10s | 4: 15s"],
+                FC: ["Condo Mode", "0: Disabled | 1: Enabled"],
+                AP: ["Pedestrian Open", "0: 20% | 1: 30% | 2: 40%"],
+                FL: ["Flasher Mode", "0: Pre-Lamp Fixed | 1: Pre-Lamp Int. | 2: Fixed | 3: Int."],
+                CL: ["Cover LED Mode", "0: ON | 1: ON running | 2: Blinking | 3: Breath standby"]
+            }
+        }
+    };
+
+    const disp = document.getElementById('display'), leaf = document.getElementById('gate-leaf'), 
+          bulb = document.getElementById('f-bulb'), cLed = document.getElementById('cover-led'), 
+          pLed = document.getElementById('photo-led'), infoText = document.getElementById('info-text'),
+          boardLedFoto = document.getElementById('boardLedFoto');
+
+    // LOGICA OSTACOLO FOTOCELLULA
+    document.getElementById('photocell-case').onclick = () => {
+        isPhotoAligned = !isPhotoAligned;
+        boardLedFoto.classList.toggle('intermittent', !isPhotoAligned);
+        
+        if (!isPhotoAligned) {
+            // Se interviene in Chiusura o in Pre-lampeggio di Chiusura
+            if (gateState === "CLOSING" || gateState === "PRE_CLOSE") {
+                clearTimeout(preFlashTimeout); preFlashTimeout = null;
+                lastDir = "CLOSING"; 
+                isReducedSpeed = true;      // Impone la marcia lenta protetta
+                excludeAutoClose = true;    // Esclude la richiusura automatica a fine corsa
+                runGate("OPENING", isPedestrian);
+            }
+            // Se interviene in Apertura o in Pre-lampeggio di Apertura
+            else if (gateState === "OPENING" || gateState === "PRE_OPEN") {
+                clearTimeout(preFlashTimeout); preFlashTimeout = null;
+                lastDir = "OPENING"; 
+                gateState = "STOPPED"; 
+                isReducedSpeed = false;
+                if(mode === "IDLE") disp.classList.remove('blink-fast');
+                endMove();
+            }
+        }
+    };
+
+    function refreshTable() {
+        const curL = langCodes[config.LS] || "EN";
+        const db = (langDB[curL] || langDB["EN"]).LABELS;
+        menuKeys.forEach(k => {
+            const vCell = document.getElementById('v-'+k), lCell = document.getElementById('lbl-'+k);
+            if(vCell) vCell.innerText = (k==='LS'?curL:config[k]);
+            if(lCell && db[k]) lCell.innerText = db[k][0];
+        });
+        updateLeds(false);
+    }
+
+    function updateLeds(moving, flashS = false) {
+        cLed.classList.remove('led-on', 'led-breath');
+        const cl = config.CL;
+        if (moving) {
+            if (cl === 0 || cl === 1 || cl === 3) { if(cl === 3 ? flashS : true) cLed.classList.add('led-on'); }
+            else if (cl === 2) { if(flashS) cLed.classList.add('led-on'); }
+        } else {
+            if (cl === 0) cLed.classList.add('led-on');
+            else if (cl === 3) cLed.classList.add('led-breath');
+        }
+        pLed.classList.remove('photo-led-on', 'photo-led-breath');
+        if (moving) { if (flashS) pLed.classList.add('photo-led-on'); } 
+        else { pLed.classList.add('photo-led-breath'); }
+    }
+
+    function toggleFlash(active) {
+        clearInterval(flashInt);
+        if (active) {
+            let s = false;
+            flashInt = setInterval(() => {
+                s = !s;
+                if (config.FL === 1 || config.FL === 3) bulb.classList.toggle('f-on', s);
+                else bulb.classList.add('f-on');
+                updateLeds(true, s);
+            }, 500);
+        } else { bulb.classList.remove('f-on'); updateLeds(false); }
+    }
+
+    // --- TELEMETRIA IN TEMPO REALE ---
+    function updateDiagnostics(isSlow = false, currentSpeed = 0) {
+        if (mode === "MENU" || mode === "EDIT" || mode === "EDIT_AT" || mode === "AT_LEARNING" || mode === "SAVING") return;
+        
+        const curL = langCodes[config.LS] || "EN";
+        let statusStr = "";
+        
+        if (gateState === "CLOSED") statusStr = curL === "IT" ? "Chiuso (Finecorsa FC attivo)" : "Closed (Limit switch FC active)";
+        else if (gateState === "OPEN") statusStr = curL === "IT" ? (excludeAutoClose ? "Aperto (CA Escluso per Sicurezza)" : "Aperto (Pausa CA)") : (excludeAutoClose ? "Open (CA Disabled)" : "Open (CA Active)");
+        else if (gateState === "STOPPED") statusStr = curL === "IT" ? "Arresto manuale / Sicurezza" : "Stopped / Override";
+        else if (gateState === "PRE_OPEN" || gateState === "PRE_CLOSE") statusStr = curL === "IT" ? "Pre-lampeggio di sicurezza" : "Safety Pre-flashing";
+        else if (gateState === "OPENING") statusStr = isReducedSpeed ? (curL === "IT" ? "Riapertura di Sicurezza (Lenta)" : "Safety Reopening (Slow)") : (isSlow ? (curL === "IT" ? "Rallentamento Apertura" : "Slowing Down Open") : (curL === "IT" ? "Apertura Nominale" : "Opening Nominal"));
+        else if (gateState === "CLOSING") statusStr = isSlow ? (curL === "IT" ? "Rallentamento Chiusura" : "Slowing Down Close") : (curL === "IT" ? "Chiusura Nominale" : "Closing Nominal");
+
+        const posPct = Math.round(leafPos * 100);
+        const powerPct = (gateState === "OPENING" || gateState === "CLOSING") ? (isSlow || isReducedSpeed ? 32 + config.VR * 8 : 55 + config.VN * 10) : 0;
+
+        infoText.innerHTML = `
+            <b style="color:var(--red); font-size: 15px; display:block; margin-bottom:5px;">Dati Telemetrici (Live):</b>
+            <div style="font-size: 12.5px; line-height: 1.5;">
+                <div><b>Stato:</b> <span style="color:#0f0; font-weight:bold;">${statusStr}</span></div>
+                <div><b>Posizione Anta:</b> ${posPct}%</div>
+                <div><b>Velocità Lineare:</b> ${currentSpeed.toFixed(2)} m/s</div>
+                <div><b>Coppia Motore:</b> ${powerPct}%</div>
+            </div>
+        `;
+    }
+
+    // --- MOTORE FISICO ---
+    function physics(timestamp) {
+        if (!lastTime) lastTime = timestamp;
+        let dt = (timestamp - lastTime) / 1000;
+        lastTime = timestamp;
+
+        // Gestione LED Finecorsa fisici sulla plancia
+        document.getElementById('boardLedFCA').classList.toggle('active', leafPos >= 0.99);
+        document.getElementById('boardLedFCC').classList.toggle('active', leafPos <= 0.01);
+
+        let speed = 0.0;
+        let slowActive = false;
+
+        if (gateState === "OPENING" || gateState === "CLOSING") {
+            const srP = [0.04, 0.06, 0.08, 0.10][config.SR];
+            const target = isPedestrian ? [0.2, 0.3, 0.4][config.AP] : 1.0;
+            slowActive = (gateState==="OPENING" && leafPos > target-srP) || (gateState==="CLOSING" && leafPos < srP);
+            
+            const baseSpeedList = [0.06, 0.09, 0.12, 0.16, 0.22];
+            const slowSpeedList = [0.02, 0.035, 0.05, 0.065, 0.08];
+            
+            // Se attiva la riapertura d'emergenza da fotocellula, forza la marcia lenta (VR) per TUTTA la corsa
+            if (isReducedSpeed && gateState === "OPENING") {
+                speed = slowSpeedList[config.VR];
+            } else {
+                speed = slowActive ? slowSpeedList[config.VR] : baseSpeedList[config.VN];
+            }
+            
+            if (gateState === "OPENING") {
+                // Durante una normale apertura, se la fotocellula viene occupata, si ferma
+                if (!isPhotoAligned && !isReducedSpeed) {
+                    lastDir = "OPENING"; gateState = "STOPPED"; endMove();
+                } else {
+                    leafPos += speed * dt;
+                    if (leafPos >= target) {
+                        leafPos = target; gateState = "OPEN"; 
+                        isReducedSpeed = false; // Reset fine manovra lenta
+                        endMove(); 
+                        startAuto(); 
+                    }
+                }
+            } else {
+                // In chiusura, se la fotocellula è interrotta
+                if (!isPhotoAligned) {
+                    clearTimeout(preFlashTimeout); preFlashTimeout = null;
+                    lastDir = "CLOSING"; 
+                    isReducedSpeed = true; 
+                    excludeAutoClose = true;
+                    runGate("OPENING", isPedestrian);
+                } else {
+                    leafPos -= speed * dt;
+                    if (leafPos <= 0) {
+                        leafPos = 0; gateState = "CLOSED";
+                        isReducedSpeed = false; endMove();
+                    }
+                }
+            }
+            leaf.style.transform = `translateX(-${leafPos * 100}%)`;
+        }
+        
+        updateDiagnostics(slowActive, speed);
+        requestAnimationFrame(physics);
+    }
+    requestAnimationFrame(physics);
+
+    function endMove() { 
+        toggleFlash(false); 
+        if(mode==="IDLE") { disp.innerText="--"; disp.classList.add('blink'); } 
+    }
+
+    function startAuto() {
+        // Se l'apertura è derivata da intervento fotocellula, ignora la chiusura automatica
+        if (excludeAutoClose) { 
+            return; 
+        }
+        if (config.CA > 0 && gateState === "OPEN") {
+            const d = [0, 3, 7, 10, 15][config.CA];
+            autoTimer = setTimeout(() => { if(gateState==="OPEN" && isPhotoAligned) runGate("CLOSING", isPedestrian); }, d * 1000);
+        }
+    }
+
+    function runGate(ns, ped) {
+        if (ns === "CLOSING" && !isPhotoAligned) return; // Rifiuta la partenza in chiusura se fotocellula occupata
+        clearTimeout(preFlashTimeout); clearTimeout(autoTimer);
+        lastTime = performance.now(); isPedestrian = ped;
+
+        if (config.FL === 0 || config.FL === 1) {
+            gateState = (ns === "OPENING") ? "PRE_OPEN" : "PRE_CLOSE"; toggleFlash(true);
+            if(mode==="IDLE") { disp.innerText = (ns === "OPENING" ? "OP" : "CL"); disp.classList.add('blink-fast'); }
+            preFlashTimeout = setTimeout(() => {
+                if (ns === "CLOSING" && !isPhotoAligned) { endMove(); gateState = "OPEN"; return; }
+                gateState = ns; preFlashTimeout = null; lastTime = performance.now();
+                if(mode==="IDLE") disp.classList.remove('blink-fast');
+            }, 2500);
+        } else {
+            gateState = ns; toggleFlash(true);
+            if(mode==="IDLE") { disp.innerText = (ns==="OPENING"?"OP":"CL"); disp.classList.remove('blink'); }
+        }
+    }
+
+    function triggerCommand(ped) {
+        if (config.FC === 1 && (gateState !== "CLOSED" && gateState !== "OPEN" && gateState !== "STOPPED")) return;
+        
+        // Ogni comando manuale utente resetta il blocco della sicurezza della fotocellula
+        isReducedSpeed = false; 
+        excludeAutoClose = false;
+
+        const ledTrg = ped ? document.getElementById('boardLedAP') : document.getElementById('boardLedStart');
+        if (ledTrg) { ledTrg.classList.add('active'); setTimeout(() => ledTrg.classList.remove('active'), 300); }
+
+        if (gateState === "CLOSED") { lastDir = "OPENING"; runGate("OPENING", ped); }
+        else if (gateState === "OPEN") { lastDir = "CLOSING"; runGate("CLOSING", ped); }
+        else if (gateState === "OPENING" || gateState === "CLOSING" || gateState === "PRE_OPEN" || gateState === "PRE_CLOSE") { 
+            clearTimeout(preFlashTimeout); preFlashTimeout = null;
+            lastDir = gateState.replace("PRE_", ""); 
+            gateState = "STOPPED"; 
+            endMove(); 
+        }
+        else if (gateState === "STOPPED") { 
+            let next = (lastDir === "OPENING") ? "CLOSING" : "OPENING"; 
+            lastDir = next; 
+            runGate(next, ped); 
+        }
+    }
+
+    function handleRemotePress(channel) {
+        const rLed = document.getElementById(channel === 1 ? 'boardLedR1' : 'boardLedR2');
+        if (rLed) { rLed.classList.add('active'); setTimeout(() => rLed.classList.remove('active'), 300); }
+        document.getElementById('remLed').classList.add('active');
+        setTimeout(() => document.getElementById('remLed').classList.remove('active'), 200);
+
+        if (mode === "AT_LEARNING") {
+            disp.innerText = "OK"; disp.classList.remove('blink'); mode = "AT_SAVING";
+            const curL = langCodes[config.LS] || "EN";
+            let resultMsg = atOption === 0 ? (curL === "IT" ? "Codice cancellato!" : "Code erased!") : (curL === "IT" ? "Codice salvato!" : "Code saved successfully!");
+            let color = atOption === 0 ? "#ff3333" : "#0f0"; 
+            infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL]||langDB["EN"]).LABELS.AT[0]}</b><br><span style="color:${color}; font-weight:bold;">${resultMsg}</span>`;
+            setTimeout(() => { mode = "MENU"; updateMenu(); }, 1200); return;
+        }
+        triggerCommand(channel === 2);
+    }
+
+    let currentIdx = 0;
+    function updateMenu() {
+        const k = menuKeys[currentIdx], curL = langCodes[config.LS] || "EN";
+        const db = (langDB[curL] || langDB["EN"]);
+        if (mode === "EDIT") { disp.innerText = (k==='LS'?curL:config[k]); disp.classList.remove('blink'); } 
+        else { disp.innerText = k; disp.classList.add('blink'); }
+        infoText.innerHTML = `<b style="color:var(--red);">${db.LABELS[k][0]}</b><br>${db.LABELS[k][1]}<br><br><small style="color:#888;">${db.SAVE_MSG}</small>`;
+        document.querySelectorAll('#menu-table tr').forEach(r => r.classList.remove('active-row'));
+        const row = document.getElementById('r-' + k);
+        if(row) { row.classList.add('active-row'); row.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+        resetConfigTimeout();
+    }
+
+    function updateMenuAT() {
+        disp.innerText = atOption; disp.classList.remove('blink');
+        const curL = langCodes[config.LS] || "EN";
+        const atLabel = (langDB[curL] || langDB["EN"]).LABELS.AT[0];
+        let optText = atOption === 1 ? (curL === "IT" ? "1 (Totale)" : "1 (Total)") : (atOption === 2 ? (curL === "IT" ? "2 (Pedonale)" : "2 (Pedestrian)") : (curL === "IT" ? "0 (Cancella)" : "0 (Erase)"));
+        infoText.innerHTML = `<b style="color:var(--red);">${atLabel}</b><br>Option: <b>${optText}</b><br><br><small style="color:#888;">Tap B to change.<br>Tap A to confirm.</small>`;
+        resetConfigTimeout();
+    }
+
+    function save() {
+        clearTimeout(configTimeout); 
+        mode = "SAVING"; disp.innerText = "OK"; disp.classList.remove('blink');
+        localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config));
+        setTimeout(() => { 
+            mode = "IDLE"; disp.innerText = "--"; disp.classList.add('blink'); refreshTable(); 
+        }, 1200);
+    }
+
+    let holdTimerA = null, holdTimerB = null, saveTimer = null, configTimeout = null;
+    let isPressedA = false, isPressedB = false, isLongPressA = false;
+
+    function resetConfigTimeout() {
+        clearTimeout(configTimeout);
+        if (["MENU", "EDIT", "EDIT_AT", "AT_LEARNING"].includes(mode)) {
+            configTimeout = setTimeout(save, 15000);
+        }
+    }
+
+    function pressA() {
+        if(isPressedA) return; isPressedA = true;
+        document.getElementById('keyA').classList.add('btn-active');
+        
+        if (mode === "IDLE") {
+            holdTimerA = setTimeout(() => { isLongPressA = true; mode="MENU"; currentIdx=0; updateMenu(); }, 2000);
+        } else if (mode === "EDIT_AT") {
+            mode = "AT_LEARNING"; disp.innerText = "Go"; disp.classList.add('blink');
+            const curL = langCodes[config.LS] || "EN";
+            const msg = curL === "IT" ? "In attesa segnale radio..." : "Waiting for radio signal...";
+            infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL]||langDB["EN"]).LABELS.AT[0]}</b><br><span style="color:#ffeb3b;" class="blink">${msg}</span>`;
+            resetConfigTimeout();
+        } else if (mode === "AT_LEARNING") { mode = "MENU"; updateMenu(); }
+        
+        if (isPressedB && mode !== "IDLE" && mode !== "EDIT_AT" && mode !== "AT_LEARNING") saveTimer = setTimeout(save, 1200);
+    }
+
+    function pressB() {
+        if(isPressedB) return; isPressedB = true;
+        document.getElementById('keyB').classList.add('btn-active');
+        
+        if (mode === "MENU") { 
+            if (menuKeys[currentIdx] === 'AT') { mode = "EDIT_AT"; atOption = 1; updateMenuAT(); } 
+            else { mode = "EDIT"; updateMenu(); } 
+        } else if (mode === "EDIT_AT") { 
+            atOption = atOption === 1 ? 2 : (atOption === 2 ? 0 : 1); updateMenuAT(); 
+        } else if (mode === "EDIT") { 
+            config[menuKeys[currentIdx]] = (config[menuKeys[currentIdx]]+1) > maxVals[menuKeys[currentIdx]] ? 0 : config[menuKeys[currentIdx]]+1; 
+            refreshTable(); updateMenu(); 
+        }
+        
+        if (isPressedA && mode !== "IDLE" && mode !== "EDIT_AT" && mode !== "AT_LEARNING") saveTimer = setTimeout(save, 1200);
+    }
+
+    function releaseA() {
+        if(!isPressedA) return; isPressedA = false; document.getElementById('keyA').classList.remove('btn-active');
+        clearTimeout(holdTimerA); clearTimeout(saveTimer);
+        if (isLongPressA) { isLongPressA = false; return; }
+        if (mode === "IDLE") triggerCommand(false); 
+        else if (mode === "MENU") { currentIdx = (currentIdx + 1) % menuKeys.length; updateMenu(); }
+        else if (mode === "EDIT") { mode = "MENU"; updateMenu(); }
+    }
+
+    function releaseB() {
+        if(!isPressedB) return; isPressedB = false; document.getElementById('keyB').classList.remove('btn-active');
+        clearTimeout(saveTimer);
+        if (mode === "IDLE") triggerCommand(true); 
+    }
+
+    const setupBtnEvents = (id, onPress, onRelease) => {
+        const el = document.getElementById(id);
+        el.addEventListener('pointerdown', (e) => { try { el.setPointerCapture(e.pointerId); } catch(err){} onPress(); });
+        el.addEventListener('pointerup', (e) => { try { el.releasePointerCapture(e.pointerId); } catch(err){} onRelease(); });
+        el.addEventListener('pointercancel', (e) => { try { el.releasePointerCapture(e.pointerId); } catch(err){} onRelease(); });
+    };
+
+    setupBtnEvents('keyA', pressA, releaseA); setupBtnEvents('keyB', pressB, releaseB);
+    setupBtnEvents('btnRem1', () => { document.getElementById('btnRem1').classList.add('btn-active'); handleRemotePress(1); }, () => document.getElementById('btnRem1').classList.remove('btn-active'));
+    setupBtnEvents('btnRem2', () => { document.getElementById('btnRem2').classList.add('btn-active'); handleRemotePress(2); }, () => document.getElementById('btnRem2').classList.remove('btn-active'));
+
+    window.addEventListener('keydown', e => { if(e.key.toLowerCase()==='a') pressA(); if(e.key.toLowerCase()==='b') pressB(); if(e.key==='1') handleRemotePress(1); if(e.key==='2') handleRemotePress(2); });
+    window.addEventListener('keyup', e => { if(e.key.toLowerCase()==='a') releaseA(); if(e.key.toLowerCase()==='b') releaseB(); });
+
+    refreshTable();
+</script>
+</body>
+</html>
