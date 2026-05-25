@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>DPlus MACH1 26v1 - PRO Telemetry Edition</title>
+    <title>DPlus MACH1 26v1 - PRO Telemetry Edition (RALL LED)</title>
     <style>
         :root { 
             --red: #e31e24; 
@@ -136,7 +136,7 @@
         .led-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; width: 100%; }
         @media (max-width: 380px) { .led-row { gap: 5px; } }
 
-        .diag-box { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 28px; }
+        .diag-box { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 26px; }
         .diag-led { width: 11px; height: 11px; background: #300; border-radius: 50%; border: 2px solid #111; box-shadow: inset 0 0 2px #000; transition: 0.1s; }
         
         .diag-led.active { background: #ff3333; box-shadow: 0 0 10px #ff0000; }
@@ -225,6 +225,7 @@
                             <div class="led-row">
                                 <div class="diag-box"><span class="diag-lbl" style="color:var(--red)">FCA</span><div id="boardLedFCA" class="diag-led"></div></div>
                                 <div class="diag-box"><span class="diag-lbl" style="color:var(--red)">FCC</span><div id="boardLedFCC" class="diag-led"></div></div>
+                                <div class="diag-box"><span class="diag-lbl" style="color:var(--lamp-yellow)">RALL</span><div id="boardLedRall" class="diag-led"></div></div>
                                 <div class="diag-box"><span class="diag-lbl" style="color:var(--lamp-yellow)">Foto</span><div id="boardLedFoto" class="diag-led"></div></div>
                                 <div class="diag-box"><span class="diag-lbl" style="color:var(--lamp-yellow)">Foto2</span><div id="boardLedFoto2" class="diag-led"></div></div>
                                 <div class="diag-box"><span class="diag-lbl" style="color:var(--red)">STOP</span><div id="boardLedStop" class="diag-led active"></div></div>
@@ -295,8 +296,8 @@
     let lastTime = 0, autoTimer = null, flashInt = null, preFlashTimeout = null;
     let atOption = 1;
     let isPhotoAligned = true; 
-    let isReducedSpeed = false; // Riapertura lenta da fotocellula
-    let excludeAutoClose = false; // Flag per saltare la chiusura automatica
+    let isReducedSpeed = false; 
+    let excludeAutoClose = false; 
 
     const menuKeys = ['LS', 'AT', 'VN', 'VR', 'SR', 'SO', 'CA', 'FC', 'AP', 'FL', 'CL'];
     const maxVals = { LS: 3, AT: 1, VN: 4, VR: 4, SR: 3, SO: 4, CA: 4, FC: 1, AP: 2, FL: 3, CL: 3 };
@@ -358,15 +359,13 @@
         boardLedFoto.classList.toggle('intermittent', !isPhotoAligned);
         
         if (!isPhotoAligned) {
-            // Se interviene in Chiusura o in Pre-lampeggio di Chiusura
             if (gateState === "CLOSING" || gateState === "PRE_CLOSE") {
                 clearTimeout(preFlashTimeout); preFlashTimeout = null;
                 lastDir = "CLOSING"; 
-                isReducedSpeed = true;      // Impone la marcia lenta protetta
-                excludeAutoClose = true;    // Esclude la richiusura automatica a fine corsa
+                isReducedSpeed = true;      
+                excludeAutoClose = true;    
                 runGate("OPENING", isPedestrian);
             }
-            // Se interviene in Apertura o in Pre-lampeggio di Apertura
             else if (gateState === "OPENING" || gateState === "PRE_OPEN") {
                 clearTimeout(preFlashTimeout); preFlashTimeout = null;
                 lastDir = "OPENING"; 
@@ -451,22 +450,22 @@
         let dt = (timestamp - lastTime) / 1000;
         lastTime = timestamp;
 
-        // Gestione LED Finecorsa fisici sulla plancia
         document.getElementById('boardLedFCA').classList.toggle('active', leafPos >= 0.99);
         document.getElementById('boardLedFCC').classList.toggle('active', leafPos <= 0.01);
 
         let speed = 0.0;
         let slowActive = false;
+        let isRallPhase = false; // Gestione stato LED RALL
 
         if (gateState === "OPENING" || gateState === "CLOSING") {
             const srP = [0.04, 0.06, 0.08, 0.10][config.SR];
             const target = isPedestrian ? [0.2, 0.3, 0.4][config.AP] : 1.0;
             slowActive = (gateState==="OPENING" && leafPos > target-srP) || (gateState==="CLOSING" && leafPos < srP);
+            isRallPhase = slowActive || mode === "AA" || isReducedSpeed;
             
             const baseSpeedList = [0.06, 0.09, 0.12, 0.16, 0.22];
             const slowSpeedList = [0.02, 0.035, 0.05, 0.065, 0.08];
             
-            // Se attiva la riapertura d'emergenza da fotocellula, forza la marcia lenta (VR) per TUTTA la corsa
             if (isReducedSpeed && gateState === "OPENING") {
                 speed = slowSpeedList[config.VR];
             } else {
@@ -474,20 +473,18 @@
             }
             
             if (gateState === "OPENING") {
-                // Durante una normale apertura, se la fotocellula viene occupata, si ferma
                 if (!isPhotoAligned && !isReducedSpeed) {
                     lastDir = "OPENING"; gateState = "STOPPED"; endMove();
                 } else {
                     leafPos += speed * dt;
                     if (leafPos >= target) {
                         leafPos = target; gateState = "OPEN"; 
-                        isReducedSpeed = false; // Reset fine manovra lenta
+                        isReducedSpeed = false; 
                         endMove(); 
                         startAuto(); 
                     }
                 }
             } else {
-                // In chiusura, se la fotocellula è interrotta
                 if (!isPhotoAligned) {
                     clearTimeout(preFlashTimeout); preFlashTimeout = null;
                     lastDir = "CLOSING"; 
@@ -505,6 +502,9 @@
             leaf.style.transform = `translateX(-${leafPos * 100}%)`;
         }
         
+        // Attiva o disattiva il lampeggio del LED RALL
+        document.getElementById('boardLedRall').classList.toggle('intermittent', isRallPhase);
+        
         updateDiagnostics(slowActive, speed);
         requestAnimationFrame(physics);
     }
@@ -516,7 +516,6 @@
     }
 
     function startAuto() {
-        // Se l'apertura è derivata da intervento fotocellula, ignora la chiusura automatica
         if (excludeAutoClose) { 
             return; 
         }
@@ -527,7 +526,7 @@
     }
 
     function runGate(ns, ped) {
-        if (ns === "CLOSING" && !isPhotoAligned) return; // Rifiuta la partenza in chiusura se fotocellula occupata
+        if (ns === "CLOSING" && !isPhotoAligned) return; 
         clearTimeout(preFlashTimeout); clearTimeout(autoTimer);
         lastTime = performance.now(); isPedestrian = ped;
 
@@ -548,7 +547,6 @@
     function triggerCommand(ped) {
         if (config.FC === 1 && (gateState !== "CLOSED" && gateState !== "OPEN" && gateState !== "STOPPED")) return;
         
-        // Ogni comando manuale utente resetta il blocco della sicurezza della fotocellula
         isReducedSpeed = false; 
         excludeAutoClose = false;
 
