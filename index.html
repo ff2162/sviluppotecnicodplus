@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>DPlus MACH1 26v1 - PRO Telemetry Edition (Safety & AA Update)</title>
+    <title>DPlus MACH1 26v1 - 5.5 Real Calibration Simulator</title>
     <style>
         :root { 
             --red: #e31e24; 
@@ -44,7 +44,7 @@
             padding: 10px 5px;
         }
 
-        /* TESTATA */
+        /* AREA VISUALIZZAZIONE CANCELLO */
         .header-bar { 
             width: 100%; 
             display: flex; 
@@ -55,7 +55,6 @@
         .logo-main { height: 40px; filter: drop-shadow(0 0 8px rgba(227, 30, 36, 0.4)); }
         .app-subtitle { font-size: 9px; color: #555; font-weight: 700; letter-spacing: 0.5px; text-align: right; }
 
-        /* AREA SIMULAZIONE CANCELLO */
         #viewport { 
             width: 100%; 
             height: 160px; 
@@ -82,7 +81,7 @@
         #photo-led { width: 7px; height: 7px; background: #443000; border-radius: 50%; margin-top: 3px; transition: 0.1s; }
         .photo-lens { width: 7px; height: 14px; background: #050505; border-radius: 7px; margin-top: 3px; border: 1px solid #111; }
 
-        /* ANIMAZIONI LED */
+        /* ANIMAZIONI E COMFORT VISIVO */
         .led-on { background: #ff3333 !important; box-shadow: 0 0 20px #ff0000; }
         .led-breath { animation: breath 2.5s ease-in-out infinite; background: #ff0000; }
         .photo-led-on { background: var(--lamp-yellow) !important; box-shadow: 0 0 12px var(--lamp-yellow); }
@@ -101,7 +100,7 @@
             border: 2px solid #111; z-index: 5; transform: translateX(0%); will-change: transform;
         }
 
-        /* GRIGLIE E PANNELLI SCHEDA */
+        /* STRUTTURA PLANARE SCHEDA */
         .main-layout { display: flex; flex-direction: column; gap: 20px; width: 100%; }
         @media (min-width: 768px) { .main-layout { flex-direction: row; align-items: stretch; } }
         
@@ -117,7 +116,7 @@
         #display { 
             background: var(--display); height: 85px; border-radius: 12px; display: flex; 
             justify-content: center; align-items: center; font-family: 'Courier New', monospace; 
-            font-size: 55px; color: #f00; border: 3px solid #111; margin-bottom: 20px; 
+            font-size: 50px; color: #f00; border: 3px solid #111; margin-bottom: 20px; 
             box-shadow: inset 0 0 15px #900; font-weight: bold;
         }
         
@@ -134,7 +133,6 @@
 
         .led-grid { display: flex; flex-direction: column; gap: 12px; align-items: center; flex-grow: 1; overflow: hidden; }
         .led-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; width: 100%; }
-        @media (max-width: 380px) { .led-row { gap: 5px; } }
 
         .diag-box { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 26px; }
         .diag-led { width: 11px; height: 11px; background: #300; border-radius: 50%; border: 2px solid #111; box-shadow: inset 0 0 2px #000; transition: 0.1s; }
@@ -145,7 +143,7 @@
         
         .diag-lbl { font-size: 8px; color: #888; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; }
 
-        /* SEZIONE COMANDI REMOTI E INFO RAPIDE */
+        /* TELECOMANDI */
         .remote-row { display: flex; gap: 15px; align-items: center; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 16px; border: 1px solid #252525; }
         .remote-case { min-width: 95px; background: #222; padding: 12px 14px; border-radius: 24px; border: 2px solid #444; display: flex; flex-direction: column; align-items: center; box-shadow: 0 6px 15px #000; }
         .remote-led { width: 8px; height: 8px; background: #300; border-radius: 50%; margin-bottom: 6px; }
@@ -157,7 +155,7 @@
 
         .quick-help { font-size: 11px; color: #888; line-height: 1.3; flex-grow: 1; }
 
-        /* COLONNA DESTRA (TABELLA E STATUS) */
+        /* PANNELLO DIAGNOSTICA E TABELLA PARAMETRI */
         .right-col { flex: 1; display: flex; flex-direction: column; gap: 15px; min-width: 0; }
         
         .table-wrapper { width: 100%; overflow-x: auto; border-radius: 10px; background: #161616; border: 1px solid #222; }
@@ -173,7 +171,6 @@
         .blink-fast { animation: blk 0.4s step-end infinite; }
         @keyframes blk { 50% { opacity: 0; } }
 
-        /* FOOTER */
         .footer-info { width: 100%; text-align: center; font-size: 10px; color: #555; padding-top: 10px; border-top: 1px solid #222; margin-top: auto; }
     </style>
 </head>
@@ -183,7 +180,7 @@
     
     <div class="header-bar">
         <img src="D-Plus_Logo.svg" alt="D-Plus Automation" class="logo-main" onerror="this.src='https://placehold.co/180x40/111/e31e24?text=D-PLUS+LOGO'">
-        <div class="app-subtitle">MACH1 ENGINE<br>PRO TELEMETRY APP</div>
+        <div class="app-subtitle">MACH1 ENGINE<br>PRO 5.5 CALIBRATION CONTEXT</div>
     </div>
 
     <div id="viewport">
@@ -210,7 +207,7 @@
         <div class="central-col">
             <div id="mach-panel">
                 <div>
-                    <div class="board-title">MACH1 26v1</div>
+                    <div class="board-title">MACH1 Pro 5.5</div>
                     <div id="display" class="blink">--</div>
                     
                     <div class="controls-matrix">
@@ -250,9 +247,9 @@
                         </div>
                     </div>
                     <div class="quick-help">
-                        <b style="color:#ccc;">Ostacolo (Fotocellula):</b><br>
-                        Tocca il sensore nel disegno per simulare l'ostacolo.<br>
-                        <span style="color:#a88;">In Chiusura &rarr; Inverte in apertura per 3 secondi. Poi attende un impulso per completare l'apertura.</span>
+                        <b style="color:#ccc;">Autoapprendimento Avanzato (Pro 5.5):</b><br>
+                        Tieni premuto B per 3s. Ciclo sequenziale:<br>
+                        <span style="color:#ffeb3b;">Fase 1: Apertura cieca e rallentata fino a FCA &rarr; Pausa 1.5" &rarr; Fase 2: Chiusura a VN/2 con calcolo tempo live sul Display &rarr; Stop su FCC &rarr; OK.</span>
                     </div>
                 </div>
             </div>
@@ -285,7 +282,7 @@
     </div>
 
     <div class="footer-info">
-        MACH1 APP SIMULATOR PRO v5.2 | DPLUS AUTOMATION
+        MACH1 APP SIMULATOR PRO v5.5 | DPLUS AUTOMATION
     </div>
 
 </div>
@@ -293,8 +290,8 @@
 <script>
     // --- STATO DEL SISTEMA ---
     let mode = "IDLE", gateState = "CLOSED", lastDir = "CLOSING", leafPos = 0.0, isPedestrian = false;
-    let lastTime = 0, autoTimer = null, flashInt = null, preFlashTimeout = null;
-    let atOption = 1, aaPhase = 0, aaMeasuredTime = 0;
+    let lastTime = 0, autoTimer = null, flashInt = null, preFlashTimeout = null, aaTimeout = null;
+    let atOption = 1, aaPhase = 0;
     
     // Variabili Sicurezze e Ostacolo
     let isPhotoAligned = true; 
@@ -302,6 +299,12 @@
     let excludeAutoClose = false; 
     let isSafetyReversing = false;
     let safetyReversalTimer = 0;
+
+    // PARAMETRI REALI AUTOAPPRENDIMENTO (Z16 M4)
+    let measuredTime = 0.0;
+    let gateLength = parseFloat(localStorage.getItem('DPlus_GateLength')) || 0.0;
+    let totalRevolutions = parseFloat(localStorage.getItem('DPlus_TotalRevolutions')) || 0.0;
+    let tempoMoltiplicato = parseFloat(localStorage.getItem('DPlus_TempoMoltiplicato')) || 0.0;
 
     const menuKeys = ['LS', 'AT', 'VN', 'VR', 'SR', 'SO', 'CA', 'FC', 'AP', 'FL', 'CL'];
     const maxVals = { LS: 3, AT: 1, VN: 4, VR: 4, SR: 3, SO: 4, CA: 4, FC: 1, AP: 2, FL: 3, CL: 3 };
@@ -363,17 +366,21 @@
         boardLedFoto.classList.toggle('intermittent', !isPhotoAligned);
         
         if (!isPhotoAligned) {
+            if (mode === "AA") {
+                clearTimeout(aaTimeout);
+                mode = "IDLE"; gateState = "STOPPED"; endMove();
+                return;
+            }
             if (gateState === "CLOSING" || gateState === "PRE_CLOSE") {
                 clearTimeout(preFlashTimeout); preFlashTimeout = null;
                 lastDir = "CLOSING"; 
                 isReducedSpeed = true;      
                 excludeAutoClose = true;    
                 isSafetyReversing = true;
-                safetyReversalTimer = 3.0; // Inversione di 3 secondi esatti
+                safetyReversalTimer = 3.0; 
                 runGate("OPENING", isPedestrian);
             }
             else if (gateState === "OPENING" || gateState === "PRE_OPEN") {
-                // In apertura la fotocellula funge da arresto standard
                 clearTimeout(preFlashTimeout); preFlashTimeout = null;
                 lastDir = "OPENING"; 
                 gateState = "STOPPED"; 
@@ -424,35 +431,49 @@
         } else { bulb.classList.remove('f-on'); updateLeds(false); }
     }
 
-    // --- TELEMETRIA IN TEMPO REALE ---
+    // --- TELEMETRIA IN TEMPO REALE CON SPECIFICHE Z16 ---
     function updateDiagnostics(isSlow = false, currentSpeed = 0) {
         if (mode === "MENU" || mode === "EDIT" || mode === "EDIT_AT" || mode === "AT_LEARNING" || mode === "SAVING") return;
         
         const curL = langCodes[config.LS] || "EN";
         let statusStr = "";
         
-        if (gateState === "CLOSED") statusStr = curL === "IT" ? "Chiuso (Finecorsa FC attivo)" : "Closed (Limit switch FC active)";
-        else if (gateState === "OPEN") statusStr = curL === "IT" ? (excludeAutoClose ? "Aperto (CA Escluso per Sicurezza)" : "Aperto (Pausa CA)") : (excludeAutoClose ? "Open (CA Disabled)" : "Open (CA Active)");
-        else if (gateState === "STOPPED") statusStr = curL === "IT" ? "Arresto manuale / Sicurezza" : "Stopped / Override";
-        else if (gateState === "PRE_OPEN" || gateState === "PRE_CLOSE") statusStr = curL === "IT" ? "Pre-lampeggio di sicurezza" : "Safety Pre-flashing";
-        else if (gateState === "OPENING") statusStr = isSafetyReversing ? (curL === "IT" ? "Inversione Sicurezza (3s)" : "Safety Reversal (3s)") : (isSlow ? (curL === "IT" ? "Rallentamento Apertura" : "Slowing Down Open") : (curL === "IT" ? "Apertura Nominale" : "Opening Nominal"));
-        else if (gateState === "CLOSING") statusStr = isSlow ? (curL === "IT" ? "Rallentamento Chiusura" : "Slowing Down Close") : (curL === "IT" ? "Chiusura Nominale" : "Closing Nominal");
+        if (mode === "AA") {
+            statusStr = curL === "IT" ? `Autoapprendimento (Fase A${Math.floor(aaPhase)})` : `Auto-Learning (Phase A${Math.floor(aaPhase)})`;
+        } else {
+            if (gateState === "CLOSED") statusStr = curL === "IT" ? "Chiso (FCC attivo)" : "Closed (FCC active)";
+            else if (gateState === "OPEN") statusStr = curL === "IT" ? (excludeAutoClose ? "Aperto (CA Escluso)" : "Aperto (Pausa CA)") : (excludeAutoClose ? "Open (CA Disabled)" : "Open (CA Active)");
+            else if (gateState === "STOPPED") statusStr = curL === "IT" ? "Arresto di sicurezza" : "Stopped / Safe";
+            else if (gateState === "PRE_OPEN" || gateState === "PRE_CLOSE") statusStr = curL === "IT" ? "Pre-lampeggio" : "Pre-flashing";
+            else if (gateState === "OPENING") statusStr = isSafetyReversing ? (curL === "IT" ? "Inversione Ostacolo" : "Obstacle Reversal") : (isSlow ? (curL === "IT" ? "Rallentamento AP" : "Slowing Open") : (curL === "IT" ? "Apertura Nominale" : "Nominal Opening"));
+            else if (gateState === "CLOSING") statusStr = isSlow ? (curL === "IT" ? "Rallentamento CL" : "Slowing Close") : (curL === "IT" ? "Chiusura Nominale" : "Nominal Closing");
+        }
 
         const posPct = Math.round(leafPos * 100);
-        const powerPct = (gateState === "OPENING" || gateState === "CLOSING") ? (isSlow || isReducedSpeed ? 32 + config.VR * 8 : 55 + config.VN * 10) : 0;
+        const powerPct = (gateState === "OPENING" || gateState === "CLOSING") ? (isSlow || isReducedSpeed ? 30 + config.VR * 8 : 55 + config.VN * 10) : 0;
+
+        const lenStr = gateLength > 0 ? `${gateLength.toFixed(2)} m` : (curL === "IT" ? "Non appresa" : "Not learned");
+        const revStr = totalRevolutions > 0 ? `${totalRevolutions.toFixed(1)} giri` : (curL === "IT" ? "Non calcolati" : "Not computed");
+        const tMoltStr = tempoMoltiplicato > 0 ? `${tempoMoltiplicato.toFixed(1)} s` : (curL === "IT" ? "Non calcolato" : "Not computed");
 
         infoText.innerHTML = `
-            <b style="color:var(--red); font-size: 15px; display:block; margin-bottom:5px;">Dati Telemetrici (Live):</b>
-            <div style="font-size: 12.5px; line-height: 1.5;">
-                <div><b>Stato:</b> <span style="color:#0f0; font-weight:bold;">${statusStr}</span></div>
-                <div><b>Posizione Anta:</b> ${posPct}%</div>
-                <div><b>Velocità Lineare:</b> ${currentSpeed.toFixed(2)} m/s</div>
-                <div><b>Coppia Motore:</b> ${powerPct}%</div>
+            <b style="color:var(--red); font-size: 14px; display:block; margin-bottom:4px;">Telemetria Real-Time Pro 5.5:</b>
+            <div style="font-size: 11px; line-height: 1.4; display: grid; grid-template-columns: 120px 1fr; gap: 1px 5px;">
+                <div><b>Stato Centrale:</b></div><div style="color:#0f0; font-weight:bold;">${statusStr}</div>
+                <div><b>Quota Visiva Anta:</b></div><div>${posPct}%</div>
+                <div><b>Velocità Nominale:</b></div><div>${currentSpeed.toFixed(3)} m/s</div>
+                <div><b>Potenza Erogata:</b></div><div>${powerPct}%</div>
+                
+                <div style="grid-column: span 2; margin-top: 5px; border-top: 1px solid #333; padding-top: 4px; color: #ffeb3b; font-weight: bold; font-size: 11.5px;">Mappatura Corsa Meccanica:</div>
+                <div><b>Tempo Misurato:</b></div><div>${(mode === "AA" && aaPhase === 2) ? measuredTime.toFixed(1) + ' s' : (gateLength > 0 ? (gateLength / 0.2).toFixed(1) + ' s' : '---')}</div>
+                <div><b>Tempo x2 (Impostato):</b></div><div>${tMoltStr}</div>
+                <div><b>Rotazione Pignone:</b></div><div>${revStr}</div>
+                <div><b>Lunghezza Cancello:</b></div><div style="color:#0f0; font-weight:bold;">${lenStr}</div>
             </div>
         `;
     }
 
-    // --- MOTORE FISICO ---
+    // --- MOTORE FISICO REGOLATO ---
     function physics(timestamp) {
         if (!lastTime) lastTime = timestamp;
         let dt = (timestamp - lastTime) / 1000;
@@ -463,77 +484,140 @@
 
         let speed = 0.0;
         let slowActive = false;
-        let isRallPhase = false; // Gestione stato LED RALL
 
         if (gateState === "OPENING" || gateState === "CLOSING") {
-            const srP = [0.04, 0.06, 0.08, 0.10][config.SR];
-            const target = isPedestrian ? [0.2, 0.3, 0.4][config.AP] : 1.0;
-            slowActive = (gateState==="OPENING" && leafPos > target-srP) || (gateState==="CLOSING" && leafPos < srP);
-            isRallPhase = slowActive || mode === "AA" || isReducedSpeed;
             
-            const baseSpeedList = [0.06, 0.09, 0.12, 0.16, 0.22];
-            const slowSpeedList = [0.02, 0.035, 0.05, 0.065, 0.08];
-            
-            if (isReducedSpeed && gateState === "OPENING") {
-                speed = slowSpeedList[config.VR];
-            } else {
-                speed = slowActive ? slowSpeedList[config.VR] : baseSpeedList[config.VN];
-            }
-            
-            if (gateState === "OPENING") {
-                if (!isPhotoAligned && !isReducedSpeed && !isSafetyReversing) {
-                    // Blocco standard se la foto viene impegnata in apertura e non c'è una retroazione in corso
-                    lastDir = "OPENING"; gateState = "STOPPED"; endMove();
-                } else {
-                    leafPos += speed * dt;
+            if (mode === "AA") {
+                // Durante l'autoapprendimento, bypassiamo la normale configurazione
+                slowActive = true; 
+                
+                if (aaPhase === 1) {
+                    // FASE 1: Apertura cieca totalmente rallentata fino a FCA
+                    speed = 0.2; // 0.2 m/s di default
+                    leafPos += (speed / 4.0) * dt; // Supponiamo una corsa massima visiva fissa a scopo simulativo di 4.0 metri
                     
-                    // Gestione del Timer di 3 secondi per inversione parziale
-                    if (isSafetyReversing) {
-                        safetyReversalTimer -= dt;
-                        if (safetyReversalTimer <= 0) {
+                    if (leafPos >= 1.0) {
+                        leafPos = 1.0;
+                        gateState = "STOPPED";
+                        toggleFlash(false);
+                        disp.innerText = "A1";
+                        aaPhase = 1.5; // Stato di attesa/pausa interna
+                        aaTimeout = setTimeout(() => {
+                            aaPhase = 2;
+                            measuredTime = 0.0;
+                            runGate("CLOSING", false);
+                        }, 1500);
+                    }
+                } 
+                else if (aaPhase === 2) {
+                    // FASE 2: Chiusura a Velocità Nominale / 2 con conteggio del tempo reale a display
+                    speed = 0.2; // Calibrato a 0.2 m/s per simulare esattamente 1 giro/secondo del pignone Z16 (20cm)
+                    leafPos -= (speed / 4.0) * dt;
+                    
+                    measuredTime += dt;
+                    disp.innerText = Math.floor(measuredTime).toString().padStart(2, '0');
+                    
+                    if (leafPos <= 0) {
+                        leafPos = 0;
+                        gateState = "CLOSED";
+                        toggleFlash(false);
+                        
+                        // CALCOLI DI FINE AUTOAPPRENDIMENTO (Fatto a VN/2 -> 0.2m/s)
+                        gateLength = measuredTime * 0.2; 
+                        totalRevolutions = measuredTime * 1.0; // 1 secondo = 1 giro completo (20cm)
+                        tempoMoltiplicato = measuredTime * 2; // Specifica: Moltiplicato per due
+                        
+                        localStorage.setItem('DPlus_GateLength', gateLength);
+                        localStorage.setItem('DPlus_TotalRevolutions', totalRevolutions);
+                        localStorage.setItem('DPlus_TempoMoltiplicato', tempoMoltiplicato);
+                        
+                        mode = "SAVING";
+                        disp.innerText = "OK";
+                        setTimeout(() => {
+                            mode = "IDLE";
+                            disp.innerText = "--";
+                            disp.classList.add('blink');
+                            refreshTable();
+                        }, 2000);
+                    }
+                }
+            } 
+            else {
+                // FUNZIONAMENTO NOMINALE DOPO APPRENDIMENTO
+                const target = isPedestrian ? [0.2, 0.3, 0.4][config.AP] : 1.0;
+                
+                if (gateLength > 0) {
+                    // Utilizzo delle rampe reali basate su valori medi di default (ultimo 15% della corsa)
+                    slowActive = (gateState === "OPENING" && leafPos > target * 0.85) || 
+                                 (gateState === "CLOSING" && leafPos < 0.15);
+                } else {
+                    // Fallback se l'utente non ha mai avviato la calibrazione
+                    const srP = [0.04, 0.06, 0.08, 0.10][config.SR];
+                    slowActive = (gateState === "OPENING" && leafPos > target - srP) || (gateState === "CLOSING" && leafPos < srP);
+                }
+                
+                const baseSpeedList = [0.25, 0.32, 0.40, 0.48, 0.55]; // Velocità in m/s
+                const slowSpeedList = [0.08, 0.11, 0.15, 0.18, 0.22]; 
+                
+                let physSpeed = slowActive ? slowSpeedList[config.VR] : baseSpeedList[config.VN];
+                if (isReducedSpeed && gateState === "OPENING") physSpeed = slowSpeedList[config.VR];
+                
+                speed = physSpeed;
+                
+                if (gateState === "OPENING") {
+                    if (!isPhotoAligned && !isReducedSpeed && !isSafetyReversing) {
+                        lastDir = "OPENING"; gateState = "STOPPED"; endMove();
+                    } else {
+                        leafPos += (speed / 4.0) * dt;
+                        
+                        if (isSafetyReversing) {
+                            safetyReversalTimer -= dt;
+                            if (safetyReversalTimer <= 0) {
+                                isSafetyReversing = false;
+                                isReducedSpeed = false;
+                                lastDir = "CLOSING"; 
+                                gateState = "STOPPED";
+                                endMove();
+                            }
+                        }
+                        
+                        if (leafPos >= target) {
+                            leafPos = target; 
+                            gateState = "OPEN"; 
+                            isReducedSpeed = false; 
                             isSafetyReversing = false;
-                            isReducedSpeed = false;
-                            // Impostiamo lastDir su CLOSING in modo che il prossimo impulso (A, B, 1, 2) generi un OPENING
-                            lastDir = "CLOSING"; 
-                            gateState = "STOPPED";
+                            endMove(); 
+                            startAuto(); 
+                        }
+                    }
+                } 
+                else if (gateState === "CLOSING") {
+                    if (!isPhotoAligned) {
+                        clearTimeout(preFlashTimeout); preFlashTimeout = null;
+                        lastDir = "CLOSING"; 
+                        isReducedSpeed = true; 
+                        excludeAutoClose = true;
+                        isSafetyReversing = true;
+                        safetyReversalTimer = 3.0; 
+                        runGate("OPENING", isPedestrian);
+                    } else {
+                        leafPos -= (speed / 4.0) * dt;
+                        if (leafPos <= 0) {
+                            leafPos = 0; 
+                            gateState = "CLOSED";
+                            isReducedSpeed = false; 
                             endMove();
                         }
                     }
-                    
-                    if (leafPos >= target && gateState !== "STOPPED") {
-                        leafPos = target; gateState = "OPEN"; 
-                        isReducedSpeed = false; 
-                        isSafetyReversing = false;
-                        endMove(); 
-                        startAuto(); 
-                    }
-                }
-            } else {
-                if (!isPhotoAligned) {
-                    clearTimeout(preFlashTimeout); preFlashTimeout = null;
-                    lastDir = "CLOSING"; 
-                    isReducedSpeed = true; 
-                    excludeAutoClose = true;
-                    isSafetyReversing = true;
-                    safetyReversalTimer = 3.0; // Inizia il count-down di 3s
-                    runGate("OPENING", isPedestrian);
-                } else {
-                    leafPos -= speed * dt;
-                    if (leafPos <= 0) {
-                        leafPos = 0; gateState = "CLOSED";
-                        isReducedSpeed = false; endMove();
-                    }
                 }
             }
-            // Mantenimento dei bounds visivi
+            
             if (leafPos > 1.0) leafPos = 1.0;
             if (leafPos < 0.0) leafPos = 0.0;
-            
             leaf.style.transform = `translateX(-${leafPos * 100}%)`;
         }
         
-        // Attiva o disattiva il lampeggio del LED RALL
-        document.getElementById('boardLedRall').classList.toggle('intermittent', isRallPhase);
+        document.getElementById('boardLedRall').classList.toggle('active', slowActive);
         
         updateDiagnostics(slowActive, speed);
         requestAnimationFrame(physics);
@@ -546,9 +630,7 @@
     }
 
     function startAuto() {
-        if (excludeAutoClose) { 
-            return; 
-        }
+        if (excludeAutoClose) return; 
         if (config.CA > 0 && gateState === "OPEN") {
             const d = [0, 3, 7, 10, 15][config.CA];
             autoTimer = setTimeout(() => { if(gateState==="OPEN" && isPhotoAligned) runGate("CLOSING", isPedestrian); }, d * 1000);
@@ -559,6 +641,13 @@
         if (ns === "CLOSING" && !isPhotoAligned) return; 
         clearTimeout(preFlashTimeout); clearTimeout(autoTimer);
         lastTime = performance.now(); isPedestrian = ped;
+
+        if (mode === "AA") {
+            // Durante l'autoapprendimento bypassiamo i ritardi del pre-lampeggio per taratura immediata
+            gateState = ns; toggleFlash(true);
+            disp.innerText = aaPhase === 1 ? "AA" : "00";
+            return;
+        }
 
         if (config.FL === 0 || config.FL === 1) {
             gateState = (ns === "OPENING") ? "PRE_OPEN" : "PRE_CLOSE"; toggleFlash(true);
@@ -575,6 +664,12 @@
     }
 
     function triggerCommand(ped) {
+        if (mode === "AA") {
+            clearTimeout(aaTimeout);
+            mode = "IDLE"; gateState = "STOPPED"; endMove();
+            return;
+        }
+        
         if (config.FC === 1 && (gateState !== "CLOSED" && gateState !== "OPEN" && gateState !== "STOPPED")) return;
         
         isReducedSpeed = false; 
@@ -681,14 +776,18 @@
         
         if (mode === "IDLE") {
             holdTimerB = setTimeout(() => { 
-                mode = "AA"; aaPhase = 1; aaMeasuredTime = 0; disp.classList.remove('blink'); 
+                // AVVIO AUTOAPPRENDIMENTO REALE PRO 5.5
+                mode = "AA"; 
+                aaPhase = 1; 
+                disp.classList.remove('blink'); 
                 
-                // IL CANCELLO PARTE DA METÀ PERCORSO COME RICHIESTO (50%)
-                leafPos = 0.5;
+                // Forza la partenza da una posizione parziale per simulare la corsa cieca
+                leafPos = 0.15; 
                 leaf.style.transform = `translateX(-${leafPos * 100}%)`;
+                measuredTime = 0.0;
                 
-                runGate("OPENING", false); 
-                navigator.vibrate && navigator.vibrate(100); 
+                runGate("OPENING", false); // Fase 1: Apertura rallentata
+                if (navigator.vibrate) navigator.vibrate(100); 
             }, 3000);
         } else if (mode === "MENU") { 
             if (menuKeys[currentIdx] === 'AT') { mode = "EDIT_AT"; atOption = 1; updateMenuAT(); } 
@@ -715,8 +814,7 @@
     function releaseB() {
         if(!isPressedB) return; isPressedB = false; document.getElementById('keyB').classList.remove('btn-active');
         clearTimeout(holdTimerB); clearTimeout(saveTimer);
-        // Evitiamo che triggeri B standard se era appena entrato in AA
-        if (mode === "AA" && aaPhase === 1 && leafPos === 0.5) return; 
+        if (mode === "AA") return; 
         if (mode === "IDLE") triggerCommand(true); 
     }
 
