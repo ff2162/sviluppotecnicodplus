@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>DPlus MACH1 26v1 - PRO Telemetry Edition (RALL LED)</title>
+    <title>DPlus MACH1 26v1 - PRO Telemetry Edition (Safety & AA Update)</title>
     <style>
         :root { 
             --red: #e31e24; 
@@ -252,7 +252,7 @@
                     <div class="quick-help">
                         <b style="color:#ccc;">Ostacolo (Fotocellula):</b><br>
                         Tocca il sensore nel disegno per simulare l'ostacolo.<br>
-                        <span style="color:#a88;">In Chiusura &rarr; Inverte in apertura a velocità rallentata escludendo CA.</span>
+                        <span style="color:#a88;">In Chiusura &rarr; Inverte in apertura per 3 secondi. Poi attende un impulso per completare l'apertura.</span>
                     </div>
                 </div>
             </div>
@@ -285,7 +285,7 @@
     </div>
 
     <div class="footer-info">
-        MACH1 APP SIMULATOR PRO v4.2 | DPLUS AUTOMATION
+        MACH1 APP SIMULATOR PRO v5.2 | DPLUS AUTOMATION
     </div>
 
 </div>
@@ -294,10 +294,14 @@
     // --- STATO DEL SISTEMA ---
     let mode = "IDLE", gateState = "CLOSED", lastDir = "CLOSING", leafPos = 0.0, isPedestrian = false;
     let lastTime = 0, autoTimer = null, flashInt = null, preFlashTimeout = null;
-    let atOption = 1;
+    let atOption = 1, aaPhase = 0, aaMeasuredTime = 0;
+    
+    // Variabili Sicurezze e Ostacolo
     let isPhotoAligned = true; 
     let isReducedSpeed = false; 
     let excludeAutoClose = false; 
+    let isSafetyReversing = false;
+    let safetyReversalTimer = 0;
 
     const menuKeys = ['LS', 'AT', 'VN', 'VR', 'SR', 'SO', 'CA', 'FC', 'AP', 'FL', 'CL'];
     const maxVals = { LS: 3, AT: 1, VN: 4, VR: 4, SR: 3, SO: 4, CA: 4, FC: 1, AP: 2, FL: 3, CL: 3 };
@@ -364,13 +368,17 @@
                 lastDir = "CLOSING"; 
                 isReducedSpeed = true;      
                 excludeAutoClose = true;    
+                isSafetyReversing = true;
+                safetyReversalTimer = 3.0; // Inversione di 3 secondi esatti
                 runGate("OPENING", isPedestrian);
             }
             else if (gateState === "OPENING" || gateState === "PRE_OPEN") {
+                // In apertura la fotocellula funge da arresto standard
                 clearTimeout(preFlashTimeout); preFlashTimeout = null;
                 lastDir = "OPENING"; 
                 gateState = "STOPPED"; 
                 isReducedSpeed = false;
+                isSafetyReversing = false;
                 if(mode === "IDLE") disp.classList.remove('blink-fast');
                 endMove();
             }
@@ -427,7 +435,7 @@
         else if (gateState === "OPEN") statusStr = curL === "IT" ? (excludeAutoClose ? "Aperto (CA Escluso per Sicurezza)" : "Aperto (Pausa CA)") : (excludeAutoClose ? "Open (CA Disabled)" : "Open (CA Active)");
         else if (gateState === "STOPPED") statusStr = curL === "IT" ? "Arresto manuale / Sicurezza" : "Stopped / Override";
         else if (gateState === "PRE_OPEN" || gateState === "PRE_CLOSE") statusStr = curL === "IT" ? "Pre-lampeggio di sicurezza" : "Safety Pre-flashing";
-        else if (gateState === "OPENING") statusStr = isReducedSpeed ? (curL === "IT" ? "Riapertura di Sicurezza (Lenta)" : "Safety Reopening (Slow)") : (isSlow ? (curL === "IT" ? "Rallentamento Apertura" : "Slowing Down Open") : (curL === "IT" ? "Apertura Nominale" : "Opening Nominal"));
+        else if (gateState === "OPENING") statusStr = isSafetyReversing ? (curL === "IT" ? "Inversione Sicurezza (3s)" : "Safety Reversal (3s)") : (isSlow ? (curL === "IT" ? "Rallentamento Apertura" : "Slowing Down Open") : (curL === "IT" ? "Apertura Nominale" : "Opening Nominal"));
         else if (gateState === "CLOSING") statusStr = isSlow ? (curL === "IT" ? "Rallentamento Chiusura" : "Slowing Down Close") : (curL === "IT" ? "Chiusura Nominale" : "Closing Nominal");
 
         const posPct = Math.round(leafPos * 100);
@@ -473,13 +481,29 @@
             }
             
             if (gateState === "OPENING") {
-                if (!isPhotoAligned && !isReducedSpeed) {
+                if (!isPhotoAligned && !isReducedSpeed && !isSafetyReversing) {
+                    // Blocco standard se la foto viene impegnata in apertura e non c'è una retroazione in corso
                     lastDir = "OPENING"; gateState = "STOPPED"; endMove();
                 } else {
                     leafPos += speed * dt;
-                    if (leafPos >= target) {
+                    
+                    // Gestione del Timer di 3 secondi per inversione parziale
+                    if (isSafetyReversing) {
+                        safetyReversalTimer -= dt;
+                        if (safetyReversalTimer <= 0) {
+                            isSafetyReversing = false;
+                            isReducedSpeed = false;
+                            // Impostiamo lastDir su CLOSING in modo che il prossimo impulso (A, B, 1, 2) generi un OPENING
+                            lastDir = "CLOSING"; 
+                            gateState = "STOPPED";
+                            endMove();
+                        }
+                    }
+                    
+                    if (leafPos >= target && gateState !== "STOPPED") {
                         leafPos = target; gateState = "OPEN"; 
                         isReducedSpeed = false; 
+                        isSafetyReversing = false;
                         endMove(); 
                         startAuto(); 
                     }
@@ -490,6 +514,8 @@
                     lastDir = "CLOSING"; 
                     isReducedSpeed = true; 
                     excludeAutoClose = true;
+                    isSafetyReversing = true;
+                    safetyReversalTimer = 3.0; // Inizia il count-down di 3s
                     runGate("OPENING", isPedestrian);
                 } else {
                     leafPos -= speed * dt;
@@ -499,6 +525,10 @@
                     }
                 }
             }
+            // Mantenimento dei bounds visivi
+            if (leafPos > 1.0) leafPos = 1.0;
+            if (leafPos < 0.0) leafPos = 0.0;
+            
             leaf.style.transform = `translateX(-${leafPos * 100}%)`;
         }
         
@@ -549,6 +579,8 @@
         
         isReducedSpeed = false; 
         excludeAutoClose = false;
+        isSafetyReversing = false;
+        safetyReversalTimer = 0;
 
         const ledTrg = ped ? document.getElementById('boardLedAP') : document.getElementById('boardLedStart');
         if (ledTrg) { ledTrg.classList.add('active'); setTimeout(() => ledTrg.classList.remove('active'), 300); }
@@ -647,7 +679,18 @@
         if(isPressedB) return; isPressedB = true;
         document.getElementById('keyB').classList.add('btn-active');
         
-        if (mode === "MENU") { 
+        if (mode === "IDLE") {
+            holdTimerB = setTimeout(() => { 
+                mode = "AA"; aaPhase = 1; aaMeasuredTime = 0; disp.classList.remove('blink'); 
+                
+                // IL CANCELLO PARTE DA METÀ PERCORSO COME RICHIESTO (50%)
+                leafPos = 0.5;
+                leaf.style.transform = `translateX(-${leafPos * 100}%)`;
+                
+                runGate("OPENING", false); 
+                navigator.vibrate && navigator.vibrate(100); 
+            }, 3000);
+        } else if (mode === "MENU") { 
             if (menuKeys[currentIdx] === 'AT') { mode = "EDIT_AT"; atOption = 1; updateMenuAT(); } 
             else { mode = "EDIT"; updateMenu(); } 
         } else if (mode === "EDIT_AT") { 
@@ -671,7 +714,9 @@
 
     function releaseB() {
         if(!isPressedB) return; isPressedB = false; document.getElementById('keyB').classList.remove('btn-active');
-        clearTimeout(saveTimer);
+        clearTimeout(holdTimerB); clearTimeout(saveTimer);
+        // Evitiamo che triggeri B standard se era appena entrato in AA
+        if (mode === "AA" && aaPhase === 1 && leafPos === 0.5) return; 
         if (mode === "IDLE") triggerCommand(true); 
     }
 
