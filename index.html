@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
@@ -150,7 +150,7 @@
         .remote-led.active { background: #0f0; box-shadow: 0 0 10px #0f0; }
         .remote-logo { margin-bottom: 10px; height: 13px; display: flex; align-items: center; justify-content: center; width: 100%; }
         .remote-logo img { height: 100%; max-width: 75px; filter: drop-shadow(0 0 2px rgba(227,30,36,0.3)); }
-        .remote-btn-group { display: flex; gap: 8px; }
+        .remote-btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .btn-rem { width: 42px; height: 42px; font-size: 15px; }
 
         .quick-help { font-size: 11px; color: #888; line-height: 1.3; flex-grow: 1; }
@@ -244,6 +244,8 @@
                         <div class="remote-btn-group">
                             <button id="btnRem1" class="btn btn-rem">1</button>
                             <button id="btnRem2" class="btn btn-rem">2</button>
+                            <button id="btnRem3" class="btn btn-rem">3</button>
+                            <button id="btnRem4" class="btn btn-rem">4</button>
                         </div>
                     </div>
                     <div class="quick-help">
@@ -696,23 +698,76 @@
     }
 
     function handleRemotePress(channel) {
-        const rLed = document.getElementById(channel === 1 ? 'boardLedR1' : 'boardLedR2');
+        if (mode === "EDIT_AT") {
+            if (channel === 1 || channel === 2) {
+                atOption = atOption === 1 ? 2 : 1;
+                updateMenuAT();
+            } else if (channel === 3 || channel === 4) {
+                mode = "AT_LEARNING"; disp.innerText = "Go"; disp.classList.add('blink');
+                const curL = langCodes[config.LS] || "EN";
+                infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL]||langDB["EN"]).LABELS.AT[0]}</b><br><span style="color:#ffeb3b;" class="blink">${curL === "IT" ? "In attesa segnale radio..." : "Waiting for radio signal..."}</span>`;
+                resetConfigTimeout();
+            }
+            return;
+        }
+
+        const rLed = document.getElementById((channel === 1 || channel === 3) ? 'boardLedR1' : 'boardLedR2');
         if (rLed) { rLed.classList.add('active'); setTimeout(() => rLed.classList.remove('active'), 300); }
-        document.getElementById('remLed').classList.add('active');
-        setTimeout(() => document.getElementById('remLed').classList.remove('active'), 200);
+        
+        if (mode !== "EDIT_AT" && mode !== "AT_LEARNING") {
+            document.getElementById('remLed').classList.add('active');
+            setTimeout(() => document.getElementById('remLed').classList.remove('active'), 200);
+        }
 
         if (mode === "AT_LEARNING") {
             disp.innerText = "OK"; disp.classList.remove('blink'); mode = "AT_SAVING";
+            clearInterval(remBlinkInterval); document.getElementById('remLed').classList.remove('active');
             const curL = langCodes[config.LS] || "EN";
             let resultMsg = atOption === 0 ? (curL === "IT" ? "Codice cancellato!" : "Code erased!") : (curL === "IT" ? "Codice salvato!" : "Code saved successfully!");
             let color = atOption === 0 ? "#ff3333" : "#0f0"; 
             infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL]||langDB["EN"]).LABELS.AT[0]}</b><br><span style="color:${color}; font-weight:bold;">${resultMsg}</span>`;
-            setTimeout(() => { mode = "MENU"; updateMenu(); }, 1200); return;
+            setTimeout(() => { mode = "IDLE"; disp.innerText = "--"; disp.classList.add('blink'); resetConfigTimeout(); }, 1500); return;
         }
-        triggerCommand(channel === 2);
+        triggerCommand((channel === 2 || channel === 4));
     }
 
     let currentIdx = 0;
+    
+    function checkRemPairing() {
+        if (isRem1Pressed && isRem2Pressed) {
+            remPairTimer = setTimeout(() => {
+                if (mode !== "AT_LEARNING" && mode !== "EDIT_AT") {
+                    mode = "EDIT_AT";
+                    atOption = 1;
+                    updateMenuAT();
+                    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                }
+            }, 10000);
+        } else {
+            clearTimeout(remPairTimer);
+        }
+    }
+
+    function manageRemoteLedBlink() {
+        clearInterval(remBlinkInterval);
+        if (mode === "EDIT_AT" || mode === "AT_LEARNING") {
+            let step = 0;
+            remBlinkInterval = setInterval(() => {
+                if (atOption === 1) {
+                    document.getElementById('remLed').classList.toggle('active', step === 0);
+                    step = (step + 1) % 4;
+                } else if (atOption === 2) {
+                    document.getElementById('remLed').classList.toggle('active', step === 0 || step === 2);
+                    step = (step + 1) % 6;
+                } else {
+                    document.getElementById('remLed').classList.remove('active');
+                }
+            }, 250);
+        } else {
+            document.getElementById('remLed').classList.remove('active');
+        }
+    }
+
     function updateMenu() {
         const k = menuKeys[currentIdx], curL = langCodes[config.LS] || "EN";
         const db = (langDB[curL] || langDB["EN"]);
@@ -726,6 +781,7 @@
     }
 
     function updateMenuAT() {
+        manageRemoteLedBlink();
         disp.innerText = atOption; disp.classList.remove('blink');
         const curL = langCodes[config.LS] || "EN";
         const atLabel = (langDB[curL] || langDB["EN"]).LABELS.AT[0];
@@ -745,6 +801,7 @@
 
     let holdTimerA = null, holdTimerB = null, saveTimer = null, configTimeout = null;
     let isPressedA = false, isPressedB = false, isLongPressA = false;
+    let isRem1Pressed = false, isRem2Pressed = false, remPairTimer = null, remBlinkInterval = null;
 
     function resetConfigTimeout() {
         clearTimeout(configTimeout);
@@ -826,13 +883,45 @@
     };
 
     setupBtnEvents('keyA', pressA, releaseA); setupBtnEvents('keyB', pressB, releaseB);
-    setupBtnEvents('btnRem1', () => { document.getElementById('btnRem1').classList.add('btn-active'); handleRemotePress(1); }, () => document.getElementById('btnRem1').classList.remove('btn-active'));
-    setupBtnEvents('btnRem2', () => { document.getElementById('btnRem2').classList.add('btn-active'); handleRemotePress(2); }, () => document.getElementById('btnRem2').classList.remove('btn-active'));
+    setupBtnEvents('btnRem1', () => { 
+        document.getElementById('btnRem1').classList.add('btn-active'); 
+        isRem1Pressed = true; checkRemPairing(); 
+        handleRemotePress(1); 
+    }, () => { 
+        document.getElementById('btnRem1').classList.remove('btn-active'); 
+        isRem1Pressed = false; checkRemPairing(); 
+    });
+    
+    setupBtnEvents('btnRem2', () => { 
+        document.getElementById('btnRem2').classList.add('btn-active'); 
+        isRem2Pressed = true; checkRemPairing(); 
+        handleRemotePress(2); 
+    }, () => { 
+        document.getElementById('btnRem2').classList.remove('btn-active'); 
+        isRem2Pressed = false; checkRemPairing(); 
+    });
 
-    window.addEventListener('keydown', e => { if(e.key.toLowerCase()==='a') pressA(); if(e.key.toLowerCase()==='b') pressB(); if(e.key==='1') handleRemotePress(1); if(e.key==='2') handleRemotePress(2); });
-    window.addEventListener('keyup', e => { if(e.key.toLowerCase()==='a') releaseA(); if(e.key.toLowerCase()==='b') releaseB(); });
+    setupBtnEvents('btnRem3', () => { document.getElementById('btnRem3').classList.add('btn-active'); handleRemotePress(3); }, () => document.getElementById('btnRem3').classList.remove('btn-active'));
+    setupBtnEvents('btnRem4', () => { document.getElementById('btnRem4').classList.add('btn-active'); handleRemotePress(4); }, () => document.getElementById('btnRem4').classList.remove('btn-active'));
+
+    window.addEventListener('keydown', e => { 
+        if(e.key.toLowerCase()==='a') pressA(); 
+        if(e.key.toLowerCase()==='b') pressB(); 
+        if(e.key==='1' && !isRem1Pressed) { isRem1Pressed = true; checkRemPairing(); handleRemotePress(1); document.getElementById('btnRem1').classList.add('btn-active'); }
+        if(e.key==='2' && !isRem2Pressed) { isRem2Pressed = true; checkRemPairing(); handleRemotePress(2); document.getElementById('btnRem2').classList.add('btn-active'); }
+        if(e.key==='3') { handleRemotePress(3); document.getElementById('btnRem3').classList.add('btn-active'); }
+        if(e.key==='4') { handleRemotePress(4); document.getElementById('btnRem4').classList.add('btn-active'); }
+    });
+    window.addEventListener('keyup', e => { 
+        if(e.key.toLowerCase()==='a') releaseA(); 
+        if(e.key.toLowerCase()==='b') releaseB(); 
+        if(e.key==='1') { isRem1Pressed = false; checkRemPairing(); document.getElementById('btnRem1').classList.remove('btn-active'); }
+        if(e.key==='2') { isRem2Pressed = false; checkRemPairing(); document.getElementById('btnRem2').classList.remove('btn-active'); }
+        if(e.key==='3') { document.getElementById('btnRem3').classList.remove('btn-active'); }
+        if(e.key==='4') { document.getElementById('btnRem4').classList.remove('btn-active'); }
+    });
 
     refreshTable();
 </script>
 </body>
-</html>
+</html>>
