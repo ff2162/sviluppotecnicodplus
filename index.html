@@ -249,9 +249,9 @@
                         </div>
                     </div>
                     <div class="quick-help">
-                        <b style="color:#ccc;">Autoapprendimento Avanzato (Pro 5.5):</b><br>
-                        Tieni premuto B per 3s. Ciclo sequenziale:<br>
-                        <span style="color:#ffeb3b;">Fase 1: Apertura cieca e rallentata fino a FCA &rarr; Pausa 1.5" &rarr; Fase 2: Chiusura a VN/2 con calcolo tempo live sul Display &rarr; Stop su FCC &rarr; OK.</span>
+                        <b style="color:#ccc;">Advanced self-learning:</b><br>
+                        Hold B for 3s. Sequential cycle:<br>
+                        <span style="color:#ffeb3b;">Phase 1: Blind and slow opening up to FCA &rarr; Pause 1.5" &rarr; Phase 2: Closing at VN/2 with live time calculation on the Display &rarr; Stop on FCC &rarr; OK.</span>
                     </div>
                 </div>
             </div>
@@ -459,18 +459,18 @@
         const tMoltStr = tempoMoltiplicato > 0 ? `${tempoMoltiplicato.toFixed(1)} s` : (curL === "IT" ? "Non calcolato" : "Not computed");
 
         infoText.innerHTML = `
-            <b style="color:var(--red); font-size: 14px; display:block; margin-bottom:4px;">Telemetria Real-Time Pro 5.5:</b>
+            <b style="color:var(--red); font-size: 14px; display:block; margin-bottom:4px;">Real time telemetry:</b>
             <div style="font-size: 11px; line-height: 1.4; display: grid; grid-template-columns: 120px 1fr; gap: 1px 5px;">
-                <div><b>Stato Centrale:</b></div><div style="color:#0f0; font-weight:bold;">${statusStr}</div>
-                <div><b>Quota Visiva Anta:</b></div><div>${posPct}%</div>
-                <div><b>Velocità Nominale:</b></div><div>${currentSpeed.toFixed(3)} m/s</div>
-                <div><b>Potenza Erogata:</b></div><div>${powerPct}%</div>
+                <div><b>Central State:</b></div><div style="color:#0f0; font-weight:bold;">${statusStr}</div>
+                <div><b>Door opening:</b></div><div>${posPct}%</div>
+                <div><b>Nominal speed:</b></div><div>${currentSpeed.toFixed(3)} m/s</div>
+                <div><b>Power Delivered:</b></div><div>${powerPct}%</div>
                 
-                <div style="grid-column: span 2; margin-top: 5px; border-top: 1px solid #333; padding-top: 4px; color: #ffeb3b; font-weight: bold; font-size: 11.5px;">Mappatura Corsa Meccanica:</div>
-                <div><b>Tempo Misurato:</b></div><div>${(mode === "AA" && aaPhase === 2) ? measuredTime.toFixed(1) + ' s' : (gateLength > 0 ? (gateLength / 0.2).toFixed(1) + ' s' : '---')}</div>
-                <div><b>Tempo x2 (Impostato):</b></div><div>${tMoltStr}</div>
-                <div><b>Rotazione Pignone:</b></div><div>${revStr}</div>
-                <div><b>Lunghezza Cancello:</b></div><div style="color:#0f0; font-weight:bold;">${lenStr}</div>
+                <div style="grid-column: span 2; margin-top: 5px; border-top: 1px solid #333; padding-top: 4px; color: #ffeb3b; font-weight: bold; font-size: 11.5px;">Mechanical stroke mapping:</div>
+                <div><b>Measured Time:</b></div><div>${(mode === "AA" && aaPhase === 2) ? measuredTime.toFixed(1) + ' s' : (gateLength > 0 ? (gateLength / 0.2).toFixed(1) + ' s' : '---')}</div>
+                <div><b>Time x2 (Set):</b></div><div>${tMoltStr}</div>
+                <div><b>Pinion Rotation:</b></div><div>${revStr}</div>
+                <div><b>Gate Length:</b></div><div style="color:#0f0; font-weight:bold;">${lenStr}</div>
             </div>
         `;
     }
