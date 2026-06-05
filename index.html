@@ -273,6 +273,7 @@
                         <tr id="r-AP"><td>AP</td><td class="td-desc" id="lbl-AP">Pedestrian Open</td><td id="v-AP" style="text-align:right;">0</td></tr>
                         <tr id="r-FL"><td>FL</td><td class="td-desc" id="lbl-FL">Flasher Mode</td><td id="v-FL" style="text-align:right;">3</td></tr>
                         <tr id="r-CL"><td>CL</td><td class="td-desc" id="lbl-CL">Cover LED</td><td id="v-CL" style="text-align:right;">3</td></tr>
+                        <tr id="r-ST"><td>ST</td><td class="td-desc" id="lbl-ST">STOP pin Configuration</td><td id="v-ST" style="text-align:right;">1</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -308,13 +309,13 @@
     let totalRevolutions = parseFloat(localStorage.getItem('DPlus_TotalRevolutions')) || 0.0;
     let tempoMoltiplicato = parseFloat(localStorage.getItem('DPlus_TempoMoltiplicato')) || 0.0;
 
-    const menuKeys = ['LS', 'AT', 'VN', 'VR', 'SR', 'SO', 'CA', 'FC', 'AP', 'FL', 'CL'];
-    const maxVals = { LS: 3, AT: 1, VN: 4, VR: 4, SR: 3, SO: 4, CA: 4, FC: 1, AP: 2, FL: 3, CL: 3 };
+    const menuKeys = ['LS', 'AT', 'VN', 'VR', 'SR', 'SO', 'CA', 'FC', 'AP', 'FL', 'CL', 'ST'];
+    const maxVals = { LS: 3, AT: 1, VN: 4, VR: 4, SR: 3, SO: 4, CA: 4, FC: 1, AP: 2, FL: 3, CL: 3, ST: 2 };
     const langCodes = ["IT", "EN", "ES", "FR"];
 
-    let config = { LS: 0, AT: 0, VN: 2, VR: 2, SR: 1, SO: 0, CA: 0, FC: 0, AP: 0, FL: 3, CL: 3 };
+    let config = { LS: 0, AT: 0, VN: 2, VR: 2, SR: 1, SO: 0, CA: 0, FC: 0, AP: 0, FL: 3, CL: 3, ST: 1 };
     const saved = localStorage.getItem('DPlus_Mach_App_Config');
-    if (saved) { try { config = JSON.parse(saved); } catch(e){} }
+    if (saved) { try { config = Object.assign(config, JSON.parse(saved)); } catch(e){} }
 
     const langDB = {
         IT: {
@@ -333,7 +334,8 @@
                 FC: ["Funzione Condominiale", "0: Disattivato | 1: Attivato (Inibisce comandi in marcia)"],
                 AP: ["Apertura Pedonale", "0: 20% | 1: 30% | 2: 40% dell'apertura totale."],
                 FL: ["Lampeggiante", "0: Pre-Lamp Fisso | 1: Pre-Lamp Int. | 2: Fisso | 3: Intermittente"],
-                CL: ["Cover LED", "0: Sempre ON | 1: ON in marcia | 2: Lampeggia | 3: Breath in Standby"]
+                CL: ["Cover LED", "0: Sempre ON | 1: ON in marcia | 2: Lampeggia | 3: Breath in Standby"],
+                ST: ["Configurazione Pin STOP", "0: N.O | 1: N.C | 2: 8k2"]
             }
         },
         EN: {
@@ -352,7 +354,8 @@
                 FC: ["Condo Mode", "0: Disabled | 1: Enabled"],
                 AP: ["Pedestrian Open", "0: 20% | 1: 30% | 2: 40%"],
                 FL: ["Flasher Mode", "0: Pre-Lamp Fixed | 1: Pre-Lamp Int. | 2: Fixed | 3: Int."],
-                CL: ["Cover LED Mode", "0: ON | 1: ON running | 2: Blinking | 3: Breath standby"]
+                CL: ["Cover LED Mode", "0: ON | 1: ON running | 2: Blinking | 3: Breath standby"],
+                ST: ["STOP pin Configuration", "0: N.O | 1: N.C | 2: 8k2"]
             }
         }
     };
@@ -463,7 +466,7 @@
             <div style="font-size: 11px; line-height: 1.4; display: grid; grid-template-columns: 120px 1fr; gap: 1px 5px;">
                 <div><b>Central State:</b></div><div style="color:#0f0; font-weight:bold;">${statusStr}</div>
                 <div><b>Door opening:</b></div><div>${posPct}%</div>
-                <div><b>Nominal speed:</b></div><div>${(currentSpeed * 60).toFixed(1)} m/min</div>
+                <div><b>Nominal speed:</b></div><div>${currentSpeed.toFixed(3)} m/s</div>
                 <div><b>Power Delivered:</b></div><div>${powerPct}%</div>
                 
                 <div style="grid-column: span 2; margin-top: 5px; border-top: 1px solid #333; padding-top: 4px; color: #ffeb3b; font-weight: bold; font-size: 11.5px;">Mechanical stroke mapping:</div>
@@ -558,8 +561,8 @@
                     slowActive = (gateState === "OPENING" && leafPos > target - srP) || (gateState === "CLOSING" && leafPos < srP);
                 }
                 
-                const baseSpeedList = [0.16, 0.20, 0.25, 0.30, 0.35]; // Velocità in m/s
-                const slowSpeedList = [0.05, 0.07, 0.09, 0.11, 0.13]; 
+                const baseSpeedList = [0.25, 0.32, 0.40, 0.48, 0.55]; // Velocità in m/s
+                const slowSpeedList = [0.08, 0.11, 0.15, 0.18, 0.22]; 
                 
                 let physSpeed = slowActive ? slowSpeedList[config.VR] : baseSpeedList[config.VN];
                 if (isReducedSpeed && gateState === "OPENING") physSpeed = slowSpeedList[config.VR];
