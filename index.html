@@ -10,7 +10,7 @@
         :root { 
             --red: #e31e24; 
             --panel: #1a1a1a; 
-            --display: #000; 
+            --display: #ccbdbdff; 
             --gate-blue: #2c3e50; 
             --led-red: #ff0000; 
             --lamp-yellow: #ffeb3b; 
@@ -802,8 +802,16 @@
         }, 1200);
     }
 
-    let holdTimerA = null, holdTimerB = null, saveTimer = null, configTimeout = null;
-    let isPressedA = false, isPressedB = false, isLongPressA = false;
+// --- NUOVA GESTIONE PULSANTI A e B ---
+    let holdTimerB = null; 
+    let comboTimer = null;
+    let configTimeout = null;
+    
+    // Variabili di stato per gestire le tolleranze di pressione
+    let isPressedA = false, isPressedB = false;
+    let isCombo = false; 
+    let actionFired = false; 
+    
     let isRem1Pressed = false, isRem2Pressed = false, remPairTimer = null, remBlinkInterval = null;
 
     function resetConfigTimeout() {
@@ -813,69 +821,114 @@
         }
     }
 
+    // Funzione centralizzata per intercettare la pressione simultanea
+    function checkCombo() {
+        if (isPressedA && isPressedB) {
+            isCombo = true;
+            clearTimeout(holdTimerB); // Interrompe eventuali hold singoli partiti (es. AA)
+            
+            // Timer di 1.2 secondi per l'azione simultanea (Entrare o Salvare)
+            comboTimer = setTimeout(() => {
+                actionFired = true; // Impedisce ai rilasci dei tasti di fare altro
+                if (mode === "IDLE") {
+                    // A+B in IDLE = Entra nel menu
+                    mode = "MENU"; currentIdx = 0; updateMenu();
+                } else if (mode === "MENU" || mode === "EDIT") {
+                    // A+B nei menu = Salva
+                    save();
+                }
+            }, 1200);
+        }
+    }
+
     function pressA() {
-        if(isPressedA) return; isPressedA = true;
+        if(isPressedA) return; 
+        isPressedA = true;
         document.getElementById('keyA').classList.add('btn-active');
+        actionFired = false;
+
+        checkCombo();
+    }
+
+    function pressB() {
+        if(isPressedB) return; 
+        isPressedB = true;
+        document.getElementById('keyB').classList.add('btn-active');
+        actionFired = false;
+
+        checkCombo();
+
+        // Azione prolungata SINGOLA di B (es. Autoapprendimento da IDLE)
+        if (!isCombo && mode === "IDLE") {
+            holdTimerB = setTimeout(() => {
+                if(!isCombo) {
+                    actionFired = true;
+                    // AVVIO AUTOAPPRENDIMENTO REALE
+                    mode = "AA"; aaPhase = 1; disp.classList.remove('blink');
+                    leafPos = 0.15; leaf.style.transform = `translateX(-${leafPos * 100}%)`;
+                    measuredTime = 0.0;
+                    runGate("OPENING", false); 
+                    if (navigator.vibrate) navigator.vibrate(100); 
+                }
+            }, 3000);
+        }
+    }
+
+    function releaseA() {
+        if(!isPressedA) return; 
+        isPressedA = false; 
+        document.getElementById('keyA').classList.remove('btn-active');
         
-        if (mode === "IDLE") {
-            holdTimerA = setTimeout(() => { isLongPressA = true; mode="MENU"; currentIdx=0; updateMenu(); }, 2000);
-        } else if (mode === "EDIT_AT") {
+        clearTimeout(comboTimer);
+        
+        // Se è già scattata l'azione A+B (o un'altra azione prolungata), ignora il rilascio singolo
+        if (actionFired || isCombo) {
+            if (!isPressedA && !isPressedB) isCombo = false; // Resetta lo stato combo solo quando entrambi sono rilasciati
+            return;
+        }
+
+        // AZIONI AL RILASCIO SINGOLO (Short Press)
+        if (mode === "IDLE") triggerCommand(false); 
+        else if (mode === "MENU") { currentIdx = (currentIdx + 1) % menuKeys.length; updateMenu(); }
+        else if (mode === "EDIT") { mode = "MENU"; updateMenu(); }
+        else if (mode === "EDIT_AT") {
             mode = "AT_LEARNING"; disp.innerText = "Go"; disp.classList.add('blink');
             const curL = langCodes[config.LS] || "EN";
             const msg = curL === "IT" ? "In attesa segnale radio..." : "Waiting for radio signal...";
             infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL]||langDB["EN"]).LABELS.AT[0]}</b><br><span style="color:#ffeb3b;" class="blink">${msg}</span>`;
             resetConfigTimeout();
-        } else if (mode === "AT_LEARNING") { mode = "MENU"; updateMenu(); }
-        
-        if (isPressedB && mode !== "IDLE" && mode !== "EDIT_AT" && mode !== "AT_LEARNING") saveTimer = setTimeout(save, 1200);
-    }
-
-    function pressB() {
-        if(isPressedB) return; isPressedB = true;
-        document.getElementById('keyB').classList.add('btn-active');
-        
-        if (mode === "IDLE") {
-            holdTimerB = setTimeout(() => { 
-                // AVVIO AUTOAPPRENDIMENTO REALE PRO 5.5
-                mode = "AA"; 
-                aaPhase = 1; 
-                disp.classList.remove('blink'); 
-                
-                // Forza la partenza da una posizione parziale per simulare la corsa cieca
-                leafPos = 0.15; 
-                leaf.style.transform = `translateX(-${leafPos * 100}%)`;
-                measuredTime = 0.0;
-                
-                runGate("OPENING", false); // Fase 1: Apertura rallentata
-                if (navigator.vibrate) navigator.vibrate(100); 
-            }, 3000);
-        } else if (mode === "MENU") { 
-            if (menuKeys[currentIdx] === 'AT') { mode = "EDIT_AT"; atOption = 1; updateMenuAT(); } 
-            else { mode = "EDIT"; updateMenu(); } 
-        } else if (mode === "EDIT_AT") { 
-            atOption = atOption === 1 ? 2 : (atOption === 2 ? 0 : 1); updateMenuAT(); 
-        } else if (mode === "EDIT") { 
-            config[menuKeys[currentIdx]] = (config[menuKeys[currentIdx]]+1) > maxVals[menuKeys[currentIdx]] ? 0 : config[menuKeys[currentIdx]]+1; 
-            refreshTable(); updateMenu(); 
+        } else if (mode === "AT_LEARNING") { 
+            mode = "MENU"; updateMenu(); 
         }
-        
-        if (isPressedA && mode !== "IDLE" && mode !== "EDIT_AT" && mode !== "AT_LEARNING") saveTimer = setTimeout(save, 1200);
-    }
-
-    function releaseA() {
-        if(!isPressedA) return; isPressedA = false; document.getElementById('keyA').classList.remove('btn-active');
-        clearTimeout(holdTimerA); clearTimeout(saveTimer);
-        if (isLongPressA) { isLongPressA = false; return; }
-        if (mode === "IDLE") triggerCommand(false); 
-        else if (mode === "MENU") { currentIdx = (currentIdx + 1) % menuKeys.length; updateMenu(); }
-        else if (mode === "EDIT") { mode = "MENU"; updateMenu(); }
     }
 
     function releaseB() {
-        if(!isPressedB) return; isPressedB = false; document.getElementById('keyB').classList.remove('btn-active');
-        clearTimeout(holdTimerB); clearTimeout(saveTimer);
-        if (mode === "AA") return; 
+        if(!isPressedB) return; 
+        isPressedB = false; 
+        document.getElementById('keyB').classList.remove('btn-active');
+        
+        clearTimeout(comboTimer);
+        clearTimeout(holdTimerB);
+
+        // Evita il rilascio singolo se eravamo in una combo
+        if (actionFired || isCombo) {
+            if (!isPressedA && !isPressedB) isCombo = false;
+            return;
+        }
+
+        // AZIONI AL RILASCIO SINGOLO (Short Press)
         if (mode === "IDLE") triggerCommand(true); 
+        else if (mode === "MENU") { 
+            if (menuKeys[currentIdx] === 'AT') { mode = "EDIT_AT"; atOption = 1; updateMenuAT(); } 
+            else { mode = "EDIT"; updateMenu(); } 
+        } 
+        else if (mode === "EDIT_AT") { 
+            atOption = atOption === 1 ? 2 : (atOption === 2 ? 0 : 1); updateMenuAT(); 
+        } 
+        else if (mode === "EDIT") { 
+            config[menuKeys[currentIdx]] = (config[menuKeys[currentIdx]]+1) > maxVals[menuKeys[currentIdx]] ? 0 : config[menuKeys[currentIdx]]+1; 
+            refreshTable(); updateMenu(); 
+        }
     }
 
     const setupBtnEvents = (id, onPress, onRelease) => {
