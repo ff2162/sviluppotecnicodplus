@@ -65,10 +65,10 @@
             overflow: hidden; 
             box-shadow: inset 0 0 40px #000, 0 8px 20px rgba(0,0,0,0.5);
         }
-        #col-motor { position: absolute; left: 12%; bottom: 0; width: 45px; height: 125px; background: #333; z-index: 2; border: 1px solid #444; }
-        #col-stop { position: absolute; right: 12%; bottom: 0; width: 25px; height: 125px; background: #333; z-index: 2; border: 1px solid #444; }
+        #col-motor { position: absolute; left: 12%; bottom: 0; width: 45px; height: 125px; background: #333; z-index: 2; border: 1px solid #444; transition: 0.5s ease-in-out; }
+        #col-stop { position: absolute; right: 12%; bottom: 0; width: 25px; height: 125px; background: #333; z-index: 2; border: 1px solid #444; transition: 0.5s ease-in-out; }
         
-        #motor-box { position: absolute; left: calc(12% - 6px); bottom: 0; width: 57px; height: 50px; background: #222; z-index: 6; border: 1px solid #444; border-radius: 5px 5px 0 0; }
+        #motor-box { position: absolute; left: calc(12% - 6px); bottom: 0; width: 57px; height: 50px; background: #222; z-index: 6; border: 1px solid #444; border-radius: 5px 5px 0 0; transition: 0.5s ease-in-out; }
         #cover-led { position: absolute; left: 50%; top: 10px; transform: translateX(-50%); width: 8px; height: 30px; background: #400; border-radius: 3px; transition: background 0.3s; }
         
         /* FOTOCELLULA */
@@ -76,7 +76,7 @@
             position: absolute; right: calc(12% + 25px); bottom: 35px; width: 15px; height: 34px;
             background: #222; border: 1px solid #444; border-radius: 4px 0 0 4px;
             z-index: 8; display: flex; flex-direction: column; align-items: center;
-            box-shadow: -3px 3px 10px rgba(0,0,0,0.6); cursor: pointer;
+            box-shadow: -3px 3px 10px rgba(0,0,0,0.6); cursor: pointer; transition: 0.5s ease-in-out;
         }
         #photo-led { width: 7px; height: 7px; background: #443000; border-radius: 50%; margin-top: 3px; transition: 0.1s; }
         .photo-lens { width: 7px; height: 14px; background: #050505; border-radius: 7px; margin-top: 3px; border: 1px solid #111; }
@@ -90,14 +90,14 @@
         @keyframes breath { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; box-shadow: 0 0 20px #ff0000; } }
         @keyframes photoBreath { 0%, 100% { opacity: 0.15; box-shadow: none; } 50% { opacity: 1; box-shadow: 0 0 10px var(--lamp-yellow); } }
         
-        #flasher { position: absolute; top: -35px; left: 5px; width: 35px; height: 35px; z-index: 10; }
+        #flasher { position: absolute; top: -35px; left: 5px; width: 35px; height: 35px; z-index: 10; transition: 0.5s ease-in-out; }
         .f-on { fill: var(--lamp-yellow) !important; filter: drop-shadow(0 0 20px var(--lamp-yellow)); }
         .f-off { fill: #430 !important; }
 
         #gate-leaf { 
             position: absolute; width: calc(76% - 65px); height: 80px; bottom: 10px; left: calc(12% + 40px); 
             background: repeating-linear-gradient(90deg, var(--gate-blue), var(--gate-blue) 35px, #1a252f 37px); 
-            border: 2px solid #111; z-index: 5; transform: translateX(0%); will-change: transform;
+            border: 2px solid #111; z-index: 5; transform: translateX(0%); will-change: transform; transition: left 0.5s ease-in-out, right 0.5s ease-in-out;
         }
 
         /* STRUTTURA PLANARE SCHEDA */
@@ -251,7 +251,7 @@
                     <div class="quick-help">
                         <b style="color:#ccc;">Advanced self-learning:</b><br>
                         Hold B for 3s. Sequential cycle:<br>
-                        <span style="color:#ffeb3b;">Phase 1: Blind and slow opening up to FCA &rarr; Pause 1.5" &rarr; Phase 2: Closing at VN/2 with live time calculation on the Display &rarr; Stop on FCC &rarr; OK.</span>
+                        <span style="color:#ffeb3b;">Phase 1: Starts mid-way. Opens at VN/2 &rarr; <i>Press A to invert direction (saves DM)</i> &rarr; Limit switch FCA &rarr; Pause 1.5" &rarr; Phase 2: Close at VN/2 until FCC &rarr; OK.</span>
                     </div>
                 </div>
             </div>
@@ -263,6 +263,7 @@
                     <thead><tr><th>Par</th><th>Description</th><th style="text-align:right;">Val</th></tr></thead>
                     <tbody id="menu-table">
                         <tr id="r-LS"><td>LS</td><td class="td-desc" id="lbl-LS">System Language</td><td id="v-LS" style="text-align:right; font-weight:bold;">EN</td></tr>
+                        <tr id="r-DM"><td>DM</td><td class="td-desc" id="lbl-DM">Motor Direction</td><td id="v-DM" style="text-align:right; font-weight:bold; color:var(--lamp-yellow);">SX</td></tr>
                         <tr id="r-AT"><td>AT</td><td class="td-desc" id="lbl-AT">Remote Learning</td><td id="v-AT" style="text-align:right;">0</td></tr>
                         <tr id="r-VN"><td>VN</td><td class="td-desc" id="lbl-VN">Motor Speed</td><td id="v-VN" style="text-align:right;">2</td></tr>
                         <tr id="r-VR"><td>VR</td><td class="td-desc" id="lbl-VR">Slow Speed</td><td id="v-VR" style="text-align:right;">2</td></tr>
@@ -309,11 +310,12 @@
     let totalRevolutions = parseFloat(localStorage.getItem('DPlus_TotalRevolutions')) || 0.0;
     let tempoMoltiplicato = parseFloat(localStorage.getItem('DPlus_TempoMoltiplicato')) || 0.0;
 
-    const menuKeys = ['LS', 'AT', 'VN', 'VR', 'SR', 'SO', 'CA', 'FC', 'AP', 'FL', 'CL', 'ST'];
-    const maxVals = { LS: 3, AT: 1, VN: 4, VR: 4, SR: 3, SO: 4, CA: 4, FC: 1, AP: 2, FL: 3, CL: 3, ST: 2 };
+    // Aggiunto "DM" ai parametri
+    const menuKeys = ['LS', 'DM', 'AT', 'VN', 'VR', 'SR', 'SO', 'CA', 'FC', 'AP', 'FL', 'CL', 'ST'];
+    const maxVals = { LS: 3, DM: 1, AT: 1, VN: 4, VR: 4, SR: 3, SO: 4, CA: 4, FC: 1, AP: 2, FL: 3, CL: 3, ST: 2 };
     const langCodes = ["IT", "EN", "ES", "FR"];
 
-    let config = { LS: 0, AT: 0, VN: 2, VR: 2, SR: 1, SO: 0, CA: 0, FC: 0, AP: 0, FL: 3, CL: 3, ST: 1 };
+    let config = { LS: 0, DM: 0, AT: 0, VN: 2, VR: 2, SR: 1, SO: 0, CA: 0, FC: 0, AP: 0, FL: 3, CL: 3, ST: 1 };
     const saved = localStorage.getItem('DPlus_Mach_App_Config');
     if (saved) { try { config = Object.assign(config, JSON.parse(saved)); } catch(e){} }
 
@@ -325,6 +327,7 @@
             LRN: "In attesa segnale radio...",
             LABELS: {
                 LS: ["Lingua Sistema", "0: IT Italiano | 1: EN English | 2: ES Spagnolo | 3: FR Francese"],
+                DM: ["Direzione Motore", "0: SX (Sinistra) | 1: DX (Destra). In apprendimento usa 'A' per invertire al volo."],
                 AT: ["Apprendim. Telecomando", "Premi B per scegliere l'opzione (1: Totale, 2: Pedonale, 0: Cancella)."],
                 VN: ["Velocità Motore", "0: Minima | 1-3: Intermedi | 4: Massima"],
                 VR: ["Velocità Rallentamento", "0: Minima | 1-3: Intermedi | 4: Max (50% di VN)"],
@@ -345,6 +348,7 @@
             LRN: "Waiting for radio signal...",
             LABELS: {
                 LS: ["System Language", "0: IT | 1: EN | 2: ES | 3: FR"],
+                DM: ["Motor Direction", "0: SX (Left) | 1: DX (Right). In learning mode use 'A' to invert direction."],
                 AT: ["Remote Learning", "Press B to choose option."],
                 VN: ["Motor Speed", "0: Min | 1-3: Med | 4: Max"],
                 VR: ["Slow Speed", "0: Min | 1-3: Med | 4: Max"],
@@ -364,6 +368,35 @@
           bulb = document.getElementById('f-bulb'), cLed = document.getElementById('cover-led'), 
           pLed = document.getElementById('photo-led'), infoText = document.getElementById('info-text'),
           boardLedFoto = document.getElementById('boardLedFoto');
+
+    // APPLICA LA DIREZIONE DEL MOTORE (DX O SX) ALLA VISUALE
+    function applyMotorDirection() {
+        const motorBox = document.getElementById('motor-box');
+        const colMotor = document.getElementById('col-motor');
+        const colStop = document.getElementById('col-stop');
+        const flasher = document.getElementById('flasher');
+        const pCase = document.getElementById('photocell-case');
+
+        if (config.DM === 1) { 
+            // MOTORE A DESTRA (DX)
+            colMotor.style.left = 'auto'; colMotor.style.right = '12%';
+            motorBox.style.left = 'auto'; motorBox.style.right = 'calc(12% - 6px)';
+            colStop.style.right = 'auto'; colStop.style.left = '12%';
+            leaf.style.left = 'auto'; leaf.style.right = 'calc(12% + 40px)';
+            flasher.style.left = 'auto'; flasher.style.right = '5px';
+            pCase.style.right = 'auto'; pCase.style.left = 'calc(12% + 25px)';
+            leaf.style.transform = `translateX(${leafPos * 100}%)`;
+        } else { 
+            // MOTORE A SINISTRA (SX) - Default
+            colMotor.style.right = 'auto'; colMotor.style.left = '12%';
+            motorBox.style.right = 'auto'; motorBox.style.left = 'calc(12% - 6px)';
+            colStop.style.left = 'auto'; colStop.style.right = '12%';
+            leaf.style.right = 'auto'; leaf.style.left = 'calc(12% + 40px)';
+            flasher.style.right = 'auto'; flasher.style.left = '5px';
+            pCase.style.left = 'auto'; pCase.style.right = 'calc(12% + 25px)';
+            leaf.style.transform = `translateX(-${leafPos * 100}%)`;
+        }
+    }
 
     // LOGICA OSTACOLO FOTOCELLULA
     document.getElementById('photocell-case').onclick = () => {
@@ -402,10 +435,15 @@
         const db = (langDB[curL] || langDB["EN"]).LABELS;
         menuKeys.forEach(k => {
             const vCell = document.getElementById('v-'+k), lCell = document.getElementById('lbl-'+k);
-            if(vCell) vCell.innerText = (k==='LS'?curL:config[k]);
+            if(vCell) {
+                if(k === 'LS') vCell.innerText = curL;
+                else if(k === 'DM') vCell.innerText = config.DM === 0 ? "SX" : "DX";
+                else vCell.innerText = config[k];
+            }
             if(lCell && db[k]) lCell.innerText = db[k][0];
         });
         updateLeds(false);
+        applyMotorDirection();
     }
 
     function updateLeds(moving, flashS = false) {
@@ -444,9 +482,10 @@
         let statusStr = "";
         
         if (mode === "AA") {
-            statusStr = curL === "IT" ? `Autoapprendimento (Fase A${Math.floor(aaPhase)})` : `Auto-Learning (Phase A${Math.floor(aaPhase)})`;
+            let tip = (aaPhase === 1) ? (curL === "IT" ? " (Premi A per invertire marcia)" : " (Press A to invert dir)") : "";
+            statusStr = (curL === "IT" ? `Autoapprendimento A${Math.floor(aaPhase)}` : `Auto-Learning A${Math.floor(aaPhase)}`) + tip;
         } else {
-            if (gateState === "CLOSED") statusStr = curL === "IT" ? "Chiso (FCC attivo)" : "Closed (FCC active)";
+            if (gateState === "CLOSED") statusStr = curL === "IT" ? "Chiuso (FCC attivo)" : "Closed (FCC active)";
             else if (gateState === "OPEN") statusStr = curL === "IT" ? (excludeAutoClose ? "Aperto (CA Escluso)" : "Aperto (Pausa CA)") : (excludeAutoClose ? "Open (CA Disabled)" : "Open (CA Active)");
             else if (gateState === "STOPPED") statusStr = curL === "IT" ? "Arresto di sicurezza" : "Stopped / Safe";
             else if (gateState === "PRE_OPEN" || gateState === "PRE_CLOSE") statusStr = curL === "IT" ? "Pre-lampeggio" : "Pre-flashing";
@@ -479,6 +518,9 @@
     }
 
     // --- MOTORE FISICO REGOLATO ---
+    const baseSpeedList = [0.15, 0.20, 0.25, 0.29, 0.34]; // Velocità in m/s
+    const slowSpeedList = [0.05, 0.07, 0.09, 0.11, 0.13];
+
     function physics(timestamp) {
         if (!lastTime) lastTime = timestamp;
         let dt = (timestamp - lastTime) / 1000;
@@ -493,20 +535,20 @@
         if (gateState === "OPENING" || gateState === "CLOSING") {
             
             if (mode === "AA") {
-                // Durante l'autoapprendimento, bypassiamo la normale configurazione
+                // Autoapprendimento: Velocità dimezzata fissa (VN/2)
                 slowActive = true; 
+                speed = baseSpeedList[config.VN] / 2.0; 
                 
                 if (aaPhase === 1) {
-                    // FASE 1: Apertura cieca totalmente rallentata fino a FCA
-                    speed = 0.2; // 0.2 m/s di default
-                    leafPos += (speed / 4.0) * dt; // Supponiamo una corsa massima visiva fissa a scopo simulativo di 4.0 metri
+                    // FASE 1: Apertura cieca fino a FCA
+                    leafPos += (speed / 4.0) * dt; // Corsa massima visiva di 4m
                     
                     if (leafPos >= 1.0) {
                         leafPos = 1.0;
                         gateState = "STOPPED";
                         toggleFlash(false);
                         disp.innerText = "A1";
-                        aaPhase = 1.5; // Stato di attesa/pausa interna
+                        aaPhase = 1.5; 
                         aaTimeout = setTimeout(() => {
                             aaPhase = 2;
                             measuredTime = 0.0;
@@ -515,8 +557,7 @@
                     }
                 } 
                 else if (aaPhase === 2) {
-                    // FASE 2: Chiusura a Velocità Nominale / 2 con conteggio del tempo reale a display
-                    speed = 0.2; // Calibrato a 0.2 m/s per simulare esattamente 1 giro/secondo del pignone Z16 (20cm)
+                    // FASE 2: Chiusura a VN/2 con conteggio tempo reale
                     leafPos -= (speed / 4.0) * dt;
                     
                     measuredTime += dt;
@@ -527,10 +568,11 @@
                         gateState = "CLOSED";
                         toggleFlash(false);
                         
-                        // CALCOLI DI FINE AUTOAPPRENDIMENTO (Fatto a VN/2 -> 0.2m/s)
-                        gateLength = measuredTime * 0.2; 
-                        totalRevolutions = measuredTime * 1.0; // 1 secondo = 1 giro completo (20cm)
-                        tempoMoltiplicato = measuredTime * 2; // Specifica: Moltiplicato per due
+                        // CALCOLI DI FINE AUTOAPPRENDIMENTO (Fatto alla velocità di baseSpeedList / 2)
+                        let realSpeedUsed = baseSpeedList[config.VN] / 2.0;
+                        gateLength = measuredTime * realSpeedUsed; 
+                        totalRevolutions = gateLength / 0.2; // Z16 -> 20cm per giro
+                        tempoMoltiplicato = measuredTime * 2; 
                         
                         localStorage.setItem('DPlus_GateLength', gateLength);
                         localStorage.setItem('DPlus_TotalRevolutions', totalRevolutions);
@@ -552,17 +594,12 @@
                 const target = isPedestrian ? [0.2, 0.3, 0.4][config.AP] : 1.0;
                 
                 if (gateLength > 0) {
-                    // Utilizzo delle rampe reali basate su valori medi di default (ultimo 15% della corsa)
                     slowActive = (gateState === "OPENING" && leafPos > target * 0.85) || 
                                  (gateState === "CLOSING" && leafPos < 0.15);
                 } else {
-                    // Fallback se l'utente non ha mai avviato la calibrazione
                     const srP = [0.04, 0.06, 0.08, 0.10][config.SR];
                     slowActive = (gateState === "OPENING" && leafPos > target - srP) || (gateState === "CLOSING" && leafPos < srP);
                 }
-                
-                const baseSpeedList = [0.15, 0.20, 0.25, 0.29, 0.34]; // Velocità in m/s
-                const slowSpeedList = [0.05, 0.07, 0.09, 0.11, 0.13];
                 
                 let physSpeed = slowActive ? slowSpeedList[config.VR] : baseSpeedList[config.VN];
                 if (isReducedSpeed && gateState === "OPENING") physSpeed = slowSpeedList[config.VR];
@@ -619,7 +656,13 @@
             
             if (leafPos > 1.0) leafPos = 1.0;
             if (leafPos < 0.0) leafPos = 0.0;
-            leaf.style.transform = `translateX(-${leafPos * 100}%)`;
+            
+            // Applica il transform coerente col verso del motore (DX o SX)
+            if (config.DM === 1) {
+                leaf.style.transform = `translateX(${leafPos * 100}%)`;
+            } else {
+                leaf.style.transform = `translateX(-${leafPos * 100}%)`;
+            }
         }
         
         document.getElementById('boardLedRall').classList.toggle('active', slowActive);
@@ -648,7 +691,6 @@
         lastTime = performance.now(); isPedestrian = ped;
 
         if (mode === "AA") {
-            // Durante l'autoapprendimento bypassiamo i ritardi del pre-lampeggio per taratura immediata
             gateState = ns; toggleFlash(true);
             disp.innerText = aaPhase === 1 ? "AA" : "00";
             return;
@@ -701,6 +743,12 @@
     }
 
     function handleRemotePress(channel) {
+        // PERMETTE L'INVERSIONE MOTORE DA TELECOMANDO IN FASE 1 DI AA
+        if (mode === "AA" && aaPhase === 1 && (channel === 1 || channel === 2)) {
+            invertMotorDirectionOnTheFly();
+            return;
+        }
+
         if (mode === "EDIT_AT") {
             if (channel === 1 || channel === 2) {
                 atOption = atOption === 1 ? 2 : 1;
@@ -739,7 +787,7 @@
     function checkRemPairing() {
         if (isRem1Pressed && isRem2Pressed) {
             remPairTimer = setTimeout(() => {
-                if (mode !== "AT_LEARNING" && mode !== "EDIT_AT") {
+                if (mode !== "AT_LEARNING" && mode !== "EDIT_AT" && mode !== "AA") {
                     mode = "EDIT_AT";
                     atOption = 1;
                     updateMenuAT();
@@ -774,7 +822,12 @@
     function updateMenu() {
         const k = menuKeys[currentIdx], curL = langCodes[config.LS] || "EN";
         const db = (langDB[curL] || langDB["EN"]);
-        if (mode === "EDIT") { disp.innerText = (k==='LS'?curL:config[k]); disp.classList.remove('blink'); } 
+        if (mode === "EDIT") { 
+            if(k === 'LS') disp.innerText = curL;
+            else if(k === 'DM') disp.innerText = config.DM === 0 ? "SX" : "DX";
+            else disp.innerText = config[k]; 
+            disp.classList.remove('blink'); 
+        } 
         else { disp.innerText = k; disp.classList.add('blink'); }
         infoText.innerHTML = `<b style="color:var(--red);">${db.LABELS[k][0]}</b><br>${db.LABELS[k][1]}<br><br><small style="color:#888;">${db.SAVE_MSG}</small>`;
         document.querySelectorAll('#menu-table tr').forEach(r => r.classList.remove('active-row'));
@@ -802,12 +855,27 @@
         }, 1200);
     }
 
-// --- NUOVA GESTIONE PULSANTI A e B ---
+    // GESTIONE CAMBIO DIREZIONE AL VOLO DURANTE AA FASE 1
+    function invertMotorDirectionOnTheFly() {
+        actionFired = true;
+        config.DM = config.DM === 0 ? 1 : 0; 
+        applyMotorDirection(); 
+        
+        // Conferma visuale a display e salvataggio automatico dietro le quinte
+        disp.innerText = config.DM === 0 ? "SX" : "DX";
+        localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config));
+        refreshTable();
+        
+        setTimeout(() => { 
+            if(mode === "AA" && aaPhase === 1) disp.innerText = "AA"; 
+        }, 1000);
+    }
+
+    // --- GESTIONE PULSANTI A e B ---
     let holdTimerB = null; 
     let comboTimer = null;
     let configTimeout = null;
     
-    // Variabili di stato per gestire le tolleranze di pressione
     let isPressedA = false, isPressedB = false;
     let isCombo = false; 
     let actionFired = false; 
@@ -821,20 +889,15 @@
         }
     }
 
-    // Funzione centralizzata per intercettare la pressione simultanea
     function checkCombo() {
         if (isPressedA && isPressedB) {
             isCombo = true;
-            clearTimeout(holdTimerB); // Interrompe eventuali hold singoli partiti (es. AA)
-            
-            // Timer di 1.2 secondi per l'azione simultanea (Entrare o Salvare)
+            clearTimeout(holdTimerB); 
             comboTimer = setTimeout(() => {
-                actionFired = true; // Impedisce ai rilasci dei tasti di fare altro
+                actionFired = true; 
                 if (mode === "IDLE") {
-                    // A+B in IDLE = Entra nel menu
                     mode = "MENU"; currentIdx = 0; updateMenu();
                 } else if (mode === "MENU" || mode === "EDIT") {
-                    // A+B nei menu = Salva
                     save();
                 }
             }, 1200);
@@ -846,8 +909,13 @@
         isPressedA = true;
         document.getElementById('keyA').classList.add('btn-active');
         actionFired = false;
-
         checkCombo();
+
+        // INVERSIONE DI MARCIA AL VOLO DURANTE AUTOAPPRENDIMENTO FASE 1
+        if (!isCombo && mode === "AA" && aaPhase === 1) {
+            invertMotorDirectionOnTheFly();
+            return;
+        }
     }
 
     function pressB() {
@@ -855,17 +923,16 @@
         isPressedB = true;
         document.getElementById('keyB').classList.add('btn-active');
         actionFired = false;
-
         checkCombo();
 
-        // Azione prolungata SINGOLA di B (es. Autoapprendimento da IDLE)
         if (!isCombo && mode === "IDLE") {
             holdTimerB = setTimeout(() => {
                 if(!isCombo) {
                     actionFired = true;
-                    // AVVIO AUTOAPPRENDIMENTO REALE
+                    // AVVIO AUTOAPPRENDIMENTO MODIFICATO
                     mode = "AA"; aaPhase = 1; disp.classList.remove('blink');
-                    leafPos = 0.15; leaf.style.transform = `translateX(-${leafPos * 100}%)`;
+                    leafPos = 0.50; // Posiziona l'anta esattamente a metà
+                    applyMotorDirection(); 
                     measuredTime = 0.0;
                     runGate("OPENING", false); 
                     if (navigator.vibrate) navigator.vibrate(100); 
@@ -878,16 +945,13 @@
         if(!isPressedA) return; 
         isPressedA = false; 
         document.getElementById('keyA').classList.remove('btn-active');
-        
         clearTimeout(comboTimer);
         
-        // Se è già scattata l'azione A+B (o un'altra azione prolungata), ignora il rilascio singolo
         if (actionFired || isCombo) {
-            if (!isPressedA && !isPressedB) isCombo = false; // Resetta lo stato combo solo quando entrambi sono rilasciati
+            if (!isPressedA && !isPressedB) isCombo = false;
             return;
         }
 
-        // AZIONI AL RILASCIO SINGOLO (Short Press)
         if (mode === "IDLE") triggerCommand(false); 
         else if (mode === "MENU") { currentIdx = (currentIdx + 1) % menuKeys.length; updateMenu(); }
         else if (mode === "EDIT") { mode = "MENU"; updateMenu(); }
@@ -906,17 +970,14 @@
         if(!isPressedB) return; 
         isPressedB = false; 
         document.getElementById('keyB').classList.remove('btn-active');
-        
         clearTimeout(comboTimer);
         clearTimeout(holdTimerB);
 
-        // Evita il rilascio singolo se eravamo in una combo
         if (actionFired || isCombo) {
             if (!isPressedA && !isPressedB) isCombo = false;
             return;
         }
 
-        // AZIONI AL RILASCIO SINGOLO (Short Press)
         if (mode === "IDLE") triggerCommand(true); 
         else if (mode === "MENU") { 
             if (menuKeys[currentIdx] === 'AT') { mode = "EDIT_AT"; atOption = 1; updateMenuAT(); } 
@@ -977,7 +1038,8 @@
         if(e.key==='4') { document.getElementById('btnRem4').classList.remove('btn-active'); }
     });
 
-    refreshTable();
+    // Inizializzazione visuale
+    window.onload = refreshTable;
 </script>
 </body>
 </html>
