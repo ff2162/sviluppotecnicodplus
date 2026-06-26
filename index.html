@@ -250,7 +250,7 @@
                     </div>
                     <div class="quick-help">
                         <b style="color:#ccc;">Advanced self-learning:</b><br>
-                        Hold B for 3s. Sequential cycle:<br>
+                        Hold B for 5s. Select QR code, then press A to start.<br>
                         <span style="color:#ffeb3b;">Phase 1: Starts mid-way. Opens at VN/2 &rarr; <i>Press A to invert direction (saves DM)</i> &rarr; Limit switch FCA &rarr; Pause 1.5" &rarr; Phase 2: Close at VN/2 until FCC &rarr; OK.</span>
                     </div>
                 </div>
@@ -263,6 +263,7 @@
                     <thead><tr><th>Par</th><th>Description</th><th style="text-align:right;">Val</th></tr></thead>
                     <tbody id="menu-table">
                         <tr id="r-LS"><td>LS</td><td class="td-desc" id="lbl-LS">System Language</td><td id="v-LS" style="text-align:right; font-weight:bold;">EN</td></tr>
+                        <tr id="r-QR"><td>QR</td><td class="td-desc" id="lbl-QR">Product Code</td><td id="v-QR" style="text-align:right; font-weight:bold; color:var(--lamp-yellow);">AZ</td></tr>
                         <tr id="r-DM"><td>DM</td><td class="td-desc" id="lbl-DM">Motor Direction</td><td id="v-DM" style="text-align:right; font-weight:bold; color:var(--lamp-yellow);">SX</td></tr>
                         <tr id="r-AT"><td>AT</td><td class="td-desc" id="lbl-AT">Remote Learning</td><td id="v-AT" style="text-align:right;">0</td></tr>
                         <tr id="r-VN"><td>VN</td><td class="td-desc" id="lbl-VN">Motor Speed</td><td id="v-VN" style="text-align:right;">2</td></tr>
@@ -298,6 +299,10 @@
     let lastTime = 0, autoTimer = null, flashInt = null, preFlashTimeout = null, aaTimeout = null;
     let atOption = 1, aaPhase = 0;
     
+    // Variabile per la gestione del prompt QR
+    let promptQRState = "??";
+    const qrCodes = ["AZ", "FF", "SD"];
+
     // Variabili Sicurezze e Ostacolo
     let isPhotoAligned = true; 
     let isReducedSpeed = false; 
@@ -311,13 +316,13 @@
     let totalRevolutions = parseFloat(localStorage.getItem('DPlus_TotalRevolutions')) || 0.0;
     let tempoMoltiplicato = parseFloat(localStorage.getItem('DPlus_TempoMoltiplicato')) || 0.0;
 
-    // MODIFICATO QUI: Aggiunto "RS" all'array delle chiavi del menu
-    const menuKeys = ['LS', 'DM', 'AT', 'VN', 'VR', 'SR', 'SO', 'CA', 'FC', 'AP', 'FL', 'CL', 'ST', 'RS'];
-    const maxVals = { LS: 3, DM: 1, AT: 1, VN: 4, VR: 4, SR: 3, SO: 4, CA: 4, FC: 1, AP: 2, FL: 3, CL: 3, ST: 2, RS: 1 };
+    // MODIFICATO: Aggiunto "QR"
+    const menuKeys = ['LS', 'QR', 'DM', 'AT', 'VN', 'VR', 'SR', 'SO', 'CA', 'FC', 'AP', 'FL', 'CL', 'ST', 'RS'];
+    const maxVals = { LS: 3, QR: 2, DM: 1, AT: 1, VN: 4, VR: 4, SR: 3, SO: 4, CA: 4, FC: 1, AP: 2, FL: 3, CL: 3, ST: 2, RS: 1 };
     const langCodes = ["IT", "EN", "ES", "FR"];
 
-    // MODIFICATO QUI: Aggiunto parametro iniziale RS: 0 alla configurazione
-    let config = { LS: 0, DM: 0, AT: 0, VN: 2, VR: 2, SR: 1, SO: 0, CA: 0, FC: 0, AP: 0, FL: 3, CL: 3, ST: 1, RS: 0 };
+    // MODIFICATO: Inserito QR in config
+    let config = { LS: 0, QR: 0, DM: 0, AT: 0, VN: 2, VR: 2, SR: 1, SO: 0, CA: 0, FC: 0, AP: 0, FL: 3, CL: 3, ST: 1, RS: 0 };
     const saved = localStorage.getItem('DPlus_Mach_App_Config');
     if (saved) { try { config = Object.assign(config, JSON.parse(saved)); } catch(e){} }
 
@@ -329,6 +334,7 @@
             LRN: "In attesa segnale radio...",
             LABELS: {
                 LS: ["Lingua Sistema", "0: IT Italiano | 1: EN English | 2: ES Spagnolo | 3: FR Francese"],
+                QR: ["Codice Prodotto", "Seleziona il modello: AZ | FF | SD"],
                 DM: ["Direzione Motore", "0: SX (Sinistra) | 1: DX (Destra). In apprendimento usa 'A' per invertire al volo."],
                 AT: ["Apprendim. Telecomando", "Premi B per scegliere l'opzione (1: Totale, 2: Pedonale, 0: Cancella)."],
                 VN: ["Velocità Motore", "0: Minima | 1-3: Intermedi | 4: Massima"],
@@ -341,7 +347,6 @@
                 FL: ["Lampeggiante", "0: Pre-Lamp Fisso | 1: Pre-Lamp Int. | 2: Fisso | 3: Intermittente"],
                 CL: ["Cover LED", "0: Sempre ON | 1: ON in marcia | 2: Lampeggia | 3: Breath in Standby"],
                 ST: ["Configurazione Pin STOP", "0: N.O | 1: N.C | 2: 8k2"],
-                // MODIFICATO QUI: Testo esplicativo italiano per RS
                 RS: ["Reset Default di Fabbrica", "Premi B per caricare i parametri di fabbrica e azzerare le quote memorizzate dell'anta."]
             }
         },
@@ -352,6 +357,7 @@
             LRN: "Waiting for radio signal...",
             LABELS: {
                 LS: ["System Language", "0: IT | 1: EN | 2: ES | 3: FR"],
+                QR: ["Product Code", "Select the model: AZ | FF | SD"],
                 DM: ["Motor Direction", "0: SX (Left) | 1: DX (Right). In learning mode use 'A' to invert direction."],
                 AT: ["Remote Learning", "Press B to choose option."],
                 VN: ["Motor Speed", "0: Min | 1-3: Med | 4: Max"],
@@ -364,7 +370,6 @@
                 FL: ["Flasher Mode", "0: Pre-Lamp Fixed | 1: Pre-Lamp Int. | 2: Fixed | 3: Int."],
                 CL: ["Cover LED Mode", "0: ON | 1: ON running | 2: Blinking | 3: Breath standby"],
                 ST: ["STOP pin Configuration", "0: N.O | 1: N.C | 2: 8k2"],
-                // MODIFICATO QUI: Testo esplicativo inglese per RS
                 RS: ["Factory Reset Default", "Press B to restore native software values and clear any learned gate tracking."]
             }
         }
@@ -375,7 +380,6 @@
           pLed = document.getElementById('photo-led'), infoText = document.getElementById('info-text'),
           boardLedFoto = document.getElementById('boardLedFoto');
 
-    // APPLICA LA DIREZIONE DEL MOTORE (DX O SX) ALLA VISUALE
     function applyMotorDirection() {
         const motorBox = document.getElementById('motor-box');
         const colMotor = document.getElementById('col-motor');
@@ -384,7 +388,6 @@
         const pCase = document.getElementById('photocell-case');
 
         if (config.DM === 1) { 
-            // MOTORE A DESTRA (DX)
             colMotor.style.left = 'auto'; colMotor.style.right = '12%';
             motorBox.style.left = 'auto'; motorBox.style.right = 'calc(12% - 6px)';
             colStop.style.right = 'auto'; colStop.style.left = '12%';
@@ -393,7 +396,6 @@
             pCase.style.right = 'auto'; pCase.style.left = 'calc(12% + 25px)';
             leaf.style.transform = `translateX(${leafPos * 100}%)`;
         } else { 
-            // MOTORE A SINISTRA (SX) - Default
             colMotor.style.right = 'auto'; colMotor.style.left = '12%';
             motorBox.style.right = 'auto'; motorBox.style.left = 'calc(12% - 6px)';
             colStop.style.left = 'auto'; colStop.style.right = '12%';
@@ -404,13 +406,12 @@
         }
     }
 
-    // LOGICA OSTACOLO FOTOCELLULA
     document.getElementById('photocell-case').onclick = () => {
         isPhotoAligned = !isPhotoAligned;
         boardLedFoto.classList.toggle('intermittent', !isPhotoAligned);
         
         if (!isPhotoAligned) {
-            if (mode === "AA") {
+            if (mode === "AA" || mode === "QR_PROMPT") {
                 clearTimeout(aaTimeout);
                 mode = "IDLE"; gateState = "STOPPED"; endMove();
                 return;
@@ -444,8 +445,8 @@
             if(vCell) {
                 if(k === 'LS') vCell.innerText = curL;
                 else if(k === 'DM') vCell.innerText = config.DM === 0 ? "SX" : "DX";
-                // MODIFICATO QUI: Formattazione visiva "SI/NO" per la voce RS in tabella
                 else if(k === 'RS') vCell.innerText = config.RS === 0 ? "NO" : "SI";
+                else if(k === 'QR') vCell.innerText = qrCodes[config.QR]; // Modifica per QR
                 else vCell.innerText = config[k];
             }
             if(lCell && db[k]) lCell.innerText = db[k][0];
@@ -482,9 +483,8 @@
         } else { bulb.classList.remove('f-on'); updateLeds(false); }
     }
 
-    // --- TELEMETRIA IN TEMPO REALE CON SPECIFICHE Z16 ---
     function updateDiagnostics(isSlow = false, currentSpeed = 0) {
-        if (mode === "MENU" || mode === "EDIT" || mode === "EDIT_AT" || mode === "AT_LEARNING" || mode === "SAVING") return;
+        if (mode === "MENU" || mode === "EDIT" || mode === "EDIT_AT" || mode === "AT_LEARNING" || mode === "SAVING" || mode === "QR_PROMPT") return;
         
         const curL = langCodes[config.LS] || "EN";
         let statusStr = "";
@@ -525,7 +525,6 @@
         `;
     }
 
-    // --- MOTORE FISICO REGOLATO ---
     const baseSpeedList = [0.15, 0.20, 0.25, 0.29, 0.34]; 
     const slowSpeedList = [0.05, 0.07, 0.09, 0.11, 0.13];
 
@@ -713,9 +712,11 @@
     }
 
     function triggerCommand(ped) {
-        if (mode === "AA") {
+        if (mode === "AA" || mode === "QR_PROMPT") {
             clearTimeout(aaTimeout);
-            mode = "IDLE"; gateState = "STOPPED"; endMove();
+            if (mode !== "QR_PROMPT") {
+                mode = "IDLE"; gateState = "STOPPED"; endMove();
+            }
             return;
         }
         
@@ -788,7 +789,7 @@
     function checkRemPairing() {
         if (isRem1Pressed && isRem2Pressed) {
             remPairTimer = setTimeout(() => {
-                if (mode !== "AT_LEARNING" && mode !== "EDIT_AT" && mode !== "AA") {
+                if (mode !== "AT_LEARNING" && mode !== "EDIT_AT" && mode !== "AA" && mode !== "QR_PROMPT") {
                     mode = "EDIT_AT";
                     atOption = 1;
                     updateMenuAT();
@@ -826,8 +827,8 @@
         if (mode === "EDIT") { 
             if(k === 'LS') disp.innerText = curL;
             else if(k === 'DM') disp.innerText = config.DM === 0 ? "SX" : "DX";
-            // MODIFICATO QUI: Visualizzazione a display fissa di "NO/SI" durante la modifica di RS
             else if(k === 'RS') disp.innerText = config.RS === 0 ? "NO" : "SI";
+            else if(k === 'QR') disp.innerText = qrCodes[config.QR]; // Mostra stringa per QR
             else disp.innerText = config[k]; 
             disp.classList.remove('blink'); 
         } 
@@ -859,7 +860,6 @@
         }, 1200);
     }
 
-    // GESTIONE MOTOR_DIRECTION IN FASE 1 DI AA
     function invertMotorDirectionOnTheFly() {
         actionFired = true;
         config.DM = config.DM === 0 ? 1 : 0; 
@@ -874,17 +874,15 @@
         }, 1000);
     }
 
-    // MODIFICATO QUI: Nuova funzione core per l'esecuzione del Reset Fabbrica completo
+    // MODIFICATO: Factory Reset ora lancia il QR Prompt
     function executeFactoryReset() {
         clearTimeout(configTimeout);
         mode = "SAVING"; 
         disp.innerText = "RS"; 
         disp.classList.remove('blink');
         
-        // Ripristino parametri iniziali nativi
-        config = { LS: 0, DM: 0, AT: 0, VN: 2, VR: 2, SR: 1, SO: 0, CA: 0, FC: 0, AP: 0, FL: 3, CL: 3, ST: 1, RS: 0 };
+        config = { LS: 0, QR: 0, DM: 0, AT: 0, VN: 2, VR: 2, SR: 1, SO: 0, CA: 0, FC: 0, AP: 0, FL: 3, CL: 3, ST: 1, RS: 0 };
         
-        // Cancellazione fisica quote meccaniche dell'anta
         gateLength = 0.0;
         totalRevolutions = 0.0;
         tempoMoltiplicato = 0.0;
@@ -896,24 +894,25 @@
         excludeAutoClose = false;
         isSafetyReversing = false;
 
-        // Pulizia totale degli archivi localStorage
         localStorage.removeItem('DPlus_GateLength');
         localStorage.removeItem('DPlus_TotalRevolutions');
         localStorage.removeItem('DPlus_TempoMoltiplicato');
         localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config));
         
-        // Riassegna graficamente la direzione (SX di default)
         applyMotorDirection();
 
+        // Dopo il reset visualizza la richiesta QR
         setTimeout(() => { 
-            mode = "IDLE"; 
-            disp.innerText = "--"; 
-            disp.classList.add('blink'); 
-            refreshTable(); 
+            mode = "QR_PROMPT";
+            promptQRState = "??";
+            disp.innerText = "??";
+            disp.classList.add('blink');
+            refreshTable();
+            const curL = langCodes[config.LS] || "EN";
+            infoText.innerHTML = `<b style="color:var(--lamp-yellow); font-size:14px;">QR PRODUCT CODE</b><br><br>${curL === 'IT' ? 'Inizializzazione completata.<br>Seleziona il modello motore.' : 'Initialization complete.<br>Select motor model.'}<br><br><small style="color:#888;">${curL === 'IT' ? 'Tocca B per scegliere.<br>Tocca A per confermare.' : 'Tap B to select.<br>Tap A to confirm.'}</small>`;
         }, 1500);
     }
 
-    // --- GESTIONE PULSANTI A e B ---
     let holdTimerB = null; 
     let comboTimer = null;
     let configTimeout = null;
@@ -926,7 +925,7 @@
 
     function resetConfigTimeout() {
         clearTimeout(configTimeout);
-        if (["MENU", "EDIT", "EDIT_AT", "AT_LEARNING"].includes(mode)) {
+        if (["MENU", "EDIT", "EDIT_AT", "AT_LEARNING", "QR_PROMPT"].includes(mode)) {
             configTimeout = setTimeout(save, 15000);
         }
     }
@@ -967,17 +966,19 @@
         checkCombo();
 
         if (!isCombo && mode === "IDLE") {
+            // MODIFICATO: Pressione tasto B portata a 5 secondi e lancia il QR PROMPT
             holdTimerB = setTimeout(() => {
                 if(!isCombo) {
                     actionFired = true;
-                    mode = "AA"; aaPhase = 1; disp.classList.remove('blink');
-                    leafPos = 0.50; 
-                    applyMotorDirection(); 
-                    measuredTime = 0.0;
-                    runGate("OPENING", false); 
+                    mode = "QR_PROMPT";
+                    promptQRState = "??";
+                    disp.innerText = "??";
+                    disp.classList.add('blink');
+                    const curL = langCodes[config.LS] || "EN";
+                    infoText.innerHTML = `<b style="color:var(--lamp-yellow); font-size:14px;">QR PRODUCT CODE</b><br><br>${curL === 'IT' ? 'Modalità Auto-Learning.<br>Seleziona prima il modello motore.' : 'Auto-Learning mode.<br>Select motor model first.'}<br><br><small style="color:#888;">${curL === 'IT' ? 'Tocca B per scorrere.<br>Tocca A per confermare e avviare.' : 'Tap B to scroll.<br>Tap A to confirm and start.'}</small>`;
                     if (navigator.vibrate) navigator.vibrate(100); 
                 }
-            }, 3000);
+            }, 5000);
         }
     }
 
@@ -1004,6 +1005,18 @@
         } else if (mode === "AT_LEARNING") { 
             mode = "MENU"; updateMenu(); 
         }
+        // MODIFICATO: Conferma del codice QR con il tasto A
+        else if (mode === "QR_PROMPT") {
+            if (promptQRState === "??") return; // Impedisce di proseguire se non ha selezionato nulla
+            
+            localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config)); // Salva la scelta
+            mode = "AA"; aaPhase = 1; disp.classList.remove('blink');
+            disp.innerText = "AA";
+            leafPos = 0.50; 
+            applyMotorDirection(); 
+            measuredTime = 0.0;
+            runGate("OPENING", false); 
+        }
     }
 
     function releaseB() {
@@ -1026,7 +1039,6 @@
         else if (mode === "EDIT_AT") { 
             atOption = atOption === 1 ? 2 : (atOption === 2 ? 0 : 1); updateMenuAT(); 
         } 
-        // MODIFICATO QUI: Intercettazione del tasto B sul parametro RS per scatenare il reset immediato
         else if (mode === "EDIT") { 
             const currentKey = menuKeys[currentIdx];
             if (currentKey === 'RS') {
@@ -1035,6 +1047,16 @@
                 config[currentKey] = (config[currentKey]+1) > maxVals[currentKey] ? 0 : config[currentKey]+1; 
                 refreshTable(); updateMenu(); 
             }
+        }
+        // MODIFICATO: Scorrimento dei codici prodotto con il tasto B
+        else if (mode === "QR_PROMPT") {
+            if (promptQRState === "??") { config.QR = 0; } 
+            else { config.QR = (config.QR + 1) % 3; }
+            promptQRState = qrCodes[config.QR];
+            disp.innerText = promptQRState; 
+            disp.classList.remove('blink'); 
+            refreshTable();
+            resetConfigTimeout();
         }
     }
 
