@@ -127,12 +127,23 @@
             background: var(--display); height: 85px; border-radius: 12px; display: flex; 
             justify-content: center; align-items: center; 
             font-family: 'Starburst', monospace; 
-            font-size: 52px; color: #f00; border: 3px solid #111; margin-bottom: 20px; 
+            font-size: 52px; color: #f00; border: 3px solid #111; margin-bottom: 10px; /* Ridotto il margine per fare spazio alla banda */
             box-shadow: inset 0 0 15px #900; 
             font-weight: normal; 
             letter-spacing: 6px; 
             text-shadow: 0 0 8px #ff0000;
-            padding-bottom: 4px; /* Bilancia l'allineamento del font */
+            padding-bottom: 4px;
+        }
+        
+        /* BANDA BIANCA SOTTO AL DISPLAY REINSERITA */
+        .white-band {
+            width: 100%;
+            height: 4px;
+            background-color: #ffffff;
+            border-radius: 2px;
+            margin-bottom: 18px;
+            opacity: 0.8;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
         }
         
         .controls-matrix { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 20px; }
@@ -224,6 +235,7 @@
                 <div>
                     <div class="board-title">MACH1 26v1</div>
                     <div id="display" class="blink">--</div>
+                    <div class="white-band"></div>
                     
                     <div class="controls-matrix">
                         <button id="keyA" class="btn">A</button>
@@ -519,7 +531,6 @@
         }
 
         const posPct = Math.round(leafPos * 100);
-        // Usa una validazione numerica per i calcoli visivi della potenza
         const safeVM = isNaN(parseInt(config.VM)) ? 1 : parseInt(config.VM);
         const safeVR = isNaN(parseInt(config.VR)) ? 1 : parseInt(config.VR);
         const powerPct = (gateState === "OPENING" || gateState === "CLOSING") ? (isSlow || isReducedSpeed ? 30 + safeVR * 8 : 55 + safeVM * 10) : 0;
@@ -553,8 +564,7 @@
         let dt = (timestamp - lastTime) / 1000;
         lastTime = timestamp;
 
-        // Sicurezza: se dt è negativo o assurdamente grande, skippa il frame (glitch pre-render)
-        if (dt < 0 || dt > 1) dt = 0;
+        if (dt < 0 || dt > 1) dt = 0; // Protezione glitch Javascript
 
         document.getElementById('boardLedFCA').classList.toggle('active', leafPos >= 0.99);
         document.getElementById('boardLedFCC').classList.toggle('active', leafPos <= 0.01);
@@ -562,7 +572,6 @@
         let speed = 0.0;
         let slowActive = false;
 
-        // Protezione valori NaN se la configurazione è corrotta
         const currentVM = isNaN(parseInt(config.VM)) ? 1 : parseInt(config.VM);
         const currentVR = isNaN(parseInt(config.VR)) ? 1 : parseInt(config.VR);
 
@@ -717,8 +726,7 @@
         if (ns === "CLOSING" && !isPhotoAligned) return; 
         clearTimeout(preFlashTimeout); clearTimeout(autoTimer);
         
-        // FISSA GLITCH TIMER - Resetta il tempo a 0 così il prossimo frame ricalcola correttamente
-        lastTime = 0; 
+        lastTime = 0; // Protezione Timer Frame Javascript
         isPedestrian = ped;
 
         if (mode === "AA") {
@@ -949,7 +957,8 @@
 
     function resetConfigTimeout() {
         clearTimeout(configTimeout);
-        if (["MENU", "EDIT", "EDIT_AT", "AT_LEARNING", "QR_PROMPT"].includes(mode)) {
+        // RIMOSSO "QR_PROMPT" in modo che non scada il timer mentre scegli il codice
+        if (["MENU", "EDIT", "EDIT_AT", "AT_LEARNING"].includes(mode)) {
             configTimeout = setTimeout(save, 15000);
         }
     }
@@ -993,6 +1002,7 @@
             holdTimerB = setTimeout(() => {
                 if(!isCombo) {
                     actionFired = true;
+                    clearTimeout(configTimeout); // Annulla eventuali vecchi timer latenti
                     mode = "QR_PROMPT";
                     promptQRState = "??";
                     disp.innerText = "??";
@@ -1031,6 +1041,7 @@
         else if (mode === "QR_PROMPT") {
             if (promptQRState === "??") return; 
             
+            clearTimeout(configTimeout); // BLOCCO DEFINITIVO TIMEOUT BUG
             localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config)); 
             mode = "AA"; aaPhase = 1; disp.classList.remove('blink');
             disp.innerText = "AA";
@@ -1077,7 +1088,7 @@
             disp.innerText = promptQRState; 
             disp.classList.remove('blink'); 
             refreshTable();
-            resetConfigTimeout();
+            // Niente resetConfigTimeout() qui!
         }
     }
 
