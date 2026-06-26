@@ -19,7 +19,7 @@
         :root { 
             --red: #e31e24; 
             --panel: #1a1a1a; 
-            --display: #000; 
+            --display: #ccbdbdff; 
             --gate-blue: #2c3e50; 
             --led-red: #ff0000; 
             --lamp-yellow: #ffeb3b; 
@@ -124,23 +124,15 @@
         
         /* MODIFICA FONT DISPLAY STARBURST */
         #display { 
-            background: var(--display); 
-            height: 85px; 
-            width: 110px; /* <--- Aggiunto: restringe il riquadro ai due digit */
-            margin: 0 auto 20px auto; /* <--- Modificato: centra il display e mantiene lo spazio sotto */
-            border-radius: 12px; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
+            background: var(--display); height: 85px; border-radius: 12px; display: flex; 
+            justify-content: center; align-items: center; 
             font-family: 'Starburst', monospace; 
-            font-size: 52px; 
-            color: #f00; 
-            border: 3px solid #111; 
+            font-size: 52px; color: #f00; border: 3px solid #111; margin-bottom: 20px; 
             box-shadow: inset 0 0 15px #900; 
             font-weight: normal; 
             letter-spacing: 6px; 
             text-shadow: 0 0 8px #ff0000;
-            padding-bottom: 4px; 
+            padding-bottom: 4px; /* Bilancia l'allineamento del font */
         }
         
         .controls-matrix { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 20px; }
@@ -464,7 +456,7 @@
         if (key === 'DM') return val === 0 ? "SX" : "DX";
         if (key === 'FC') return val === 0 ? "NO" : "SI";
         if (key === 'RS') return val === 0 ? "NO" : "SI";
-        if (key === 'QR') return qrCodes[val];
+        if (key === 'QR') return qrCodes[val] || "??";
         return String(val).padStart(2, '0');
     }
 
@@ -527,7 +519,10 @@
         }
 
         const posPct = Math.round(leafPos * 100);
-        const powerPct = (gateState === "OPENING" || gateState === "CLOSING") ? (isSlow || isReducedSpeed ? 30 + config.VR * 8 : 55 + config.VM * 10) : 0;
+        // Usa una validazione numerica per i calcoli visivi della potenza
+        const safeVM = isNaN(parseInt(config.VM)) ? 1 : parseInt(config.VM);
+        const safeVR = isNaN(parseInt(config.VR)) ? 1 : parseInt(config.VR);
+        const powerPct = (gateState === "OPENING" || gateState === "CLOSING") ? (isSlow || isReducedSpeed ? 30 + safeVR * 8 : 55 + safeVM * 10) : 0;
 
         const lenStr = gateLength > 0 ? `${gateLength.toFixed(2)} m` : (curL === "IT" ? "Non appresa" : "Not learned");
         const revStr = totalRevolutions > 0 ? `${totalRevolutions.toFixed(1)} giri` : (curL === "IT" ? "Non calcolati" : "Not computed");
@@ -558,17 +553,24 @@
         let dt = (timestamp - lastTime) / 1000;
         lastTime = timestamp;
 
+        // Sicurezza: se dt è negativo o assurdamente grande, skippa il frame (glitch pre-render)
+        if (dt < 0 || dt > 1) dt = 0;
+
         document.getElementById('boardLedFCA').classList.toggle('active', leafPos >= 0.99);
         document.getElementById('boardLedFCC').classList.toggle('active', leafPos <= 0.01);
 
         let speed = 0.0;
         let slowActive = false;
 
+        // Protezione valori NaN se la configurazione è corrotta
+        const currentVM = isNaN(parseInt(config.VM)) ? 1 : parseInt(config.VM);
+        const currentVR = isNaN(parseInt(config.VR)) ? 1 : parseInt(config.VR);
+
         if (gateState === "OPENING" || gateState === "CLOSING") {
             
             if (mode === "AA") {
                 slowActive = true; 
-                speed = baseSpeedList[config.VM] / 2.0; 
+                speed = baseSpeedList[currentVM] / 2.0; 
                 
                 if (aaPhase === 1) {
                     leafPos += (speed / 4.0) * dt; 
@@ -597,7 +599,7 @@
                         gateState = "CLOSED";
                         toggleFlash(false);
                         
-                        let realSpeedUsed = baseSpeedList[config.VM] / 2.0;
+                        let realSpeedUsed = baseSpeedList[currentVM] / 2.0;
                         gateLength = measuredTime * realSpeedUsed; 
                         totalRevolutions = gateLength / 0.2; 
                         tempoMoltiplicato = measuredTime * 2; 
@@ -628,8 +630,8 @@
                     slowActive = (gateState === "OPENING" && leafPos > target - srP) || (gateState === "CLOSING" && leafPos < srP);
                 }
                 
-                let physSpeed = slowActive ? slowSpeedList[config.VR] : baseSpeedList[config.VM];
-                if (isReducedSpeed && gateState === "OPENING") physSpeed = slowSpeedList[config.VR];
+                let physSpeed = slowActive ? slowSpeedList[currentVR] : baseSpeedList[currentVM];
+                if (isReducedSpeed && gateState === "OPENING") physSpeed = slowSpeedList[currentVR];
                 
                 speed = physSpeed;
                 
@@ -714,7 +716,10 @@
     function runGate(ns, ped) {
         if (ns === "CLOSING" && !isPhotoAligned) return; 
         clearTimeout(preFlashTimeout); clearTimeout(autoTimer);
-        lastTime = performance.now(); isPedestrian = ped;
+        
+        // FISSA GLITCH TIMER - Resetta il tempo a 0 così il prossimo frame ricalcola correttamente
+        lastTime = 0; 
+        isPedestrian = ped;
 
         if (mode === "AA") {
             gateState = ns; toggleFlash(true);
@@ -727,7 +732,7 @@
             if(mode==="IDLE") { disp.innerText = (ns === "OPENING" ? "OP" : "CL"); disp.classList.add('blink-fast'); }
             preFlashTimeout = setTimeout(() => {
                 if (ns === "CLOSING" && !isPhotoAligned) { endMove(); gateState = "OPEN"; return; }
-                gateState = ns; preFlashTimeout = null; lastTime = performance.now();
+                gateState = ns; preFlashTimeout = null; lastTime = 0;
                 if(mode==="IDLE") disp.classList.remove('blink-fast');
             }, 2500);
         } else {
@@ -781,7 +786,7 @@
                 atOption = atOption === 1 ? 2 : 1;
                 updateMenuAT();
             } else if (channel === 3 || channel === 4) {
-                mode = "AT_LEARNING"; disp.innerText = "Go"; disp.classList.add('blink');
+                mode = "AT_LEARNING"; disp.innerText = "G0"; disp.classList.add('blink');
                 const curL = langCodes[config.LS] || "EN";
                 infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL]||langDB["EN"]).LABELS.AT[0]}</b><br><span style="color:#ffeb3b;" class="blink">${curL === "IT" ? "In attesa segnale radio..." : "Waiting for radio signal..."}</span>`;
                 resetConfigTimeout();
@@ -1015,7 +1020,7 @@
         else if (mode === "MENU") { currentIdx = (currentIdx + 1) % menuKeys.length; updateMenu(); }
         else if (mode === "EDIT") { mode = "MENU"; updateMenu(); }
         else if (mode === "EDIT_AT") {
-            mode = "AT_LEARNING"; disp.innerText = "GO"; disp.classList.add('blink');
+            mode = "AT_LEARNING"; disp.innerText = "G0"; disp.classList.add('blink');
             const curL = langCodes[config.LS] || "EN";
             const msg = curL === "IT" ? "In attesa segnale radio..." : "Waiting for radio signal...";
             infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL]||langDB["EN"]).LABELS.AT[0]}</b><br><span style="color:#ffeb3b;" class="blink">${msg}</span>`;
