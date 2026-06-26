@@ -124,15 +124,23 @@
         
         /* MODIFICA FONT DISPLAY STARBURST */
         #display { 
-            background: var(--display); height: 85px; border-radius: 12px; display: flex; 
-            justify-content: center; align-items: center; 
+            background: var(--display); 
+            height: 85px; 
+            width: 110px; /* <--- Aggiunto: restringe il riquadro ai due digit */
+            margin: 0 auto 20px auto; /* <--- Modificato: centra il display e mantiene lo spazio sotto */
+            border-radius: 12px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
             font-family: 'Starburst', monospace; 
-            font-size: 52px; color: #f00; border: 3px solid #111; margin-bottom: 20px; 
+            font-size: 52px; 
+            color: #f00; 
+            border: 3px solid #111; 
             box-shadow: inset 0 0 15px #900; 
             font-weight: normal; 
             letter-spacing: 6px; 
             text-shadow: 0 0 8px #ff0000;
-            padding-bottom: 4px; /* Bilancia l'allineamento del font */
+            padding-bottom: 4px; 
         }
         
         .controls-matrix { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 20px; }
