@@ -19,7 +19,6 @@
         :root { 
             --red: #e31e24; 
             --panel: #1a1a1a; 
-            --display: #ccbdbdff; 
             --gate-blue: #2c3e50; 
             --led-red: #ff0000; 
             --lamp-yellow: #ffeb3b; 
@@ -120,22 +119,41 @@
             display: flex; flex-direction: column; height: 100%; justify-content: space-between;
         }
         
-        .board-title { color: var(--red); font-weight: 900; font-size: 22px; font-style: italic; text-align: center; margin-bottom: 12px; letter-spacing: 1px; text-shadow: 0 0 10px rgba(227,30,36,0.5); }
+        .board-title { color: var(--red); font-weight: 900; font-size: 22px; font-style: italic; text-align: center; margin-bottom: 15px; letter-spacing: 1px; text-shadow: 0 0 10px rgba(227,30,36,0.5); }
         
-        /* MODIFICA FONT DISPLAY STARBURST */
+        /* === MODIFICA: DISPLAY ULTRA REALISTICO SU SFONDO NERO === */
         #display { 
-            background: var(--display); height: 85px; border-radius: 12px; display: flex; 
-            justify-content: center; align-items: center; 
+            background: #080808; /* Resina nera tipica dei display */
+            width: 110px; /* Ristretto esattamente intorno ai due digit */
+            height: 70px; /* Altezza proporzionata */
+            margin: 0 auto 12px auto; /* Centrato */
+            border-radius: 4px; /* Angoli più rigidi da componente elettronico */
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
             font-family: 'Starburst', monospace; 
-            font-size: 52px; color: #f00; border: 3px solid #111; margin-bottom: 10px; /* Ridotto il margine per fare spazio alla banda */
-            box-shadow: inset 0 0 15px #900; 
+            font-size: 50px; 
+            color: #ff1a1a; 
+            border: 2px solid #000; /* Bordo plastico */
+            box-shadow: inset 0 0 15px rgba(0,0,0,1), 0 4px 10px rgba(0,0,0,0.5); /* Ombra interna e profondità */
             font-weight: normal; 
-            letter-spacing: 6px; 
-            text-shadow: 0 0 8px #ff0000;
-            padding-bottom: 4px;
+            letter-spacing: 5px; 
+            text-shadow: 0 0 8px #ff0000, 0 0 15px #ff0000; /* Glow intenso */
+            padding-bottom: 2px;
+            padding-left: 5px;
+            position: relative;
+        }
+        /* Riflesso "vetrino" lucido sulla plastica del display */
+        #display::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 35%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.06), transparent);
+            border-radius: 2px 2px 0 0;
+            pointer-events: none;
         }
         
-        /* BANDA BIANCA SOTTO AL DISPLAY REINSERITA */
+        /* BANDA BIANCA SOTTO AL DISPLAY REINSERITA E ALLINEATA */
         .white-band {
             width: 100%;
             height: 4px;
