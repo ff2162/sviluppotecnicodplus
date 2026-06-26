@@ -251,7 +251,7 @@
                     <div class="quick-help">
                         <b style="color:#ccc;">Advanced self-learning:</b><br>
                         Hold B for 3s. Sequential cycle:<br>
-                        <span style="color:#ffeb3b;">Phase 1: Starts mid-way. Opens at VM/2 &rarr; <i>Press A to invert direction (saves DM)</i> &rarr; Limit switch FCA &rarr; Pause 1.5" &rarr; Phase 2: Close at VM/2 until FCC &rarr; OK.</span>
+                        <span style="color:#ffeb3b;">Phase 1: Starts mid-way. Opens at VN/2 &rarr; <i>Press A to invert direction (saves DM)</i> &rarr; Limit switch FCA &rarr; Pause 1.5" &rarr; Phase 2: Close at VN/2 until FCC &rarr; OK.</span>
                     </div>
                 </div>
             </div>
@@ -265,7 +265,7 @@
                         <tr id="r-LS"><td>LS</td><td class="td-desc" id="lbl-LS">System Language</td><td id="v-LS" style="text-align:right; font-weight:bold;">EN</td></tr>
                         <tr id="r-DM"><td>DM</td><td class="td-desc" id="lbl-DM">Motor Direction</td><td id="v-DM" style="text-align:right; font-weight:bold; color:var(--lamp-yellow);">SX</td></tr>
                         <tr id="r-AT"><td>AT</td><td class="td-desc" id="lbl-AT">Remote Learning</td><td id="v-AT" style="text-align:right;">0</td></tr>
-                        <tr id="r-VM"><td>VM</td><td class="td-desc" id="lbl-VM">Motor Speed</td><td id="v-VM" style="text-align:right;">2</td></tr>
+                        <tr id="r-VN"><td>VN</td><td class="td-desc" id="lbl-VN">Motor Speed</td><td id="v-VN" style="text-align:right;">2</td></tr>
                         <tr id="r-VR"><td>VR</td><td class="td-desc" id="lbl-VR">Slow Speed</td><td id="v-VR" style="text-align:right;">2</td></tr>
                         <tr id="r-SR"><td>SR</td><td class="td-desc" id="lbl-SR">Slow Space</td><td id="v-SR" style="text-align:right;">1</td></tr>
                         <tr id="r-SO"><td>SO</td><td class="td-desc" id="lbl-SO">Obstacle Sens.</td><td id="v-SO" style="text-align:right;">0</td></tr>
@@ -275,6 +275,7 @@
                         <tr id="r-FL"><td>FL</td><td class="td-desc" id="lbl-FL">Flasher Mode</td><td id="v-FL" style="text-align:right;">3</td></tr>
                         <tr id="r-CL"><td>CL</td><td class="td-desc" id="lbl-CL">Cover LED</td><td id="v-CL" style="text-align:right;">3</td></tr>
                         <tr id="r-ST"><td>ST</td><td class="td-desc" id="lbl-ST">STOP pin Configuration</td><td id="v-ST" style="text-align:right;">1</td></tr>
+                        <tr id="r-RS"><td>RS</td><td class="td-desc" id="lbl-RS">Reset Default</td><td id="v-RS" style="text-align:right; font-weight:bold; color:var(--red);">NO</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -310,12 +311,13 @@
     let totalRevolutions = parseFloat(localStorage.getItem('DPlus_TotalRevolutions')) || 0.0;
     let tempoMoltiplicato = parseFloat(localStorage.getItem('DPlus_TempoMoltiplicato')) || 0.0;
 
-    // Aggiunto "DM" ai parametri
-    const menuKeys = ['LS', 'DM', 'AT', 'VM', 'VR', 'SR', 'SO', 'CA', 'FC', 'AP', 'FL', 'CL', 'ST'];
-    const maxVals = { LS: 3, DM: 1, AT: 1, VM: 4, VR: 4, SR: 3, SO: 4, CA: 4, FC: 1, AP: 2, FL: 3, CL: 3, ST: 2 };
+    // MODIFICATO QUI: Aggiunto "RS" all'array delle chiavi del menu
+    const menuKeys = ['LS', 'DM', 'AT', 'VN', 'VR', 'SR', 'SO', 'CA', 'FC', 'AP', 'FL', 'CL', 'ST', 'RS'];
+    const maxVals = { LS: 3, DM: 1, AT: 1, VN: 4, VR: 4, SR: 3, SO: 4, CA: 4, FC: 1, AP: 2, FL: 3, CL: 3, ST: 2, RS: 1 };
     const langCodes = ["IT", "EN", "ES", "FR"];
 
-    let config = { LS: 0, DM: 0, AT: 0, VM: 2, VR: 2, SR: 1, SO: 0, CA: 0, FC: 0, AP: 0, FL: 3, CL: 3, ST: 1 };
+    // MODIFICATO QUI: Aggiunto parametro iniziale RS: 0 alla configurazione
+    let config = { LS: 0, DM: 0, AT: 0, VN: 2, VR: 2, SR: 1, SO: 0, CA: 0, FC: 0, AP: 0, FL: 3, CL: 3, ST: 1, RS: 0 };
     const saved = localStorage.getItem('DPlus_Mach_App_Config');
     if (saved) { try { config = Object.assign(config, JSON.parse(saved)); } catch(e){} }
 
@@ -329,8 +331,8 @@
                 LS: ["Lingua Sistema", "0: IT Italiano | 1: EN English | 2: ES Spagnolo | 3: FR Francese"],
                 DM: ["Direzione Motore", "0: SX (Sinistra) | 1: DX (Destra). In apprendimento usa 'A' per invertire al volo."],
                 AT: ["Apprendim. Telecomando", "Premi B per scegliere l'opzione (1: Totale, 2: Pedonale, 0: Cancella)."],
-                VM: ["Velocità Motore", "0: Minima | 1-3: Intermedi | 4: Massima"],
-                VR: ["Velocità Rallentamento", "0: Minima | 1-3: Intermedi | 4: Max (50% di VM)"],
+                VN: ["Velocità Motore", "0: Minima | 1-3: Intermedi | 4: Massima"],
+                VR: ["Velocità Rallentamento", "0: Minima | 1-3: Intermedi | 4: Max (50% di VN)"],
                 SR: ["Spazio Rallentamento", "0: 4% | 1: 6% | 2: 8% | 3: 10% della corsa."],
                 SO: ["Sensibilità Ostacolo", "0: Off | 1-3: Intermedi | 4: Massima"],
                 CA: ["Chiusura Automatica", "0: Off | 1: 3s | 2: 7s | 3: 10s | 4: 15s"],
@@ -338,7 +340,9 @@
                 AP: ["Apertura Pedonale", "0: 20% | 1: 30% | 2: 40% dell'apertura totale."],
                 FL: ["Lampeggiante", "0: Pre-Lamp Fisso | 1: Pre-Lamp Int. | 2: Fisso | 3: Intermittente"],
                 CL: ["Cover LED", "0: Sempre ON | 1: ON in marcia | 2: Lampeggia | 3: Breath in Standby"],
-                ST: ["Configurazione Pin STOP", "0: N.O | 1: N.C | 2: 8k2"]
+                ST: ["Configurazione Pin STOP", "0: N.O | 1: N.C | 2: 8k2"],
+                // MODIFICATO QUI: Testo esplicativo italiano per RS
+                RS: ["Reset Default di Fabbrica", "Premi B per caricare i parametri di fabbrica e azzerare le quote memorizzate dell'anta."]
             }
         },
         EN: {
@@ -350,7 +354,7 @@
                 LS: ["System Language", "0: IT | 1: EN | 2: ES | 3: FR"],
                 DM: ["Motor Direction", "0: SX (Left) | 1: DX (Right). In learning mode use 'A' to invert direction."],
                 AT: ["Remote Learning", "Press B to choose option."],
-                VM: ["Motor Speed", "0: Min | 1-3: Med | 4: Max"],
+                VN: ["Motor Speed", "0: Min | 1-3: Med | 4: Max"],
                 VR: ["Slow Speed", "0: Min | 1-3: Med | 4: Max"],
                 SR: ["Slowdown Space", "0: 4% | 1: 6% | 2: 8% | 3: 10%"],
                 SO: ["Obstacle Sensitivity", "0: Disabled | 1-3: Med | 4: Max Sensitivity"],
@@ -359,7 +363,9 @@
                 AP: ["Pedestrian Open", "0: 20% | 1: 30% | 2: 40%"],
                 FL: ["Flasher Mode", "0: Pre-Lamp Fixed | 1: Pre-Lamp Int. | 2: Fixed | 3: Int."],
                 CL: ["Cover LED Mode", "0: ON | 1: ON running | 2: Blinking | 3: Breath standby"],
-                ST: ["STOP pin Configuration", "0: N.O | 1: N.C | 2: 8k2"]
+                ST: ["STOP pin Configuration", "0: N.O | 1: N.C | 2: 8k2"],
+                // MODIFICATO QUI: Testo esplicativo inglese per RS
+                RS: ["Factory Reset Default", "Press B to restore native software values and clear any learned gate tracking."]
             }
         }
     };
@@ -438,6 +444,8 @@
             if(vCell) {
                 if(k === 'LS') vCell.innerText = curL;
                 else if(k === 'DM') vCell.innerText = config.DM === 0 ? "SX" : "DX";
+                // MODIFICATO QUI: Formattazione visiva "SI/NO" per la voce RS in tabella
+                else if(k === 'RS') vCell.innerText = config.RS === 0 ? "NO" : "SI";
                 else vCell.innerText = config[k];
             }
             if(lCell && db[k]) lCell.innerText = db[k][0];
@@ -494,7 +502,7 @@
         }
 
         const posPct = Math.round(leafPos * 100);
-        const powerPct = (gateState === "OPENING" || gateState === "CLOSING") ? (isSlow || isReducedSpeed ? 30 + config.VR * 8 : 55 + config.VM * 10) : 0;
+        const powerPct = (gateState === "OPENING" || gateState === "CLOSING") ? (isSlow || isReducedSpeed ? 30 + config.VR * 8 : 55 + config.VN * 10) : 0;
 
         const lenStr = gateLength > 0 ? `${gateLength.toFixed(2)} m` : (curL === "IT" ? "Non appresa" : "Not learned");
         const revStr = totalRevolutions > 0 ? `${totalRevolutions.toFixed(1)} giri` : (curL === "IT" ? "Non calcolati" : "Not computed");
@@ -518,7 +526,7 @@
     }
 
     // --- MOTORE FISICO REGOLATO ---
-    const baseSpeedList = [0.15, 0.20, 0.25, 0.29, 0.34]; // Velocità in m/s
+    const baseSpeedList = [0.15, 0.20, 0.25, 0.29, 0.34]; 
     const slowSpeedList = [0.05, 0.07, 0.09, 0.11, 0.13];
 
     function physics(timestamp) {
@@ -535,13 +543,11 @@
         if (gateState === "OPENING" || gateState === "CLOSING") {
             
             if (mode === "AA") {
-                // Autoapprendimento: Velocità dimezzata fissa (VM/2)
                 slowActive = true; 
-                speed = baseSpeedList[config.VM] / 2.0; 
+                speed = baseSpeedList[config.VN] / 2.0; 
                 
                 if (aaPhase === 1) {
-                    // FASE 1: Apertura cieca fino a FCA
-                    leafPos += (speed / 4.0) * dt; // Corsa massima visiva di 4m
+                    leafPos += (speed / 4.0) * dt; 
                     
                     if (leafPos >= 1.0) {
                         leafPos = 1.0;
@@ -557,7 +563,6 @@
                     }
                 } 
                 else if (aaPhase === 2) {
-                    // FASE 2: Chiusura a VM/2 con conteggio tempo reale
                     leafPos -= (speed / 4.0) * dt;
                     
                     measuredTime += dt;
@@ -568,10 +573,9 @@
                         gateState = "CLOSED";
                         toggleFlash(false);
                         
-                        // CALCOLI DI FINE AUTOAPPRENDIMENTO (Fatto alla velocità di baseSpeedList / 2)
-                        let realSpeedUsed = baseSpeedList[config.VM] / 2.0;
+                        let realSpeedUsed = baseSpeedList[config.VN] / 2.0;
                         gateLength = measuredTime * realSpeedUsed; 
-                        totalRevolutions = gateLength / 0.2; // Z16 -> 20cm per giro
+                        totalRevolutions = gateLength / 0.2; 
                         tempoMoltiplicato = measuredTime * 2; 
                         
                         localStorage.setItem('DPlus_GateLength', gateLength);
@@ -590,7 +594,6 @@
                 }
             } 
             else {
-                // FUNZIONAMENTO NOMINALE DOPO APPRENDIMENTO
                 const target = isPedestrian ? [0.2, 0.3, 0.4][config.AP] : 1.0;
                 
                 if (gateLength > 0) {
@@ -601,7 +604,7 @@
                     slowActive = (gateState === "OPENING" && leafPos > target - srP) || (gateState === "CLOSING" && leafPos < srP);
                 }
                 
-                let physSpeed = slowActive ? slowSpeedList[config.VR] : baseSpeedList[config.VM];
+                let physSpeed = slowActive ? slowSpeedList[config.VR] : baseSpeedList[config.VN];
                 if (isReducedSpeed && gateState === "OPENING") physSpeed = slowSpeedList[config.VR];
                 
                 speed = physSpeed;
@@ -657,7 +660,6 @@
             if (leafPos > 1.0) leafPos = 1.0;
             if (leafPos < 0.0) leafPos = 0.0;
             
-            // Applica il transform coerente col verso del motore (DX o SX)
             if (config.DM === 1) {
                 leaf.style.transform = `translateX(${leafPos * 100}%)`;
             } else {
@@ -743,7 +745,6 @@
     }
 
     function handleRemotePress(channel) {
-        // PERMETTE L'INVERSIONE MOTORE DA TELECOMANDO IN FASE 1 DI AA
         if (mode === "AA" && aaPhase === 1 && (channel === 1 || channel === 2)) {
             invertMotorDirectionOnTheFly();
             return;
@@ -825,6 +826,8 @@
         if (mode === "EDIT") { 
             if(k === 'LS') disp.innerText = curL;
             else if(k === 'DM') disp.innerText = config.DM === 0 ? "SX" : "DX";
+            // MODIFICATO QUI: Visualizzazione a display fissa di "NO/SI" durante la modifica di RS
+            else if(k === 'RS') disp.innerText = config.RS === 0 ? "NO" : "SI";
             else disp.innerText = config[k]; 
             disp.classList.remove('blink'); 
         } 
@@ -849,19 +852,19 @@
     function save() {
         clearTimeout(configTimeout); 
         mode = "SAVING"; disp.innerText = "OK"; disp.classList.remove('blink');
+        localStorage.setItem('DPlus_GateLength', gateLength);
         localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config));
         setTimeout(() => { 
             mode = "IDLE"; disp.innerText = "--"; disp.classList.add('blink'); refreshTable(); 
         }, 1200);
     }
 
-    // GESTIONE CAMBIO DIREZIONE AL VOLO DURANTE AA FASE 1
+    // GESTIONE MOTOR_DIRECTION IN FASE 1 DI AA
     function invertMotorDirectionOnTheFly() {
         actionFired = true;
         config.DM = config.DM === 0 ? 1 : 0; 
         applyMotorDirection(); 
         
-        // Conferma visuale a display e salvataggio automatico dietro le quinte
         disp.innerText = config.DM === 0 ? "SX" : "DX";
         localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config));
         refreshTable();
@@ -869,6 +872,45 @@
         setTimeout(() => { 
             if(mode === "AA" && aaPhase === 1) disp.innerText = "AA"; 
         }, 1000);
+    }
+
+    // MODIFICATO QUI: Nuova funzione core per l'esecuzione del Reset Fabbrica completo
+    function executeFactoryReset() {
+        clearTimeout(configTimeout);
+        mode = "SAVING"; 
+        disp.innerText = "RS"; 
+        disp.classList.remove('blink');
+        
+        // Ripristino parametri iniziali nativi
+        config = { LS: 0, DM: 0, AT: 0, VN: 2, VR: 2, SR: 1, SO: 0, CA: 0, FC: 0, AP: 0, FL: 3, CL: 3, ST: 1, RS: 0 };
+        
+        // Cancellazione fisica quote meccaniche dell'anta
+        gateLength = 0.0;
+        totalRevolutions = 0.0;
+        tempoMoltiplicato = 0.0;
+        leafPos = 0.0;
+        gateState = "CLOSED";
+        lastDir = "CLOSING";
+        isPedestrian = false;
+        isReducedSpeed = false;
+        excludeAutoClose = false;
+        isSafetyReversing = false;
+
+        // Pulizia totale degli archivi localStorage
+        localStorage.removeItem('DPlus_GateLength');
+        localStorage.removeItem('DPlus_TotalRevolutions');
+        localStorage.removeItem('DPlus_TempoMoltiplicato');
+        localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config));
+        
+        // Riassegna graficamente la direzione (SX di default)
+        applyMotorDirection();
+
+        setTimeout(() => { 
+            mode = "IDLE"; 
+            disp.innerText = "--"; 
+            disp.classList.add('blink'); 
+            refreshTable(); 
+        }, 1500);
     }
 
     // --- GESTIONE PULSANTI A e B ---
@@ -911,7 +953,6 @@
         actionFired = false;
         checkCombo();
 
-        // INVERSIONE DI MARCIA AL VOLO DURANTE AUTOAPPRENDIMENTO FASE 1
         if (!isCombo && mode === "AA" && aaPhase === 1) {
             invertMotorDirectionOnTheFly();
             return;
@@ -929,9 +970,8 @@
             holdTimerB = setTimeout(() => {
                 if(!isCombo) {
                     actionFired = true;
-                    // AVVIO AUTOAPPRENDIMENTO MODIFICATO
                     mode = "AA"; aaPhase = 1; disp.classList.remove('blink');
-                    leafPos = 0.50; // Posiziona l'anta esattamente a metà
+                    leafPos = 0.50; 
                     applyMotorDirection(); 
                     measuredTime = 0.0;
                     runGate("OPENING", false); 
@@ -986,9 +1026,15 @@
         else if (mode === "EDIT_AT") { 
             atOption = atOption === 1 ? 2 : (atOption === 2 ? 0 : 1); updateMenuAT(); 
         } 
+        // MODIFICATO QUI: Intercettazione del tasto B sul parametro RS per scatenare il reset immediato
         else if (mode === "EDIT") { 
-            config[menuKeys[currentIdx]] = (config[menuKeys[currentIdx]]+1) > maxVals[menuKeys[currentIdx]] ? 0 : config[menuKeys[currentIdx]]+1; 
-            refreshTable(); updateMenu(); 
+            const currentKey = menuKeys[currentIdx];
+            if (currentKey === 'RS') {
+                executeFactoryReset();
+            } else {
+                config[currentKey] = (config[currentKey]+1) > maxVals[currentKey] ? 0 : config[currentKey]+1; 
+                refreshTable(); updateMenu(); 
+            }
         }
     }
 
@@ -1038,7 +1084,6 @@
         if(e.key==='4') { document.getElementById('btnRem4').classList.remove('btn-active'); }
     });
 
-    // Inizializzazione visuale
     window.onload = refreshTable;
 </script>
 </body>
