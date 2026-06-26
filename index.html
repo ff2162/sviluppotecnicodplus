@@ -7,6 +7,15 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>DPlus MACH1 26v1 - 5. Real Simulator</title>
     <style>
+        /* IMPORTAZIONE FONT STARBURST (14-Segment) */
+        @font-face {
+            font-family: 'Starburst';
+            src: url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG14-Classic/DSEG14Classic-Italic.woff2') format('woff2'),
+                 url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG14-Classic/DSEG14Classic-Italic.woff') format('woff');
+            font-weight: normal;
+            font-style: italic;
+        }
+
         :root { 
             --red: #e31e24; 
             --panel: #1a1a1a; 
@@ -113,11 +122,17 @@
         
         .board-title { color: var(--red); font-weight: 900; font-size: 22px; font-style: italic; text-align: center; margin-bottom: 12px; letter-spacing: 1px; text-shadow: 0 0 10px rgba(227,30,36,0.5); }
         
+        /* MODIFICA FONT DISPLAY STARBURST */
         #display { 
             background: var(--display); height: 85px; border-radius: 12px; display: flex; 
-            justify-content: center; align-items: center; font-family: 'Courier New', monospace; 
-            font-size: 50px; color: #f00; border: 3px solid #111; margin-bottom: 20px; 
-            box-shadow: inset 0 0 15px #900; font-weight: bold;
+            justify-content: center; align-items: center; 
+            font-family: 'Starburst', monospace; 
+            font-size: 52px; color: #f00; border: 3px solid #111; margin-bottom: 20px; 
+            box-shadow: inset 0 0 15px #900; 
+            font-weight: normal; 
+            letter-spacing: 6px; 
+            text-shadow: 0 0 8px #ff0000;
+            padding-bottom: 4px; /* Bilancia l'allineamento del font */
         }
         
         .controls-matrix { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 20px; }
@@ -251,7 +266,7 @@
                     <div class="quick-help">
                         <b style="color:#ccc;">Advanced self-learning:</b><br>
                         Hold B for 5s. Select QR code, then press A to start.<br>
-                        <span style="color:#ffeb3b;">Phase 1: Starts mid-way. Opens at VN/2 &rarr; <i>Press A to invert direction (saves DM)</i> &rarr; Limit switch FCA &rarr; Pause 1.5" &rarr; Phase 2: Close at VN/2 until FCC &rarr; OK.</span>
+                        <span style="color:#ffeb3b;">Phase 1: Starts mid-way. Opens at VM/2 &rarr; <i>Press A to invert direction (saves DM)</i> &rarr; Limit switch FCA &rarr; Pause 1.5" &rarr; Phase 2: Close at VM/2 until FCC &rarr; OK.</span>
                     </div>
                 </div>
             </div>
@@ -262,21 +277,21 @@
                 <table>
                     <thead><tr><th>Par</th><th>Description</th><th style="text-align:right;">Val</th></tr></thead>
                     <tbody id="menu-table">
-                        <tr id="r-LS"><td>LS</td><td class="td-desc" id="lbl-LS">System Language</td><td id="v-LS" style="text-align:right; font-weight:bold;">EN</td></tr>
+                        <tr id="r-LS"><td>LS</td><td class="td-desc" id="lbl-LS">System Language</td><td id="v-LS" style="text-align:right; font-weight:bold;">00</td></tr>
                         <tr id="r-QR"><td>QR</td><td class="td-desc" id="lbl-QR">Product Code</td><td id="v-QR" style="text-align:right; font-weight:bold; color:var(--lamp-yellow);">AZ</td></tr>
                         <tr id="r-DM"><td>DM</td><td class="td-desc" id="lbl-DM">Motor Direction</td><td id="v-DM" style="text-align:right; font-weight:bold; color:var(--lamp-yellow);">SX</td></tr>
-                        <tr id="r-AT"><td>AT</td><td class="td-desc" id="lbl-AT">Remote Learning</td><td id="v-AT" style="text-align:right;">0</td></tr>
-                        <tr id="r-VN"><td>VN</td><td class="td-desc" id="lbl-VN">Motor Speed</td><td id="v-VN" style="text-align:right;">2</td></tr>
-                        <tr id="r-VR"><td>VR</td><td class="td-desc" id="lbl-VR">Slow Speed</td><td id="v-VR" style="text-align:right;">2</td></tr>
-                        <tr id="r-SR"><td>SR</td><td class="td-desc" id="lbl-SR">Slow Space</td><td id="v-SR" style="text-align:right;">1</td></tr>
-                        <tr id="r-SO"><td>SO</td><td class="td-desc" id="lbl-SO">Obstacle Sens.</td><td id="v-SO" style="text-align:right;">0</td></tr>
-                        <tr id="r-CA"><td>CA</td><td class="td-desc" id="lbl-CA">Auto Close</td><td id="v-CA" style="text-align:right;">0</td></tr>
-                        <tr id="r-FC"><td>FC</td><td class="td-desc" id="lbl-FC">Condo Mode</td><td id="v-FC" style="text-align:right;">0</td></tr>
-                        <tr id="r-AP"><td>AP</td><td class="td-desc" id="lbl-AP">Pedestrian Open</td><td id="v-AP" style="text-align:right;">0</td></tr>
-                        <tr id="r-FL"><td>FL</td><td class="td-desc" id="lbl-FL">Flasher Mode</td><td id="v-FL" style="text-align:right;">3</td></tr>
-                        <tr id="r-CL"><td>CL</td><td class="td-desc" id="lbl-CL">Cover LED</td><td id="v-CL" style="text-align:right;">3</td></tr>
-                        <tr id="r-ST"><td>ST</td><td class="td-desc" id="lbl-ST">STOP pin Configuration</td><td id="v-ST" style="text-align:right;">1</td></tr>
-                        <tr id="r-RS"><td>RS</td><td class="td-desc" id="lbl-RS">Reset Default</td><td id="v-RS" style="text-align:right; font-weight:bold; color:var(--red);">NO</td></tr>
+                        <tr id="r-AT"><td>AT</td><td class="td-desc" id="lbl-AT">Remote Learning</td><td id="v-AT" style="text-align:right;">00</td></tr>
+                        <tr id="r-VM"><td>VM</td><td class="td-desc" id="lbl-VM">Motor Speed</td><td id="v-VM" style="text-align:right;">01</td></tr>
+                        <tr id="r-VR"><td>VR</td><td class="td-desc" id="lbl-VR">Slow Speed</td><td id="v-VR" style="text-align:right;">01</td></tr>
+                        <tr id="r-SR"><td>SR</td><td class="td-desc" id="lbl-SR">Slow Space</td><td id="v-SR" style="text-align:right;">01</td></tr>
+                        <tr id="r-SO"><td>SO</td><td class="td-desc" id="lbl-SO">Obstacle Sens.</td><td id="v-SO" style="text-align:right;">01</td></tr>
+                        <tr id="r-CA"><td>CA</td><td class="td-desc" id="lbl-CA">Auto Close</td><td id="v-CA" style="text-align:right;">00</td></tr>
+                        <tr id="r-FC"><td>FC</td><td class="td-desc" id="lbl-FC">Condo Mode</td><td id="v-FC" style="text-align:right;">NO</td></tr>
+                        <tr id="r-AP"><td>AP</td><td class="td-desc" id="lbl-AP">Pedestrian Open</td><td id="v-AP" style="text-align:right;">01</td></tr>
+                        <tr id="r-LF"><td>LF</td><td class="td-desc" id="lbl-LF">Flasher Mode</td><td id="v-LF" style="text-align:right;">03</td></tr>
+                        <tr id="r-CL"><td>CL</td><td class="td-desc" id="lbl-CL">Cover LED</td><td id="v-CL" style="text-align:right;">03</td></tr>
+                        <tr id="r-ST"><td>ST</td><td class="td-desc" id="lbl-ST">STOP pin Configuration</td><td id="v-ST" style="text-align:right;">01</td></tr>
+                        <tr id="r-RS"><td>RS</td><td class="td-desc" id="lbl-RS">Factory Reset Default</td><td id="v-RS" style="text-align:right; font-weight:bold; color:var(--red);">NO</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -299,7 +314,6 @@
     let lastTime = 0, autoTimer = null, flashInt = null, preFlashTimeout = null, aaTimeout = null;
     let atOption = 1, aaPhase = 0;
     
-    // Variabile per la gestione del prompt QR
     let promptQRState = "??";
     const qrCodes = ["AZ", "FF", "SD"];
 
@@ -310,19 +324,19 @@
     let isSafetyReversing = false;
     let safetyReversalTimer = 0;
 
-    // PARAMETRI REALI AUTOAPPRENDIMENTO (Z16 M4)
+    // PARAMETRI REALI AUTOAPPRENDIMENTO
     let measuredTime = 0.0;
     let gateLength = parseFloat(localStorage.getItem('DPlus_GateLength')) || 0.0;
     let totalRevolutions = parseFloat(localStorage.getItem('DPlus_TotalRevolutions')) || 0.0;
     let tempoMoltiplicato = parseFloat(localStorage.getItem('DPlus_TempoMoltiplicato')) || 0.0;
 
-    // MODIFICATO: Aggiunto "QR"
-    const menuKeys = ['LS', 'QR', 'DM', 'AT', 'VN', 'VR', 'SR', 'SO', 'CA', 'FC', 'AP', 'FL', 'CL', 'ST', 'RS'];
-    const maxVals = { LS: 3, QR: 2, DM: 1, AT: 1, VN: 4, VR: 4, SR: 3, SO: 4, CA: 4, FC: 1, AP: 2, FL: 3, CL: 3, ST: 2, RS: 1 };
+    // CHIAVI MENU
+    const menuKeys = ['LS', 'QR', 'DM', 'AT', 'VM', 'VR', 'SR', 'SO', 'CA', 'FC', 'AP', 'LF', 'CL', 'ST', 'RS'];
+    const maxVals = { LS: 3, QR: 2, DM: 1, AT: 2, VM: 4, VR: 4, SR: 3, SO: 4, CA: 4, FC: 1, AP: 2, LF: 3, CL: 3, ST: 2, RS: 1 };
     const langCodes = ["IT", "EN", "ES", "FR"];
 
-    // MODIFICATO: Inserito QR in config
-    let config = { LS: 0, QR: 0, DM: 0, AT: 0, VN: 2, VR: 2, SR: 1, SO: 0, CA: 0, FC: 0, AP: 0, FL: 3, CL: 3, ST: 1, RS: 0 };
+    // DEFAULT DI FABBRICA
+    let config = { LS: 0, QR: 0, DM: 0, AT: 0, VM: 1, VR: 1, SR: 1, SO: 1, CA: 0, FC: 0, AP: 1, LF: 3, CL: 3, ST: 1, RS: 0 };
     const saved = localStorage.getItem('DPlus_Mach_App_Config');
     if (saved) { try { config = Object.assign(config, JSON.parse(saved)); } catch(e){} }
 
@@ -333,21 +347,21 @@
             SAVING: "Salvataggio in corso...",
             LRN: "In attesa segnale radio...",
             LABELS: {
-                LS: ["Lingua Sistema", "0: IT Italiano | 1: EN English | 2: ES Spagnolo | 3: FR Francese"],
-                QR: ["Codice Prodotto", "Seleziona il modello: AZ | FF | SD"],
-                DM: ["Direzione Motore", "0: SX (Sinistra) | 1: DX (Destra). In apprendimento usa 'A' per invertire al volo."],
-                AT: ["Apprendim. Telecomando", "Premi B per scegliere l'opzione (1: Totale, 2: Pedonale, 0: Cancella)."],
-                VN: ["Velocità Motore", "0: Minima | 1-3: Intermedi | 4: Massima"],
-                VR: ["Velocità Rallentamento", "0: Minima | 1-3: Intermedi | 4: Max (50% di VN)"],
-                SR: ["Spazio Rallentamento", "0: 4% | 1: 6% | 2: 8% | 3: 10% della corsa."],
-                SO: ["Sensibilità Ostacolo", "0: Off | 1-3: Intermedi | 4: Massima"],
-                CA: ["Chiusura Automatica", "0: Off | 1: 3s | 2: 7s | 3: 10s | 4: 15s"],
-                FC: ["Funzione Condominiale", "0: Disattivato | 1: Attivato (Inibisce comandi in marcia)"],
-                AP: ["Apertura Pedonale", "0: 20% | 1: 30% | 2: 40% dell'apertura totale."],
-                FL: ["Lampeggiante", "0: Pre-Lamp Fisso | 1: Pre-Lamp Int. | 2: Fisso | 3: Intermittente"],
-                CL: ["Cover LED", "0: Sempre ON | 1: ON in marcia | 2: Lampeggia | 3: Breath in Standby"],
-                ST: ["Configurazione Pin STOP", "0: N.O | 1: N.C | 2: 8k2"],
-                RS: ["Reset Default di Fabbrica", "Premi B per caricare i parametri di fabbrica e azzerare le quote memorizzate dell'anta."]
+                LS: ["Lingua sistema", "00: IT Italian | 01: EN English | 02: ES Spanish | 03: FR French"],
+                QR: ["Product Code", "Seleziona il modello: AZ:400Kg | FF:600Kg | SD:1000Kg"],
+                DM: ["Motor Direction", "00: SX Left | 01: DX Right. In Auto-Learning usa 'A' per invertire."],
+                AT: ["Remote Learning", "Premi B per scegliere (01: Normal Open, 02: Pedestrian, 00: Erase)."],
+                VM: ["Motor Speed", "00: Minimum | 01-03: Intermediates | 04: Maximum"],
+                VR: ["Slow Speed", "Deceleration Speed, 00: Minimum | 01-03: Intermediates | 04: Maximum (50% di VM)"],
+                SR: ["Slowdown space", "Deceleration Zone, 00: 4% | 01: 6% | 02: 8% | 03: 10%"],
+                SO: ["Obstacle Sensitivity", "00: Off | 01-03: Intermediates | 04: Maximum"],
+                CA: ["Auto Close", "Automatic Close, 00: Off | 01: 3s | 02: 7s | 03: 10s | 04: 15s"],
+                FC: ["Condo Mode", "Condominium Mode, NO: Deactivated | SI: Activated"],
+                AP: ["Pedestrian Open", "00: 20% | 01: 30% | 02: 40% of the full opening"],
+                LF: ["Flasher Mode", "00: Pre-Lamp Fix | 01: Pre-Lamp Int. | 02: Fix | 03: Intermittent"],
+                CL: ["Cover LED Mode", "00: Always ON | 01: ON during running | 02: Flashing | 03: Breath"],
+                ST: ["STOP Pin Config", "00: N.O | 01: N.C | 02: 8k2"],
+                RS: ["Factory Reset Default", "Set default values and delete hardware memory."]
             }
         },
         EN: {
@@ -356,21 +370,21 @@
             SAVING: "Saving settings...",
             LRN: "Waiting for radio signal...",
             LABELS: {
-                LS: ["System Language", "0: IT | 1: EN | 2: ES | 3: FR"],
-                QR: ["Product Code", "Select the model: AZ | FF | SD"],
-                DM: ["Motor Direction", "0: SX (Left) | 1: DX (Right). In learning mode use 'A' to invert direction."],
-                AT: ["Remote Learning", "Press B to choose option."],
-                VN: ["Motor Speed", "0: Min | 1-3: Med | 4: Max"],
-                VR: ["Slow Speed", "0: Min | 1-3: Med | 4: Max"],
-                SR: ["Slowdown Space", "0: 4% | 1: 6% | 2: 8% | 3: 10%"],
-                SO: ["Obstacle Sensitivity", "0: Disabled | 1-3: Med | 4: Max Sensitivity"],
-                CA: ["Auto Close", "0: Disabled | 1: 3s | 2: 7s | 3: 10s | 4: 15s"],
-                FC: ["Condo Mode", "0: Disabled | 1: Enabled"],
-                AP: ["Pedestrian Open", "0: 20% | 1: 30% | 2: 40%"],
-                FL: ["Flasher Mode", "0: Pre-Lamp Fixed | 1: Pre-Lamp Int. | 2: Fixed | 3: Int."],
-                CL: ["Cover LED Mode", "0: ON | 1: ON running | 2: Blinking | 3: Breath standby"],
-                ST: ["STOP pin Configuration", "0: N.O | 1: N.C | 2: 8k2"],
-                RS: ["Factory Reset Default", "Press B to restore native software values and clear any learned gate tracking."]
+                LS: ["System Language", "00: IT Italian | 01: EN English | 02: ES Spanish | 03: FR French"],
+                QR: ["Product Code", "Select the model: AZ:400Kg | FF:600Kg | SD:1000Kg"],
+                DM: ["Motor Direction", "00: SX Left | 01: DX Right. In Auto-Learning use 'A' to invert."],
+                AT: ["Remote Learning", "Press B to choose (01: Normal Open, 02: Pedestrian, 00: Erase)."],
+                VM: ["Motor Speed", "00: Minimum | 01-03: Intermediates | 04: Maximum"],
+                VR: ["Slow Speed", "Deceleration Speed, 00: Minimum | 01-03: Intermediates | 04: Maximum (50% di VM)"],
+                SR: ["Slowdown space", "Deceleration Zone, 00: 4% | 01: 6% | 02: 8% | 03: 10%"],
+                SO: ["Obstacle Sensitivity", "00: Off | 01-03: Intermediates | 04: Maximum"],
+                CA: ["Auto Close", "Automatic Close, 00: Off | 01: 3s | 02: 7s | 03: 10s | 04: 15s"],
+                FC: ["Condo Mode", "Condominium Mode, NO: Deactivated | SI: Activated"],
+                AP: ["Pedestrian Open", "00: 20% | 01: 30% | 02: 40% of the full opening"],
+                LF: ["Flasher Mode", "00: Pre-Lamp Fix | 01: Pre-Lamp Int. | 02: Fix | 03: Intermittent"],
+                CL: ["Cover LED Mode", "00: Always ON | 01: ON during running | 02: Flashing | 03: Breath"],
+                ST: ["STOP Pin Config", "00: N.O | 01: N.C | 02: 8k2"],
+                RS: ["Factory Reset Default", "Set default values and delete hardware memory."]
             }
         }
     };
@@ -437,18 +451,21 @@
         }
     };
 
+    function getDisplayVal(key, val) {
+        if (key === 'LS') return String(val).padStart(2, '0');
+        if (key === 'DM') return val === 0 ? "SX" : "DX";
+        if (key === 'FC') return val === 0 ? "NO" : "SI";
+        if (key === 'RS') return val === 0 ? "NO" : "SI";
+        if (key === 'QR') return qrCodes[val];
+        return String(val).padStart(2, '0');
+    }
+
     function refreshTable() {
         const curL = langCodes[config.LS] || "EN";
         const db = (langDB[curL] || langDB["EN"]).LABELS;
         menuKeys.forEach(k => {
             const vCell = document.getElementById('v-'+k), lCell = document.getElementById('lbl-'+k);
-            if(vCell) {
-                if(k === 'LS') vCell.innerText = curL;
-                else if(k === 'DM') vCell.innerText = config.DM === 0 ? "SX" : "DX";
-                else if(k === 'RS') vCell.innerText = config.RS === 0 ? "NO" : "SI";
-                else if(k === 'QR') vCell.innerText = qrCodes[config.QR]; // Modifica per QR
-                else vCell.innerText = config[k];
-            }
+            if(vCell) { vCell.innerText = getDisplayVal(k, config[k]); }
             if(lCell && db[k]) lCell.innerText = db[k][0];
         });
         updateLeds(false);
@@ -476,7 +493,7 @@
             let s = false;
             flashInt = setInterval(() => {
                 s = !s;
-                if (config.FL === 1 || config.FL === 3) bulb.classList.toggle('f-on', s);
+                if (config.LF === 1 || config.LF === 3) bulb.classList.toggle('f-on', s);
                 else bulb.classList.add('f-on');
                 updateLeds(true, s);
             }, 500);
@@ -502,7 +519,7 @@
         }
 
         const posPct = Math.round(leafPos * 100);
-        const powerPct = (gateState === "OPENING" || gateState === "CLOSING") ? (isSlow || isReducedSpeed ? 30 + config.VR * 8 : 55 + config.VN * 10) : 0;
+        const powerPct = (gateState === "OPENING" || gateState === "CLOSING") ? (isSlow || isReducedSpeed ? 30 + config.VR * 8 : 55 + config.VM * 10) : 0;
 
         const lenStr = gateLength > 0 ? `${gateLength.toFixed(2)} m` : (curL === "IT" ? "Non appresa" : "Not learned");
         const revStr = totalRevolutions > 0 ? `${totalRevolutions.toFixed(1)} giri` : (curL === "IT" ? "Non calcolati" : "Not computed");
@@ -543,7 +560,7 @@
             
             if (mode === "AA") {
                 slowActive = true; 
-                speed = baseSpeedList[config.VN] / 2.0; 
+                speed = baseSpeedList[config.VM] / 2.0; 
                 
                 if (aaPhase === 1) {
                     leafPos += (speed / 4.0) * dt; 
@@ -572,7 +589,7 @@
                         gateState = "CLOSED";
                         toggleFlash(false);
                         
-                        let realSpeedUsed = baseSpeedList[config.VN] / 2.0;
+                        let realSpeedUsed = baseSpeedList[config.VM] / 2.0;
                         gateLength = measuredTime * realSpeedUsed; 
                         totalRevolutions = gateLength / 0.2; 
                         tempoMoltiplicato = measuredTime * 2; 
@@ -603,7 +620,7 @@
                     slowActive = (gateState === "OPENING" && leafPos > target - srP) || (gateState === "CLOSING" && leafPos < srP);
                 }
                 
-                let physSpeed = slowActive ? slowSpeedList[config.VR] : baseSpeedList[config.VN];
+                let physSpeed = slowActive ? slowSpeedList[config.VR] : baseSpeedList[config.VM];
                 if (isReducedSpeed && gateState === "OPENING") physSpeed = slowSpeedList[config.VR];
                 
                 speed = physSpeed;
@@ -697,7 +714,7 @@
             return;
         }
 
-        if (config.FL === 0 || config.FL === 1) {
+        if (config.LF === 0 || config.LF === 1) {
             gateState = (ns === "OPENING") ? "PRE_OPEN" : "PRE_CLOSE"; toggleFlash(true);
             if(mode==="IDLE") { disp.innerText = (ns === "OPENING" ? "OP" : "CL"); disp.classList.add('blink-fast'); }
             preFlashTimeout = setTimeout(() => {
@@ -825,11 +842,7 @@
         const k = menuKeys[currentIdx], curL = langCodes[config.LS] || "EN";
         const db = (langDB[curL] || langDB["EN"]);
         if (mode === "EDIT") { 
-            if(k === 'LS') disp.innerText = curL;
-            else if(k === 'DM') disp.innerText = config.DM === 0 ? "SX" : "DX";
-            else if(k === 'RS') disp.innerText = config.RS === 0 ? "NO" : "SI";
-            else if(k === 'QR') disp.innerText = qrCodes[config.QR]; // Mostra stringa per QR
-            else disp.innerText = config[k]; 
+            disp.innerText = getDisplayVal(k, config[k]);
             disp.classList.remove('blink'); 
         } 
         else { disp.innerText = k; disp.classList.add('blink'); }
@@ -842,10 +855,10 @@
 
     function updateMenuAT() {
         manageRemoteLedBlink();
-        disp.innerText = atOption; disp.classList.remove('blink');
+        disp.innerText = String(atOption).padStart(2, '0'); disp.classList.remove('blink');
         const curL = langCodes[config.LS] || "EN";
         const atLabel = (langDB[curL] || langDB["EN"]).LABELS.AT[0];
-        let optText = atOption === 1 ? (curL === "IT" ? "1 (Totale)" : "1 (Total)") : (atOption === 2 ? (curL === "IT" ? "2 (Pedonale)" : "2 (Pedestrian)") : (curL === "IT" ? "0 (Cancella)" : "0 (Erase)"));
+        let optText = atOption === 1 ? (curL === "IT" ? "01 (Totale)" : "01 (Total)") : (atOption === 2 ? (curL === "IT" ? "02 (Pedonale)" : "02 (Pedestrian)") : (curL === "IT" ? "00 (Cancella)" : "00 (Erase)"));
         infoText.innerHTML = `<b style="color:var(--red);">${atLabel}</b><br>Option: <b>${optText}</b><br><br><small style="color:#888;">Tap B to change.<br>Tap A to confirm.</small>`;
         resetConfigTimeout();
     }
@@ -874,14 +887,13 @@
         }, 1000);
     }
 
-    // MODIFICATO: Factory Reset ora lancia il QR Prompt
     function executeFactoryReset() {
         clearTimeout(configTimeout);
         mode = "SAVING"; 
         disp.innerText = "RS"; 
         disp.classList.remove('blink');
         
-        config = { LS: 0, QR: 0, DM: 0, AT: 0, VN: 2, VR: 2, SR: 1, SO: 0, CA: 0, FC: 0, AP: 0, FL: 3, CL: 3, ST: 1, RS: 0 };
+        config = { LS: 0, QR: 0, DM: 0, AT: 0, VM: 1, VR: 1, SR: 1, SO: 1, CA: 0, FC: 0, AP: 1, LF: 3, CL: 3, ST: 1, RS: 0 };
         
         gateLength = 0.0;
         totalRevolutions = 0.0;
@@ -901,7 +913,6 @@
         
         applyMotorDirection();
 
-        // Dopo il reset visualizza la richiesta QR
         setTimeout(() => { 
             mode = "QR_PROMPT";
             promptQRState = "??";
@@ -966,7 +977,6 @@
         checkCombo();
 
         if (!isCombo && mode === "IDLE") {
-            // MODIFICATO: Pressione tasto B portata a 5 secondi e lancia il QR PROMPT
             holdTimerB = setTimeout(() => {
                 if(!isCombo) {
                     actionFired = true;
@@ -997,7 +1007,7 @@
         else if (mode === "MENU") { currentIdx = (currentIdx + 1) % menuKeys.length; updateMenu(); }
         else if (mode === "EDIT") { mode = "MENU"; updateMenu(); }
         else if (mode === "EDIT_AT") {
-            mode = "AT_LEARNING"; disp.innerText = "Go"; disp.classList.add('blink');
+            mode = "AT_LEARNING"; disp.innerText = "GO"; disp.classList.add('blink');
             const curL = langCodes[config.LS] || "EN";
             const msg = curL === "IT" ? "In attesa segnale radio..." : "Waiting for radio signal...";
             infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL]||langDB["EN"]).LABELS.AT[0]}</b><br><span style="color:#ffeb3b;" class="blink">${msg}</span>`;
@@ -1005,11 +1015,10 @@
         } else if (mode === "AT_LEARNING") { 
             mode = "MENU"; updateMenu(); 
         }
-        // MODIFICATO: Conferma del codice QR con il tasto A
         else if (mode === "QR_PROMPT") {
-            if (promptQRState === "??") return; // Impedisce di proseguire se non ha selezionato nulla
+            if (promptQRState === "??") return; 
             
-            localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config)); // Salva la scelta
+            localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config)); 
             mode = "AA"; aaPhase = 1; disp.classList.remove('blink');
             disp.innerText = "AA";
             leafPos = 0.50; 
@@ -1048,7 +1057,6 @@
                 refreshTable(); updateMenu(); 
             }
         }
-        // MODIFICATO: Scorrimento dei codici prodotto con il tasto B
         else if (mode === "QR_PROMPT") {
             if (promptQRState === "??") { config.QR = 0; } 
             else { config.QR = (config.QR + 1) % 3; }
