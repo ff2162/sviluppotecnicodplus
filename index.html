@@ -157,16 +157,37 @@
         @keyframes fastBlink { 50% { opacity: 0; } }
         .diag-lbl { font-size: 8px; color: #888; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; }
 
-        /* NUOVA STRUTTURA DOPPIO TELECOMANDO */
-        .remotes-area { display: flex; gap: 15px; align-items: center; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 16px; border: 1px solid #252525; }
-        .remote-case { flex: 1; background: #222; padding: 10px; border-radius: 20px; border: 2px solid #444; display: flex; flex-direction: column; align-items: center; box-shadow: 0 6px 15px #000; }
+        /* NUOVA STRUTTURA TELECOMANDI (Rapporto 1:2) */
+        .remotes-area { 
+            display: flex; gap: 20px; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.02); padding: 20px; border-radius: 16px; border: 1px solid #252525; 
+        }
+        
+        .remote-case { 
+            width: 100px; /* Base */
+            height: 200px; /* Altezza doppia */
+            background: #222; 
+            padding: 12px 10px; 
+            border-radius: 18px; 
+            border: 2px solid #444; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            box-shadow: 0 8px 20px #000; 
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        
         .remote-new { border-color: #555; background: #1a1a1a; }
-        .remote-title { font-size: 9px; color: #888; font-weight: bold; margin-bottom: 6px; letter-spacing: 1px; }
-        .remote-led { width: 6px; height: 6px; background: #300; border-radius: 50%; margin-bottom: 6px; }
+        .remote-title { font-size: 10px; color: #888; font-weight: bold; letter-spacing: 1px; }
+        .remote-led { width: 8px; height: 8px; background: #300; border-radius: 50%; }
         .remote-led.active { background: #0f0; box-shadow: 0 0 10px #0f0; }
         
-        .remote-btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; }
-        .btn-rem { width: 100%; height: 35px; font-size: 13px; border-radius: 8px; }
+        .remote-logo { height: 16px; width: 100%; display: flex; justify-content: center; align-items: center; }
+        .remote-logo img { max-height: 100%; max-width: 80%; opacity: 0.8; filter: drop-shadow(0 0 2px rgba(227,30,36,0.3)); }
+        
+        .remote-btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+        .btn-rem { width: 100%; height: 38px; font-size: 15px; border-radius: 8px; }
 
         .quick-help { font-size: 11px; color: #888; line-height: 1.3; width: 100%; margin-top: 10px; padding: 10px; background: #111; border-radius: 8px;}
 
@@ -250,6 +271,7 @@
                         <div class="remote-case">
                             <div class="remote-title">TX MASTER</div>
                             <div id="remLed" class="remote-led"></div>
+                            <div class="remote-logo"><img src="D-Plus_Logo.svg" alt="D-Plus" onerror="this.style.display='none';"></div>
                             <div class="remote-btn-group">
                                 <button id="btnRem1" class="btn btn-rem">1</button>
                                 <button id="btnRem2" class="btn btn-rem">2</button>
@@ -261,6 +283,7 @@
                         <div class="remote-case remote-new">
                             <div class="remote-title">TX NEW</div>
                             <div id="remLedNew" class="remote-led"></div>
+                            <div class="remote-logo"><img src="D-Plus_Logo.svg" alt="D-Plus" onerror="this.style.display='none';"></div>
                             <div class="remote-btn-group">
                                 <button id="btnNew1" class="btn btn-rem" style="background:#2b2b2b;">1</button>
                                 <button id="btnNew2" class="btn btn-rem" style="background:#2b2b2b;">2</button>
@@ -326,11 +349,11 @@
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             osc.type = 'square';
-            osc.frequency.setValueAtTime(2400, time); // Frequenza tipica dei buzzer piezoelettrici
-            gain.gain.setValueAtTime(0.05, time); // Volume non troppo alto
+            osc.frequency.setValueAtTime(2400, time); // Frequenza tipica dei buzzer
+            gain.gain.setValueAtTime(0.05, time); // Volume bilanciato
             osc.start(time);
-            osc.stop(time + 0.15); // Durata beep 150ms
-            time += 0.35; // Pausa tra i beep
+            osc.stop(time + 0.15); // Durata del singolo beep
+            time += 0.35; // Pausa
         }
     }
 
@@ -578,6 +601,7 @@
                     disp.innerText = Math.floor(measuredTime).toString().padStart(2, '0');
                     if (leafPos <= 0) {
                         leafPos = 0; gateState = "CLOSED"; toggleFlash(false);
+                        playBeep(2); // 2 BEEP ALLA FINE DELL'APPRENDIMENTO
                         let realSpeedUsed = baseSpeedList[currentVM] / 2.0;
                         gateLength = measuredTime * realSpeedUsed; 
                         totalRevolutions = gateLength / 0.2; tempoMoltiplicato = measuredTime * 2; 
@@ -655,6 +679,8 @@
     }
 
     function triggerCommand(ped) {
+        playBeep(1); // 1 BEEP RICEZIONE COMANDO CANCELLO
+        
         if (mode === "AA" || mode === "QR_PROMPT") { clearTimeout(aaTimeout); if (mode !== "QR_PROMPT") { mode = "IDLE"; gateState = "STOPPED"; endMove(); } return; }
         if (config.FC === 1 && (gateState !== "CLOSED" && gateState !== "OPEN" && gateState !== "STOPPED")) return;
         isReducedSpeed = false; excludeAutoClose = false; isSafetyReversing = false; safetyReversalTimer = 0;
@@ -699,7 +725,7 @@
         setTimeout(() => document.getElementById('remLedNew').classList.remove('active'), 200);
 
         if (mode === "AT_LEARNING") {
-            playBeep(2); // Beep Beep di conferma salvataggio!
+            playBeep(2); // 2 BEEP CONFERMA SALVATAGGIO RADIO
             disp.innerText = "OK"; disp.classList.remove('blink'); mode = "AT_SAVING";
             clearInterval(remBlinkInterval); document.getElementById('remLed').classList.remove('active');
             const curL = langCodes[config.LS] || "EN";
@@ -715,12 +741,12 @@
                 if (!remLearnTimer) {
                     remLearnTimer = setTimeout(() => {
                         mode = "AT_LEARNING"; 
-                        atOption = (isRem1Pressed && isRem4Pressed) ? 1 : 2; // 1+4=Totale(1), 2+4=Pedonale(2)
+                        atOption = (isRem1Pressed && isRem4Pressed) ? 1 : 2; 
                         
-                        playBeep(atOption); // Suona 1 o 2 volte in base al comando
+                        playBeep(atOption); // BEEP OPZIONE RADIO SELEZIONATA
 
                         disp.innerText = "G0"; disp.classList.add('blink');
-                        manageRemoteLedBlink(); // Fa lampeggiare il led del telecomando master
+                        manageRemoteLedBlink(); 
                         
                         const curL = langCodes[config.LS] || "EN";
                         infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL]||langDB["EN"]).LABELS.AT[0]}</b><br><span style="color:#ffeb3b;" class="blink">${curL === "IT" ? "Remote Learning: In attesa nuovo radio..." : "Remote Learning: Waiting for new radio..."}</span>`;
@@ -767,6 +793,7 @@
 
     function save() {
         clearTimeout(configTimeout); mode = "SAVING"; disp.innerText = "OK"; disp.classList.remove('blink');
+        playBeep(2); // 2 BEEP USCITA E SALVATAGGIO MENU
         localStorage.setItem('DPlus_GateLength', gateLength); localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config));
         setTimeout(() => { mode = "IDLE"; disp.innerText = "--"; disp.classList.add('blink'); refreshTable(); }, 1200);
     }
@@ -821,6 +848,7 @@
             holdTimerB = setTimeout(() => {
                 if(!isCombo) {
                     actionFired = true; clearTimeout(configTimeout); mode = "QR_PROMPT"; promptQRState = "??"; disp.innerText = "??"; disp.classList.add('blink');
+                    playBeep(1); // 1 BEEP PER SEGNALARE L'ENTRATA IN FASE DI PROGRAMMAZIONE
                     const curL = langCodes[config.LS] || "EN";
                     infoText.innerHTML = `<b style="color:var(--lamp-yellow); font-size:14px;">QR PRODUCT CODE</b><br><br>${curL === 'IT' ? 'Modalità Auto-Learning.<br>Seleziona prima il modello motore.' : 'Auto-Learning mode.<br>Select motor model first.'}<br><br><small style="color:#888;">${curL === 'IT' ? 'Tocca B per scorrere.<br>Tocca A per confermare e avviare.' : 'Tap B to scroll.<br>Tap A to confirm and start.'}</small>`;
                     if (navigator.vibrate) navigator.vibrate(100); 
@@ -844,6 +872,7 @@
             if (promptQRState === "??") return; 
             clearTimeout(configTimeout); localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config)); 
             mode = "AA"; aaPhase = 1; disp.classList.remove('blink'); disp.innerText = "AA"; leafPos = 0.50; 
+            playBeep(1); // 1 BEEP PARTENZA MOTORE
             applyMotorDirection(); measuredTime = 0.0; runGate("OPENING", false); 
         }
     }
