@@ -823,6 +823,11 @@
         config = { LS: 0, QR: 0, DM: 0, AT: 0, VM: 1, VR: 1, SR: 1, SO: 1, CA: 0, FC: 0, AP: 1, LF: 3, CL: 3, ST: 1, RS: 0 };
         gateLength = 0.0; totalRevolutions = 0.0; tempoMoltiplicato = 0.0; leafPos = 0.0; gateState = "CLOSED"; lastDir = "CLOSING";
         isPedestrian = false; isReducedSpeed = false; excludeAutoClose = false; isSafetyReversing = false;
+        isNewRemoteLearned = false;
+        document.getElementById('btnNew1').style.background = '#2b2b2b';
+        document.getElementById('btnNew2').style.background = '#2b2b2b';
+        document.getElementById('btnNew3').style.background = '#2b2b2b';
+        document.getElementById('btnNew4').style.background = '#2b2b2b';
         localStorage.removeItem('DPlus_GateLength'); localStorage.removeItem('DPlus_TotalRevolutions');
         localStorage.removeItem('DPlus_TempoMoltiplicato'); localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config));
         applyMotorDirection();
@@ -922,12 +927,11 @@
     setupBtnEvents('btnRem3', () => { document.getElementById('btnRem3').classList.add('btn-active'); handleMasterPress(3); }, () => document.getElementById('btnRem3').classList.remove('btn-active'));
     setupBtnEvents('btnRem4', () => { document.getElementById('btnRem4').classList.add('btn-active'); isRem4Pressed = true; checkRemoteLearningCombo(); handleMasterPress(4); }, () => { document.getElementById('btnRem4').classList.remove('btn-active'); isRem4Pressed = false; checkRemoteLearningCombo(); });
 
-    // Binding New Remote (Click on UI)
-    setupBtnEvents('btnNew1', () => { document.getElementById('btnNew1').classList.add('btn-active'); handleNewRemotePress(); }, () => document.getElementById('btnNew1').classList.remove('btn-active'));
-    setupBtnEvents('btnNew2', () => { document.getElementById('btnNew2').classList.add('btn-active'); handleNewRemotePress(); }, () => document.getElementById('btnNew2').classList.remove('btn-active'));
-    setupBtnEvents('btnNew3', () => { document.getElementById('btnNew3').classList.add('btn-active'); handleNewRemotePress(); }, () => document.getElementById('btnNew3').classList.remove('btn-active'));
-    setupBtnEvents('btnNew4', () => { document.getElementById('btnNew4').classList.add('btn-active'); handleNewRemotePress(); }, () => document.getElementById('btnNew4').classList.remove('btn-active'));
-
+    // // Binding New Remote (Click on UI)
+    setupBtnEvents('btnNew1', () => { document.getElementById('btnNew1').classList.add('btn-active'); handleNewRemotePress(1); }, () => document.getElementById('btnNew1').classList.remove('btn-active'));
+    setupBtnEvents('btnNew2', () => { document.getElementById('btnNew2').classList.add('btn-active'); handleNewRemotePress(2); }, () => document.getElementById('btnNew2').classList.remove('btn-active'));
+    setupBtnEvents('btnNew3', () => { document.getElementById('btnNew3').classList.add('btn-active'); handleNewRemotePress(3); }, () => document.getElementById('btnNew3').classList.remove('btn-active'));
+    setupBtnEvents('btnNew4', () => { document.getElementById('btnNew4').classList.add('btn-active'); handleNewRemotePress(4); }, () => document.getElementById('btnNew4').classList.remove('btn-active'));
 
     window.addEventListener('keydown', e => { 
         if(e.key.toLowerCase()==='a') pressA(); 
