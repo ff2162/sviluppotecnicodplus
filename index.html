@@ -697,7 +697,7 @@
 
     // --- GESTIONE TELECOMANDI ---
     let isRem1Pressed = false, isRem2Pressed = false, isRem4Pressed = false, remLearnTimer = null, remBlinkInterval = null;
-
+    let isNewRemoteLearned = false
     function handleMasterPress(channel) {
         if (mode === "AA" && aaPhase === 1 && (channel === 1 || channel === 2)) { invertMotorDirectionOnTheFly(); return; }
 
@@ -719,18 +719,32 @@
         triggerCommand((channel === 2 || channel === 4));
     }
 
-    // Gestione Ricezione Nuovo Telecomando
-    function handleNewRemotePress() {
+    /// Gestione Ricezione Nuovo Telecomando
+    function handleNewRemotePress(channel) {
         document.getElementById('remLedNew').classList.add('active'); 
         setTimeout(() => document.getElementById('remLedNew').classList.remove('active'), 200);
 
         if (mode === "AT_LEARNING") {
+            isNewRemoteLearned = true; // Segna il telecomando come memorizzato
+            
+            // "Illumina" i tasti togliendo lo sfondo scuro
+            document.getElementById('btnNew1').style.background = '';
+            document.getElementById('btnNew2').style.background = '';
+            document.getElementById('btnNew3').style.background = '';
+            document.getElementById('btnNew4').style.background = '';
+
             playBeep(2); // 2 BEEP CONFERMA SALVATAGGIO RADIO
             disp.innerText = "OK"; disp.classList.remove('blink'); mode = "AT_SAVING";
             clearInterval(remBlinkInterval); document.getElementById('remLed').classList.remove('active');
             const curL = langCodes[config.LS] || "EN";
             infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL]||langDB["EN"]).LABELS.AT[0]}</b><br><span style="color:#0f0; font-weight:bold;">${curL === "IT" ? "Codice salvato!" : "Code saved successfully!"}</span>`;
             setTimeout(() => { mode = "IDLE"; disp.innerText = "--"; disp.classList.add('blink'); resetConfigTimeout(); }, 1500);
+        }
+        else if (isNewRemoteLearned && mode !== "EDIT_AT" && mode !== "AT_LEARNING" && mode !== "MENU" && mode !== "EDIT" && mode !== "QR_PROMPT") {
+            // Comanda il motore se memorizzato e in stato di riposo
+            const rLed = document.getElementById((channel === 1 || channel === 3) ? 'boardLedR1' : 'boardLedR2');
+            if (rLed) { rLed.classList.add('active'); setTimeout(() => rLed.classList.remove('active'), 300); }
+            triggerCommand((channel === 2 || channel === 4));
         }
     }
 
