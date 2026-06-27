@@ -89,7 +89,6 @@
         #photo-led { width: 7px; height: 7px; background: #443000; border-radius: 50%; margin-top: 3px; transition: 0.1s; }
         .photo-lens { width: 7px; height: 14px; background: #050505; border-radius: 7px; margin-top: 3px; border: 1px solid #111; }
 
-        /* ANIMAZIONI E COMFORT VISIVO */
         .led-on { background: #ff3333 !important; box-shadow: 0 0 20px #ff0000; }
         .led-breath { animation: breath 2.5s ease-in-out infinite; background: #ff0000; }
         .photo-led-on { background: var(--lamp-yellow) !important; box-shadow: 0 0 12px var(--lamp-yellow); }
@@ -121,48 +120,22 @@
         
         .board-title { color: var(--red); font-weight: 900; font-size: 22px; font-style: italic; text-align: center; margin-bottom: 15px; letter-spacing: 1px; text-shadow: 0 0 10px rgba(227,30,36,0.5); }
         
-        /* === MODIFICA: DISPLAY ULTRA REALISTICO SU SFONDO NERO === */
         #display { 
-            background: #080808; /* Resina nera tipica dei display */
-            width: 110px; /* Ristretto esattamente intorno ai due digit */
-            height: 70px; /* Altezza proporzionata */
-            margin: 0 auto 12px auto; /* Centrato */
-            border-radius: 4px; /* Angoli più rigidi da componente elettronico */
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            font-family: 'Starburst', monospace; 
-            font-size: 50px; 
-            color: #ff1a1a; 
-            border: 2px solid #000; /* Bordo plastico */
-            box-shadow: inset 0 0 15px rgba(0,0,0,1), 0 4px 10px rgba(0,0,0,0.5); /* Ombra interna e profondità */
-            font-weight: normal; 
-            letter-spacing: 5px; 
-            text-shadow: 0 0 8px #ff0000, 0 0 15px #ff0000; /* Glow intenso */
-            padding-bottom: 2px;
-            padding-left: 5px;
-            position: relative;
+            background: #080808;
+            width: 110px; height: 70px; margin: 0 auto 12px auto; border-radius: 4px; 
+            display: flex; justify-content: center; align-items: center; 
+            font-family: 'Starburst', monospace; font-size: 50px; color: #ff1a1a; 
+            border: 2px solid #000; box-shadow: inset 0 0 15px rgba(0,0,0,1), 0 4px 10px rgba(0,0,0,0.5); 
+            font-weight: normal; letter-spacing: 5px; text-shadow: 0 0 8px #ff0000, 0 0 15px #ff0000; 
+            padding-bottom: 2px; padding-left: 5px; position: relative;
         }
-        /* Riflesso "vetrino" lucido sulla plastica del display */
         #display::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; height: 35%;
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 35%;
             background: linear-gradient(to bottom, rgba(255,255,255,0.06), transparent);
-            border-radius: 2px 2px 0 0;
-            pointer-events: none;
+            border-radius: 2px 2px 0 0; pointer-events: none;
         }
         
-        /* BANDA BIANCA SOTTO AL DISPLAY REINSERITA E ALLINEATA */
-        .white-band {
-            width: 100%;
-            height: 4px;
-            background-color: #ffffff;
-            border-radius: 2px;
-            margin-bottom: 18px;
-            opacity: 0.8;
-            box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-        }
+        .white-band { width: 100%; height: 4px; background-color: #ffffff; border-radius: 2px; margin-bottom: 18px; opacity: 0.8; box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
         
         .controls-matrix { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 20px; }
         
@@ -170,8 +143,7 @@
             width: 58px; height: 58px; background: #333; border-radius: 50%; 
             border: 2px solid #111; color: #ccc; font-weight: bold; font-size: 20px; 
             display: flex; justify-content: center; align-items: center; 
-            box-shadow: 0 4px 0 #000; outline: none; transition: all 0.08s ease; 
-            cursor: pointer; flex-shrink: 0;
+            box-shadow: 0 4px 0 #000; outline: none; transition: all 0.08s ease; cursor: pointer; flex-shrink: 0;
         }
         .btn:active, .btn-active { transform: translateY(3px); box-shadow: 0 1px 0 #000; background: var(--red) !important; color: #fff !important; }
 
@@ -180,26 +152,25 @@
 
         .diag-box { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 26px; }
         .diag-led { width: 11px; height: 11px; background: #300; border-radius: 50%; border: 2px solid #111; box-shadow: inset 0 0 2px #000; transition: 0.1s; }
-        
         .diag-led.active { background: #ff3333; box-shadow: 0 0 10px #ff0000; }
         .diag-led.intermittent { animation: fastBlink 0.2s step-end infinite; background: #ff3333; box-shadow: 0 0 10px #ff0000; }
         @keyframes fastBlink { 50% { opacity: 0; } }
-        
         .diag-lbl { font-size: 8px; color: #888; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; }
 
-        /* TELECOMANDI */
-        .remote-row { display: flex; gap: 15px; align-items: center; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 16px; border: 1px solid #252525; }
-        .remote-case { min-width: 95px; background: #222; padding: 12px 14px; border-radius: 24px; border: 2px solid #444; display: flex; flex-direction: column; align-items: center; box-shadow: 0 6px 15px #000; }
-        .remote-led { width: 8px; height: 8px; background: #300; border-radius: 50%; margin-bottom: 6px; }
+        /* NUOVA STRUTTURA DOPPIO TELECOMANDO */
+        .remotes-area { display: flex; gap: 15px; align-items: center; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 16px; border: 1px solid #252525; }
+        .remote-case { flex: 1; background: #222; padding: 10px; border-radius: 20px; border: 2px solid #444; display: flex; flex-direction: column; align-items: center; box-shadow: 0 6px 15px #000; }
+        .remote-new { border-color: #555; background: #1a1a1a; }
+        .remote-title { font-size: 9px; color: #888; font-weight: bold; margin-bottom: 6px; letter-spacing: 1px; }
+        .remote-led { width: 6px; height: 6px; background: #300; border-radius: 50%; margin-bottom: 6px; }
         .remote-led.active { background: #0f0; box-shadow: 0 0 10px #0f0; }
-        .remote-logo { margin-bottom: 10px; height: 13px; display: flex; align-items: center; justify-content: center; width: 100%; }
-        .remote-logo img { height: 100%; max-width: 75px; filter: drop-shadow(0 0 2px rgba(227,30,36,0.3)); }
-        .remote-btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .btn-rem { width: 42px; height: 42px; font-size: 15px; }
+        
+        .remote-btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; }
+        .btn-rem { width: 100%; height: 35px; font-size: 13px; border-radius: 8px; }
 
-        .quick-help { font-size: 11px; color: #888; line-height: 1.3; flex-grow: 1; }
+        .quick-help { font-size: 11px; color: #888; line-height: 1.3; width: 100%; margin-top: 10px; padding: 10px; background: #111; border-radius: 8px;}
 
-        /* PANNELLO DIAGNOSTICA E TABELLA PARAMETRI */
+        /* TABELLA PARAMETRI */
         .right-col { flex: 1; display: flex; flex-direction: column; gap: 15px; min-width: 0; }
         
         .table-wrapper { width: 100%; overflow-x: auto; border-radius: 10px; background: #161616; border: 1px solid #222; }
@@ -235,14 +206,8 @@
             </svg>
         </div>
         <div id="col-stop"></div>
-        
-        <div id="photocell-case" title="Tocca per simulare ostacolo">
-            <div id="photo-led"></div>
-            <div class="photo-lens"></div>
-        </div>
-
+        <div id="photocell-case" title="Tocca per simulare ostacolo"><div id="photo-led"></div><div class="photo-lens"></div></div>
         <div id="motor-box"><div id="cover-led"></div></div>
-        
         <div id="gate-leaf"></div>
     </div>
 
@@ -280,23 +245,34 @@
                     </div>
                 </div>
                 
-                <div class="remote-row">
-                    <div class="remote-case">
-                        <div id="remLed" class="remote-led"></div>
-                        <div class="remote-logo">
-                            <img src="D-Plus_Logo.svg" alt="D-Plus" onerror="this.style.display='none';">
+                <div style="display:flex; flex-direction:column;">
+                    <div class="remotes-area">
+                        <div class="remote-case">
+                            <div class="remote-title">TX MASTER</div>
+                            <div id="remLed" class="remote-led"></div>
+                            <div class="remote-btn-group">
+                                <button id="btnRem1" class="btn btn-rem">1</button>
+                                <button id="btnRem2" class="btn btn-rem">2</button>
+                                <button id="btnRem3" class="btn btn-rem">3</button>
+                                <button id="btnRem4" class="btn btn-rem">4</button>
+                            </div>
                         </div>
-                        <div class="remote-btn-group">
-                            <button id="btnRem1" class="btn btn-rem">1</button>
-                            <button id="btnRem2" class="btn btn-rem">2</button>
-                            <button id="btnRem3" class="btn btn-rem">3</button>
-                            <button id="btnRem4" class="btn btn-rem">4</button>
+                        
+                        <div class="remote-case remote-new">
+                            <div class="remote-title">TX NEW</div>
+                            <div id="remLedNew" class="remote-led"></div>
+                            <div class="remote-btn-group">
+                                <button id="btnNew1" class="btn btn-rem" style="background:#2b2b2b;">1</button>
+                                <button id="btnNew2" class="btn btn-rem" style="background:#2b2b2b;">2</button>
+                                <button id="btnNew3" class="btn btn-rem" style="background:#2b2b2b;">3</button>
+                                <button id="btnNew4" class="btn btn-rem" style="background:#2b2b2b;">4</button>
+                            </div>
                         </div>
                     </div>
+                    
                     <div class="quick-help">
-                        <b style="color:#ccc;">Advanced self-learning:</b><br>
-                        Hold B for 5s. Select QR code, then press A to start.<br>
-                        <span style="color:#ffeb3b;">Phase 1: Starts mid-way. Opens at VM/2 &rarr; <i>Press A to invert direction (saves DM)</i> &rarr; Limit switch FCA &rarr; Pause 1.5" &rarr; Phase 2: Close at VM/2 until FCC &rarr; OK.</span>
+                        <b style="color:#ccc;">D-Plus Remote Learning:</b><br>
+                        Usa la tastiera del PC tenendo premuto <b>1+4</b> (Totale) o <b>2+4</b> (Pedonale) sul TX MASTER per 5s.<br>Al *Beep* premi un tasto sul TX NEW per memorizzarlo a distanza.
                     </div>
                 </div>
             </div>
@@ -339,6 +315,25 @@
 </div>
 
 <script>
+    // --- SINTETIZZATORE AUDIO (BUZZER) ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playBeep(times) {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        let time = audioCtx.currentTime;
+        for(let i=0; i<times; i++) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(2400, time); // Frequenza tipica dei buzzer piezoelettrici
+            gain.gain.setValueAtTime(0.05, time); // Volume non troppo alto
+            osc.start(time);
+            osc.stop(time + 0.15); // Durata beep 150ms
+            time += 0.35; // Pausa tra i beep
+        }
+    }
+
     // --- STATO DEL SISTEMA ---
     let mode = "IDLE", gateState = "CLOSED", lastDir = "CLOSING", leafPos = 0.0, isPedestrian = false;
     let lastTime = 0, autoTimer = null, flashInt = null, preFlashTimeout = null, aaTimeout = null;
@@ -347,25 +342,15 @@
     let promptQRState = "??";
     const qrCodes = ["AZ", "FF", "SD"];
 
-    // Variabili Sicurezze e Ostacolo
-    let isPhotoAligned = true; 
-    let isReducedSpeed = false; 
-    let excludeAutoClose = false; 
-    let isSafetyReversing = false;
-    let safetyReversalTimer = 0;
-
-    // PARAMETRI REALI AUTOAPPRENDIMENTO
-    let measuredTime = 0.0;
-    let gateLength = parseFloat(localStorage.getItem('DPlus_GateLength')) || 0.0;
+    let isPhotoAligned = true, isReducedSpeed = false, excludeAutoClose = false, isSafetyReversing = false, safetyReversalTimer = 0;
+    let measuredTime = 0.0, gateLength = parseFloat(localStorage.getItem('DPlus_GateLength')) || 0.0;
     let totalRevolutions = parseFloat(localStorage.getItem('DPlus_TotalRevolutions')) || 0.0;
     let tempoMoltiplicato = parseFloat(localStorage.getItem('DPlus_TempoMoltiplicato')) || 0.0;
 
-    // CHIAVI MENU
     const menuKeys = ['LS', 'QR', 'DM', 'AT', 'VM', 'VR', 'SR', 'SO', 'CA', 'FC', 'AP', 'LF', 'CL', 'ST', 'RS'];
     const maxVals = { LS: 3, QR: 2, DM: 1, AT: 2, VM: 4, VR: 4, SR: 3, SO: 4, CA: 4, FC: 1, AP: 2, LF: 3, CL: 3, ST: 2, RS: 1 };
     const langCodes = ["IT", "EN", "ES", "FR"];
 
-    // DEFAULT DI FABBRICA
     let config = { LS: 0, QR: 0, DM: 0, AT: 0, VM: 1, VR: 1, SR: 1, SO: 1, CA: 0, FC: 0, AP: 1, LF: 3, CL: 3, ST: 1, RS: 0 };
     const saved = localStorage.getItem('DPlus_Mach_App_Config');
     if (saved) { try { config = Object.assign(config, JSON.parse(saved)); } catch(e){} }
@@ -463,18 +448,13 @@
             if (gateState === "CLOSING" || gateState === "PRE_CLOSE") {
                 clearTimeout(preFlashTimeout); preFlashTimeout = null;
                 lastDir = "CLOSING"; 
-                isReducedSpeed = true;      
-                excludeAutoClose = true;    
-                isSafetyReversing = true;
-                safetyReversalTimer = 3.0; 
+                isReducedSpeed = true; excludeAutoClose = true; isSafetyReversing = true; safetyReversalTimer = 3.0; 
                 runGate("OPENING", isPedestrian);
             }
             else if (gateState === "OPENING" || gateState === "PRE_OPEN") {
                 clearTimeout(preFlashTimeout); preFlashTimeout = null;
-                lastDir = "OPENING"; 
-                gateState = "STOPPED"; 
-                isReducedSpeed = false;
-                isSafetyReversing = false;
+                lastDir = "OPENING"; gateState = "STOPPED"; 
+                isReducedSpeed = false; isSafetyReversing = false;
                 if(mode === "IDLE") disp.classList.remove('blink-fast');
                 endMove();
             }
@@ -498,8 +478,7 @@
             if(vCell) { vCell.innerText = getDisplayVal(k, config[k]); }
             if(lCell && db[k]) lCell.innerText = db[k][0];
         });
-        updateLeds(false);
-        applyMotorDirection();
+        updateLeds(false); applyMotorDirection();
     }
 
     function updateLeds(moving, flashS = false) {
@@ -532,10 +511,7 @@
 
     function updateDiagnostics(isSlow = false, currentSpeed = 0) {
         if (mode === "MENU" || mode === "EDIT" || mode === "EDIT_AT" || mode === "AT_LEARNING" || mode === "SAVING" || mode === "QR_PROMPT") return;
-        
-        const curL = langCodes[config.LS] || "EN";
-        let statusStr = "";
-        
+        const curL = langCodes[config.LS] || "EN"; let statusStr = "";
         if (mode === "AA") {
             let tip = (aaPhase === 1) ? (curL === "IT" ? " (Premi A per invertire marcia)" : " (Press A to invert dir)") : "";
             statusStr = (curL === "IT" ? `Autoapprendimento A${Math.floor(aaPhase)}` : `Auto-Learning A${Math.floor(aaPhase)}`) + tip;
@@ -552,7 +528,6 @@
         const safeVM = isNaN(parseInt(config.VM)) ? 1 : parseInt(config.VM);
         const safeVR = isNaN(parseInt(config.VR)) ? 1 : parseInt(config.VR);
         const powerPct = (gateState === "OPENING" || gateState === "CLOSING") ? (isSlow || isReducedSpeed ? 30 + safeVR * 8 : 55 + safeVM * 10) : 0;
-
         const lenStr = gateLength > 0 ? `${gateLength.toFixed(2)} m` : (curL === "IT" ? "Non appresa" : "Not learned");
         const revStr = totalRevolutions > 0 ? `${totalRevolutions.toFixed(1)} giri` : (curL === "IT" ? "Non calcolati" : "Not computed");
         const tMoltStr = tempoMoltiplicato > 0 ? `${tempoMoltiplicato.toFixed(1)} s` : (curL === "IT" ? "Non calcolato" : "Not computed");
@@ -564,174 +539,94 @@
                 <div><b>Door opening:</b></div><div>${posPct}%</div>
                 <div><b>Motor speed:</b></div><div>${(currentSpeed * 60).toFixed(1)} m/min</div>
                 <div><b>Power Delivered:</b></div><div>${powerPct}%</div>
-                
                 <div style="grid-column: span 2; margin-top: 5px; border-top: 1px solid #333; padding-top: 4px; color: #ffeb3b; font-weight: bold; font-size: 11.5px;">Mechanical stroke mapping:</div>
                 <div><b>Measured Time:</b></div><div>${(mode === "AA" && aaPhase === 2) ? measuredTime.toFixed(1) + ' s' : (gateLength > 0 ? (gateLength / 0.2).toFixed(1) + ' s' : '---')}</div>
                 <div><b>Time x2 (Set):</b></div><div>${tMoltStr}</div>
                 <div><b>Pinion Rotation:</b></div><div>${revStr}</div>
                 <div><b>Gate Length:</b></div><div style="color:#0f0; font-weight:bold;">${lenStr}</div>
-            </div>
-        `;
+            </div>`;
     }
 
-    const baseSpeedList = [0.15, 0.20, 0.25, 0.29, 0.34]; 
-    const slowSpeedList = [0.05, 0.07, 0.09, 0.11, 0.13];
+    const baseSpeedList = [0.15, 0.20, 0.25, 0.29, 0.34], slowSpeedList = [0.05, 0.07, 0.09, 0.11, 0.13];
 
     function physics(timestamp) {
         if (!lastTime) lastTime = timestamp;
         let dt = (timestamp - lastTime) / 1000;
         lastTime = timestamp;
-
-        if (dt < 0 || dt > 1) dt = 0; // Protezione glitch Javascript
+        if (dt < 0 || dt > 1) dt = 0; 
 
         document.getElementById('boardLedFCA').classList.toggle('active', leafPos >= 0.99);
         document.getElementById('boardLedFCC').classList.toggle('active', leafPos <= 0.01);
 
-        let speed = 0.0;
-        let slowActive = false;
-
+        let speed = 0.0, slowActive = false;
         const currentVM = isNaN(parseInt(config.VM)) ? 1 : parseInt(config.VM);
         const currentVR = isNaN(parseInt(config.VR)) ? 1 : parseInt(config.VR);
 
         if (gateState === "OPENING" || gateState === "CLOSING") {
-            
             if (mode === "AA") {
-                slowActive = true; 
-                speed = baseSpeedList[currentVM] / 2.0; 
-                
+                slowActive = true; speed = baseSpeedList[currentVM] / 2.0; 
                 if (aaPhase === 1) {
                     leafPos += (speed / 4.0) * dt; 
-                    
                     if (leafPos >= 1.0) {
-                        leafPos = 1.0;
-                        gateState = "STOPPED";
-                        toggleFlash(false);
-                        disp.innerText = "A1";
-                        aaPhase = 1.5; 
-                        aaTimeout = setTimeout(() => {
-                            aaPhase = 2;
-                            measuredTime = 0.0;
-                            runGate("CLOSING", false);
-                        }, 1500);
+                        leafPos = 1.0; gateState = "STOPPED"; toggleFlash(false);
+                        disp.innerText = "A1"; aaPhase = 1.5; 
+                        aaTimeout = setTimeout(() => { aaPhase = 2; measuredTime = 0.0; runGate("CLOSING", false); }, 1500);
                     }
                 } 
                 else if (aaPhase === 2) {
-                    leafPos -= (speed / 4.0) * dt;
-                    
-                    measuredTime += dt;
+                    leafPos -= (speed / 4.0) * dt; measuredTime += dt;
                     disp.innerText = Math.floor(measuredTime).toString().padStart(2, '0');
-                    
                     if (leafPos <= 0) {
-                        leafPos = 0;
-                        gateState = "CLOSED";
-                        toggleFlash(false);
-                        
+                        leafPos = 0; gateState = "CLOSED"; toggleFlash(false);
                         let realSpeedUsed = baseSpeedList[currentVM] / 2.0;
                         gateLength = measuredTime * realSpeedUsed; 
-                        totalRevolutions = gateLength / 0.2; 
-                        tempoMoltiplicato = measuredTime * 2; 
-                        
+                        totalRevolutions = gateLength / 0.2; tempoMoltiplicato = measuredTime * 2; 
                         localStorage.setItem('DPlus_GateLength', gateLength);
                         localStorage.setItem('DPlus_TotalRevolutions', totalRevolutions);
                         localStorage.setItem('DPlus_TempoMoltiplicato', tempoMoltiplicato);
-                        
-                        mode = "SAVING";
-                        disp.innerText = "OK";
-                        setTimeout(() => {
-                            mode = "IDLE";
-                            disp.innerText = "--";
-                            disp.classList.add('blink');
-                            refreshTable();
-                        }, 2000);
+                        mode = "SAVING"; disp.innerText = "OK";
+                        setTimeout(() => { mode = "IDLE"; disp.innerText = "--"; disp.classList.add('blink'); refreshTable(); }, 2000);
                     }
                 }
             } 
             else {
                 const target = isPedestrian ? [0.2, 0.3, 0.4][config.AP] : 1.0;
-                
-                if (gateLength > 0) {
-                    slowActive = (gateState === "OPENING" && leafPos > target * 0.85) || 
-                                 (gateState === "CLOSING" && leafPos < 0.15);
-                } else {
-                    const srP = [0.04, 0.06, 0.08, 0.10][config.SR];
-                    slowActive = (gateState === "OPENING" && leafPos > target - srP) || (gateState === "CLOSING" && leafPos < srP);
-                }
+                if (gateLength > 0) { slowActive = (gateState === "OPENING" && leafPos > target * 0.85) || (gateState === "CLOSING" && leafPos < 0.15); } 
+                else { const srP = [0.04, 0.06, 0.08, 0.10][config.SR]; slowActive = (gateState === "OPENING" && leafPos > target - srP) || (gateState === "CLOSING" && leafPos < srP); }
                 
                 let physSpeed = slowActive ? slowSpeedList[currentVR] : baseSpeedList[currentVM];
                 if (isReducedSpeed && gateState === "OPENING") physSpeed = slowSpeedList[currentVR];
-                
                 speed = physSpeed;
                 
                 if (gateState === "OPENING") {
-                    if (!isPhotoAligned && !isReducedSpeed && !isSafetyReversing) {
-                        lastDir = "OPENING"; gateState = "STOPPED"; endMove();
-                    } else {
+                    if (!isPhotoAligned && !isReducedSpeed && !isSafetyReversing) { lastDir = "OPENING"; gateState = "STOPPED"; endMove(); } 
+                    else {
                         leafPos += (speed / 4.0) * dt;
-                        
                         if (isSafetyReversing) {
                             safetyReversalTimer -= dt;
-                            if (safetyReversalTimer <= 0) {
-                                isSafetyReversing = false;
-                                isReducedSpeed = false;
-                                lastDir = "CLOSING"; 
-                                gateState = "STOPPED";
-                                endMove();
-                            }
+                            if (safetyReversalTimer <= 0) { isSafetyReversing = false; isReducedSpeed = false; lastDir = "CLOSING"; gateState = "STOPPED"; endMove(); }
                         }
-                        
-                        if (leafPos >= target) {
-                            leafPos = target; 
-                            gateState = "OPEN"; 
-                            isReducedSpeed = false; 
-                            isSafetyReversing = false;
-                            endMove(); 
-                            startAuto(); 
-                        }
+                        if (leafPos >= target) { leafPos = target; gateState = "OPEN"; isReducedSpeed = false; isSafetyReversing = false; endMove(); startAuto(); }
                     }
                 } 
                 else if (gateState === "CLOSING") {
                     if (!isPhotoAligned) {
-                        clearTimeout(preFlashTimeout); preFlashTimeout = null;
-                        lastDir = "CLOSING"; 
-                        isReducedSpeed = true; 
-                        excludeAutoClose = true;
-                        isSafetyReversing = true;
-                        safetyReversalTimer = 3.0; 
-                        runGate("OPENING", isPedestrian);
+                        clearTimeout(preFlashTimeout); preFlashTimeout = null; lastDir = "CLOSING"; isReducedSpeed = true; excludeAutoClose = true; isSafetyReversing = true; safetyReversalTimer = 3.0; runGate("OPENING", isPedestrian);
                     } else {
                         leafPos -= (speed / 4.0) * dt;
-                        if (leafPos <= 0) {
-                            leafPos = 0; 
-                            gateState = "CLOSED";
-                            isReducedSpeed = false; 
-                            endMove();
-                        }
+                        if (leafPos <= 0) { leafPos = 0; gateState = "CLOSED"; isReducedSpeed = false; endMove(); }
                     }
                 }
             }
-            
-            if (leafPos > 1.0) leafPos = 1.0;
-            if (leafPos < 0.0) leafPos = 0.0;
-            
-            if (config.DM === 1) {
-                leaf.style.transform = `translateX(${leafPos * 100}%)`;
-            } else {
-                leaf.style.transform = `translateX(-${leafPos * 100}%)`;
-            }
+            if (leafPos > 1.0) leafPos = 1.0; if (leafPos < 0.0) leafPos = 0.0;
+            if (config.DM === 1) { leaf.style.transform = `translateX(${leafPos * 100}%)`; } else { leaf.style.transform = `translateX(-${leafPos * 100}%)`; }
         }
-        
         document.getElementById('boardLedRall').classList.toggle('active', slowActive);
-        
-        updateDiagnostics(slowActive, speed);
-        requestAnimationFrame(physics);
+        updateDiagnostics(slowActive, speed); requestAnimationFrame(physics);
     }
     requestAnimationFrame(physics);
 
-    function endMove() { 
-        toggleFlash(false); 
-        if(mode==="IDLE") { disp.innerText="--"; disp.classList.add('blink'); } 
-    }
-
+    function endMove() { toggleFlash(false); if(mode==="IDLE") { disp.innerText="--"; disp.classList.add('blink'); } }
     function startAuto() {
         if (excludeAutoClose) return; 
         if (config.CA > 0 && gateState === "OPEN") {
@@ -743,16 +638,8 @@
     function runGate(ns, ped) {
         if (ns === "CLOSING" && !isPhotoAligned) return; 
         clearTimeout(preFlashTimeout); clearTimeout(autoTimer);
-        
-        lastTime = 0; // Protezione Timer Frame Javascript
-        isPedestrian = ped;
-
-        if (mode === "AA") {
-            gateState = ns; toggleFlash(true);
-            disp.innerText = aaPhase === 1 ? "AA" : "00";
-            return;
-        }
-
+        lastTime = 0; isPedestrian = ped;
+        if (mode === "AA") { gateState = ns; toggleFlash(true); disp.innerText = aaPhase === 1 ? "AA" : "00"; return; }
         if (config.LF === 0 || config.LF === 1) {
             gateState = (ns === "OPENING") ? "PRE_OPEN" : "PRE_CLOSE"; toggleFlash(true);
             if(mode==="IDLE") { disp.innerText = (ns === "OPENING" ? "OP" : "CL"); disp.classList.add('blink-fast'); }
@@ -768,50 +655,29 @@
     }
 
     function triggerCommand(ped) {
-        if (mode === "AA" || mode === "QR_PROMPT") {
-            clearTimeout(aaTimeout);
-            if (mode !== "QR_PROMPT") {
-                mode = "IDLE"; gateState = "STOPPED"; endMove();
-            }
-            return;
-        }
-        
+        if (mode === "AA" || mode === "QR_PROMPT") { clearTimeout(aaTimeout); if (mode !== "QR_PROMPT") { mode = "IDLE"; gateState = "STOPPED"; endMove(); } return; }
         if (config.FC === 1 && (gateState !== "CLOSED" && gateState !== "OPEN" && gateState !== "STOPPED")) return;
-        
-        isReducedSpeed = false; 
-        excludeAutoClose = false;
-        isSafetyReversing = false;
-        safetyReversalTimer = 0;
-
+        isReducedSpeed = false; excludeAutoClose = false; isSafetyReversing = false; safetyReversalTimer = 0;
         const ledTrg = ped ? document.getElementById('boardLedAP') : document.getElementById('boardLedStart');
         if (ledTrg) { ledTrg.classList.add('active'); setTimeout(() => ledTrg.classList.remove('active'), 300); }
 
         if (gateState === "CLOSED") { lastDir = "OPENING"; runGate("OPENING", ped); }
         else if (gateState === "OPEN") { lastDir = "CLOSING"; runGate("CLOSING", ped); }
         else if (gateState === "OPENING" || gateState === "CLOSING" || gateState === "PRE_OPEN" || gateState === "PRE_CLOSE") { 
-            clearTimeout(preFlashTimeout); preFlashTimeout = null;
-            lastDir = gateState.replace("PRE_", ""); 
-            gateState = "STOPPED"; 
-            endMove(); 
+            clearTimeout(preFlashTimeout); preFlashTimeout = null; lastDir = gateState.replace("PRE_", ""); gateState = "STOPPED"; endMove(); 
         }
-        else if (gateState === "STOPPED") { 
-            let next = (lastDir === "OPENING") ? "CLOSING" : "OPENING"; 
-            lastDir = next; 
-            runGate(next, ped); 
-        }
+        else if (gateState === "STOPPED") { let next = (lastDir === "OPENING") ? "CLOSING" : "OPENING"; lastDir = next; runGate(next, ped); }
     }
 
-    function handleRemotePress(channel) {
-        if (mode === "AA" && aaPhase === 1 && (channel === 1 || channel === 2)) {
-            invertMotorDirectionOnTheFly();
-            return;
-        }
+    // --- GESTIONE TELECOMANDI ---
+    let isRem1Pressed = false, isRem2Pressed = false, isRem4Pressed = false, remLearnTimer = null, remBlinkInterval = null;
+
+    function handleMasterPress(channel) {
+        if (mode === "AA" && aaPhase === 1 && (channel === 1 || channel === 2)) { invertMotorDirectionOnTheFly(); return; }
 
         if (mode === "EDIT_AT") {
-            if (channel === 1 || channel === 2) {
-                atOption = atOption === 1 ? 2 : 1;
-                updateMenuAT();
-            } else if (channel === 3 || channel === 4) {
+            if (channel === 1 || channel === 2) { atOption = atOption === 1 ? 2 : 1; updateMenuAT(); } 
+            else if (channel === 3 || channel === 4) {
                 mode = "AT_LEARNING"; disp.innerText = "G0"; disp.classList.add('blink');
                 const curL = langCodes[config.LS] || "EN";
                 infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL]||langDB["EN"]).LABELS.AT[0]}</b><br><span style="color:#ffeb3b;" class="blink">${curL === "IT" ? "In attesa segnale radio..." : "Waiting for radio signal..."}</span>`;
@@ -822,38 +688,49 @@
 
         const rLed = document.getElementById((channel === 1 || channel === 3) ? 'boardLedR1' : 'boardLedR2');
         if (rLed) { rLed.classList.add('active'); setTimeout(() => rLed.classList.remove('active'), 300); }
+        if (mode !== "EDIT_AT" && mode !== "AT_LEARNING") { document.getElementById('remLed').classList.add('active'); setTimeout(() => document.getElementById('remLed').classList.remove('active'), 200); }
         
-        if (mode !== "EDIT_AT" && mode !== "AT_LEARNING") {
-            document.getElementById('remLed').classList.add('active');
-            setTimeout(() => document.getElementById('remLed').classList.remove('active'), 200);
-        }
-
-        if (mode === "AT_LEARNING") {
-            disp.innerText = "OK"; disp.classList.remove('blink'); mode = "AT_SAVING";
-            clearInterval(remBlinkInterval); document.getElementById('remLed').classList.remove('active');
-            const curL = langCodes[config.LS] || "EN";
-            let resultMsg = atOption === 0 ? (curL === "IT" ? "Codice cancellato!" : "Code erased!") : (curL === "IT" ? "Codice salvato!" : "Code saved successfully!");
-            let color = atOption === 0 ? "#ff3333" : "#0f0"; 
-            infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL]||langDB["EN"]).LABELS.AT[0]}</b><br><span style="color:${color}; font-weight:bold;">${resultMsg}</span>`;
-            setTimeout(() => { mode = "IDLE"; disp.innerText = "--"; disp.classList.add('blink'); resetConfigTimeout(); }, 1500); return;
-        }
         triggerCommand((channel === 2 || channel === 4));
     }
 
-    let currentIdx = 0;
-    
-    function checkRemPairing() {
-        if (isRem1Pressed && isRem2Pressed) {
-            remPairTimer = setTimeout(() => {
-                if (mode !== "AT_LEARNING" && mode !== "EDIT_AT" && mode !== "AA" && mode !== "QR_PROMPT") {
-                    mode = "EDIT_AT";
-                    atOption = 1;
-                    updateMenuAT();
-                    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+    // Gestione Ricezione Nuovo Telecomando
+    function handleNewRemotePress() {
+        document.getElementById('remLedNew').classList.add('active'); 
+        setTimeout(() => document.getElementById('remLedNew').classList.remove('active'), 200);
+
+        if (mode === "AT_LEARNING") {
+            playBeep(2); // Beep Beep di conferma salvataggio!
+            disp.innerText = "OK"; disp.classList.remove('blink'); mode = "AT_SAVING";
+            clearInterval(remBlinkInterval); document.getElementById('remLed').classList.remove('active');
+            const curL = langCodes[config.LS] || "EN";
+            infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL]||langDB["EN"]).LABELS.AT[0]}</b><br><span style="color:#0f0; font-weight:bold;">${curL === "IT" ? "Codice salvato!" : "Code saved successfully!"}</span>`;
+            setTimeout(() => { mode = "IDLE"; disp.innerText = "--"; disp.classList.add('blink'); resetConfigTimeout(); }, 1500);
+        }
+    }
+
+    // Controllo Apprendimento a Distanza (Combo Tasti Master)
+    function checkRemoteLearningCombo() {
+        if (mode === "IDLE" || mode === "STOPPED" || gateState === "CLOSED") {
+            if ((isRem1Pressed && isRem4Pressed) || (isRem2Pressed && isRem4Pressed)) {
+                if (!remLearnTimer) {
+                    remLearnTimer = setTimeout(() => {
+                        mode = "AT_LEARNING"; 
+                        atOption = (isRem1Pressed && isRem4Pressed) ? 1 : 2; // 1+4=Totale(1), 2+4=Pedonale(2)
+                        
+                        playBeep(atOption); // Suona 1 o 2 volte in base al comando
+
+                        disp.innerText = "G0"; disp.classList.add('blink');
+                        manageRemoteLedBlink(); // Fa lampeggiare il led del telecomando master
+                        
+                        const curL = langCodes[config.LS] || "EN";
+                        infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL]||langDB["EN"]).LABELS.AT[0]}</b><br><span style="color:#ffeb3b;" class="blink">${curL === "IT" ? "Remote Learning: In attesa nuovo radio..." : "Remote Learning: Waiting for new radio..."}</span>`;
+                        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                    }, 5000);
                 }
-            }, 10000);
-        } else {
-            clearTimeout(remPairTimer);
+            } else {
+                clearTimeout(remLearnTimer);
+                remLearnTimer = null;
+            }
         }
     }
 
@@ -862,169 +739,88 @@
         if (mode === "EDIT_AT" || mode === "AT_LEARNING") {
             let step = 0;
             remBlinkInterval = setInterval(() => {
-                if (atOption === 1) {
-                    document.getElementById('remLed').classList.toggle('active', step === 0);
-                    step = (step + 1) % 4;
-                } else if (atOption === 2) {
-                    document.getElementById('remLed').classList.toggle('active', step === 0 || step === 2);
-                    step = (step + 1) % 6;
-                } else {
-                    document.getElementById('remLed').classList.remove('active');
-                }
+                if (atOption === 1) { document.getElementById('remLed').classList.toggle('active', step === 0); step = (step + 1) % 4; } 
+                else if (atOption === 2) { document.getElementById('remLed').classList.toggle('active', step === 0 || step === 2); step = (step + 1) % 6; }
             }, 250);
-        } else {
-            document.getElementById('remLed').classList.remove('active');
-        }
+        } else { document.getElementById('remLed').classList.remove('active'); }
     }
 
+    let currentIdx = 0;
+    
     function updateMenu() {
-        const k = menuKeys[currentIdx], curL = langCodes[config.LS] || "EN";
-        const db = (langDB[curL] || langDB["EN"]);
-        if (mode === "EDIT") { 
-            disp.innerText = getDisplayVal(k, config[k]);
-            disp.classList.remove('blink'); 
-        } 
+        const k = menuKeys[currentIdx], curL = langCodes[config.LS] || "EN"; const db = (langDB[curL] || langDB["EN"]);
+        if (mode === "EDIT") { disp.innerText = getDisplayVal(k, config[k]); disp.classList.remove('blink'); } 
         else { disp.innerText = k; disp.classList.add('blink'); }
         infoText.innerHTML = `<b style="color:var(--red);">${db.LABELS[k][0]}</b><br>${db.LABELS[k][1]}<br><br><small style="color:#888;">${db.SAVE_MSG}</small>`;
         document.querySelectorAll('#menu-table tr').forEach(r => r.classList.remove('active-row'));
-        const row = document.getElementById('r-' + k);
-        if(row) { row.classList.add('active-row'); row.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+        const row = document.getElementById('r-' + k); if(row) { row.classList.add('active-row'); row.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
         resetConfigTimeout();
     }
 
     function updateMenuAT() {
-        manageRemoteLedBlink();
-        disp.innerText = String(atOption).padStart(2, '0'); disp.classList.remove('blink');
-        const curL = langCodes[config.LS] || "EN";
-        const atLabel = (langDB[curL] || langDB["EN"]).LABELS.AT[0];
+        manageRemoteLedBlink(); disp.innerText = String(atOption).padStart(2, '0'); disp.classList.remove('blink');
+        const curL = langCodes[config.LS] || "EN"; const atLabel = (langDB[curL] || langDB["EN"]).LABELS.AT[0];
         let optText = atOption === 1 ? (curL === "IT" ? "01 (Totale)" : "01 (Total)") : (atOption === 2 ? (curL === "IT" ? "02 (Pedonale)" : "02 (Pedestrian)") : (curL === "IT" ? "00 (Cancella)" : "00 (Erase)"));
         infoText.innerHTML = `<b style="color:var(--red);">${atLabel}</b><br>Option: <b>${optText}</b><br><br><small style="color:#888;">Tap B to change.<br>Tap A to confirm.</small>`;
         resetConfigTimeout();
     }
 
     function save() {
-        clearTimeout(configTimeout); 
-        mode = "SAVING"; disp.innerText = "OK"; disp.classList.remove('blink');
-        localStorage.setItem('DPlus_GateLength', gateLength);
-        localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config));
-        setTimeout(() => { 
-            mode = "IDLE"; disp.innerText = "--"; disp.classList.add('blink'); refreshTable(); 
-        }, 1200);
+        clearTimeout(configTimeout); mode = "SAVING"; disp.innerText = "OK"; disp.classList.remove('blink');
+        localStorage.setItem('DPlus_GateLength', gateLength); localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config));
+        setTimeout(() => { mode = "IDLE"; disp.innerText = "--"; disp.classList.add('blink'); refreshTable(); }, 1200);
     }
 
     function invertMotorDirectionOnTheFly() {
-        actionFired = true;
-        config.DM = config.DM === 0 ? 1 : 0; 
-        applyMotorDirection(); 
-        
-        disp.innerText = config.DM === 0 ? "SX" : "DX";
-        localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config));
-        refreshTable();
-        
-        setTimeout(() => { 
-            if(mode === "AA" && aaPhase === 1) disp.innerText = "AA"; 
-        }, 1000);
+        actionFired = true; config.DM = config.DM === 0 ? 1 : 0; applyMotorDirection(); 
+        disp.innerText = config.DM === 0 ? "SX" : "DX"; localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config)); refreshTable();
+        setTimeout(() => { if(mode === "AA" && aaPhase === 1) disp.innerText = "AA"; }, 1000);
     }
 
     function executeFactoryReset() {
-        clearTimeout(configTimeout);
-        mode = "SAVING"; 
-        disp.innerText = "RS"; 
-        disp.classList.remove('blink');
-        
+        clearTimeout(configTimeout); mode = "SAVING"; disp.innerText = "RS"; disp.classList.remove('blink');
         config = { LS: 0, QR: 0, DM: 0, AT: 0, VM: 1, VR: 1, SR: 1, SO: 1, CA: 0, FC: 0, AP: 1, LF: 3, CL: 3, ST: 1, RS: 0 };
-        
-        gateLength = 0.0;
-        totalRevolutions = 0.0;
-        tempoMoltiplicato = 0.0;
-        leafPos = 0.0;
-        gateState = "CLOSED";
-        lastDir = "CLOSING";
-        isPedestrian = false;
-        isReducedSpeed = false;
-        excludeAutoClose = false;
-        isSafetyReversing = false;
-
-        localStorage.removeItem('DPlus_GateLength');
-        localStorage.removeItem('DPlus_TotalRevolutions');
-        localStorage.removeItem('DPlus_TempoMoltiplicato');
-        localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config));
-        
+        gateLength = 0.0; totalRevolutions = 0.0; tempoMoltiplicato = 0.0; leafPos = 0.0; gateState = "CLOSED"; lastDir = "CLOSING";
+        isPedestrian = false; isReducedSpeed = false; excludeAutoClose = false; isSafetyReversing = false;
+        localStorage.removeItem('DPlus_GateLength'); localStorage.removeItem('DPlus_TotalRevolutions');
+        localStorage.removeItem('DPlus_TempoMoltiplicato'); localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config));
         applyMotorDirection();
-
         setTimeout(() => { 
-            mode = "QR_PROMPT";
-            promptQRState = "??";
-            disp.innerText = "??";
-            disp.classList.add('blink');
-            refreshTable();
+            mode = "QR_PROMPT"; promptQRState = "??"; disp.innerText = "??"; disp.classList.add('blink'); refreshTable();
             const curL = langCodes[config.LS] || "EN";
             infoText.innerHTML = `<b style="color:var(--lamp-yellow); font-size:14px;">QR PRODUCT CODE</b><br><br>${curL === 'IT' ? 'Inizializzazione completata.<br>Seleziona il modello motore.' : 'Initialization complete.<br>Select motor model.'}<br><br><small style="color:#888;">${curL === 'IT' ? 'Tocca B per scegliere.<br>Tocca A per confermare.' : 'Tap B to select.<br>Tap A to confirm.'}</small>`;
         }, 1500);
     }
 
-    let holdTimerB = null; 
-    let comboTimer = null;
-    let configTimeout = null;
-    
-    let isPressedA = false, isPressedB = false;
-    let isCombo = false; 
-    let actionFired = false; 
-    
-    let isRem1Pressed = false, isRem2Pressed = false, remPairTimer = null, remBlinkInterval = null;
+    let holdTimerB = null, comboTimer = null, configTimeout = null;
+    let isPressedA = false, isPressedB = false, isCombo = false, actionFired = false; 
 
     function resetConfigTimeout() {
         clearTimeout(configTimeout);
-        // RIMOSSO "QR_PROMPT" in modo che non scada il timer mentre scegli il codice
-        if (["MENU", "EDIT", "EDIT_AT", "AT_LEARNING"].includes(mode)) {
-            configTimeout = setTimeout(save, 15000);
-        }
+        if (["MENU", "EDIT", "EDIT_AT", "AT_LEARNING"].includes(mode)) { configTimeout = setTimeout(save, 15000); }
     }
 
     function checkCombo() {
         if (isPressedA && isPressedB) {
-            isCombo = true;
-            clearTimeout(holdTimerB); 
+            isCombo = true; clearTimeout(holdTimerB); 
             comboTimer = setTimeout(() => {
                 actionFired = true; 
-                if (mode === "IDLE") {
-                    mode = "MENU"; currentIdx = 0; updateMenu();
-                } else if (mode === "MENU" || mode === "EDIT") {
-                    save();
-                }
+                if (mode === "IDLE") { mode = "MENU"; currentIdx = 0; updateMenu(); } else if (mode === "MENU" || mode === "EDIT") { save(); }
             }, 1200);
         }
     }
 
     function pressA() {
-        if(isPressedA) return; 
-        isPressedA = true;
-        document.getElementById('keyA').classList.add('btn-active');
-        actionFired = false;
-        checkCombo();
-
-        if (!isCombo && mode === "AA" && aaPhase === 1) {
-            invertMotorDirectionOnTheFly();
-            return;
-        }
+        if(isPressedA) return; isPressedA = true; document.getElementById('keyA').classList.add('btn-active'); actionFired = false; checkCombo();
+        if (!isCombo && mode === "AA" && aaPhase === 1) { invertMotorDirectionOnTheFly(); return; }
     }
 
     function pressB() {
-        if(isPressedB) return; 
-        isPressedB = true;
-        document.getElementById('keyB').classList.add('btn-active');
-        actionFired = false;
-        checkCombo();
-
+        if(isPressedB) return; isPressedB = true; document.getElementById('keyB').classList.add('btn-active'); actionFired = false; checkCombo();
         if (!isCombo && mode === "IDLE") {
             holdTimerB = setTimeout(() => {
                 if(!isCombo) {
-                    actionFired = true;
-                    clearTimeout(configTimeout); // Annulla eventuali vecchi timer latenti
-                    mode = "QR_PROMPT";
-                    promptQRState = "??";
-                    disp.innerText = "??";
-                    disp.classList.add('blink');
+                    actionFired = true; clearTimeout(configTimeout); mode = "QR_PROMPT"; promptQRState = "??"; disp.innerText = "??"; disp.classList.add('blink');
                     const curL = langCodes[config.LS] || "EN";
                     infoText.innerHTML = `<b style="color:var(--lamp-yellow); font-size:14px;">QR PRODUCT CODE</b><br><br>${curL === 'IT' ? 'Modalità Auto-Learning.<br>Seleziona prima il modello motore.' : 'Auto-Learning mode.<br>Select motor model first.'}<br><br><small style="color:#888;">${curL === 'IT' ? 'Tocca B per scorrere.<br>Tocca A per confermare e avviare.' : 'Tap B to scroll.<br>Tap A to confirm and start.'}</small>`;
                     if (navigator.vibrate) navigator.vibrate(100); 
@@ -1034,79 +830,37 @@
     }
 
     function releaseA() {
-        if(!isPressedA) return; 
-        isPressedA = false; 
-        document.getElementById('keyA').classList.remove('btn-active');
-        clearTimeout(comboTimer);
-        
-        if (actionFired || isCombo) {
-            if (!isPressedA && !isPressedB) isCombo = false;
-            return;
-        }
-
+        if(!isPressedA) return; isPressedA = false; document.getElementById('keyA').classList.remove('btn-active'); clearTimeout(comboTimer);
+        if (actionFired || isCombo) { if (!isPressedA && !isPressedB) isCombo = false; return; }
         if (mode === "IDLE") triggerCommand(false); 
         else if (mode === "MENU") { currentIdx = (currentIdx + 1) % menuKeys.length; updateMenu(); }
         else if (mode === "EDIT") { mode = "MENU"; updateMenu(); }
         else if (mode === "EDIT_AT") {
-            mode = "AT_LEARNING"; disp.innerText = "G0"; disp.classList.add('blink');
-            const curL = langCodes[config.LS] || "EN";
-            const msg = curL === "IT" ? "In attesa segnale radio..." : "Waiting for radio signal...";
-            infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL]||langDB["EN"]).LABELS.AT[0]}</b><br><span style="color:#ffeb3b;" class="blink">${msg}</span>`;
+            mode = "AT_LEARNING"; disp.innerText = "G0"; disp.classList.add('blink'); const curL = langCodes[config.LS] || "EN";
+            infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL]||langDB["EN"]).LABELS.AT[0]}</b><br><span style="color:#ffeb3b;" class="blink">${curL === "IT" ? "In attesa segnale radio..." : "Waiting for radio signal..."}</span>`;
             resetConfigTimeout();
-        } else if (mode === "AT_LEARNING") { 
-            mode = "MENU"; updateMenu(); 
-        }
+        } else if (mode === "AT_LEARNING") { mode = "MENU"; updateMenu(); }
         else if (mode === "QR_PROMPT") {
             if (promptQRState === "??") return; 
-            
-            clearTimeout(configTimeout); // BLOCCO DEFINITIVO TIMEOUT BUG
-            localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config)); 
-            mode = "AA"; aaPhase = 1; disp.classList.remove('blink');
-            disp.innerText = "AA";
-            leafPos = 0.50; 
-            applyMotorDirection(); 
-            measuredTime = 0.0;
-            runGate("OPENING", false); 
+            clearTimeout(configTimeout); localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config)); 
+            mode = "AA"; aaPhase = 1; disp.classList.remove('blink'); disp.innerText = "AA"; leafPos = 0.50; 
+            applyMotorDirection(); measuredTime = 0.0; runGate("OPENING", false); 
         }
     }
 
     function releaseB() {
-        if(!isPressedB) return; 
-        isPressedB = false; 
-        document.getElementById('keyB').classList.remove('btn-active');
-        clearTimeout(comboTimer);
-        clearTimeout(holdTimerB);
-
-        if (actionFired || isCombo) {
-            if (!isPressedA && !isPressedB) isCombo = false;
-            return;
-        }
-
+        if(!isPressedB) return; isPressedB = false; document.getElementById('keyB').classList.remove('btn-active'); clearTimeout(comboTimer); clearTimeout(holdTimerB);
+        if (actionFired || isCombo) { if (!isPressedA && !isPressedB) isCombo = false; return; }
         if (mode === "IDLE") triggerCommand(true); 
-        else if (mode === "MENU") { 
-            if (menuKeys[currentIdx] === 'AT') { mode = "EDIT_AT"; atOption = 1; updateMenuAT(); } 
-            else { mode = "EDIT"; updateMenu(); } 
-        } 
-        else if (mode === "EDIT_AT") { 
-            atOption = atOption === 1 ? 2 : (atOption === 2 ? 0 : 1); updateMenuAT(); 
-        } 
+        else if (mode === "MENU") { if (menuKeys[currentIdx] === 'AT') { mode = "EDIT_AT"; atOption = 1; updateMenuAT(); } else { mode = "EDIT"; updateMenu(); } } 
+        else if (mode === "EDIT_AT") { atOption = atOption === 1 ? 2 : (atOption === 2 ? 0 : 1); updateMenuAT(); } 
         else if (mode === "EDIT") { 
             const currentKey = menuKeys[currentIdx];
-            if (currentKey === 'RS') {
-                executeFactoryReset();
-            } else {
-                config[currentKey] = (config[currentKey]+1) > maxVals[currentKey] ? 0 : config[currentKey]+1; 
-                refreshTable(); updateMenu(); 
-            }
+            if (currentKey === 'RS') { executeFactoryReset(); } else { config[currentKey] = (config[currentKey]+1) > maxVals[currentKey] ? 0 : config[currentKey]+1; refreshTable(); updateMenu(); }
         }
         else if (mode === "QR_PROMPT") {
-            if (promptQRState === "??") { config.QR = 0; } 
-            else { config.QR = (config.QR + 1) % 3; }
-            promptQRState = qrCodes[config.QR];
-            disp.innerText = promptQRState; 
-            disp.classList.remove('blink'); 
-            refreshTable();
-            // Niente resetConfigTimeout() qui!
+            if (promptQRState === "??") { config.QR = 0; } else { config.QR = (config.QR + 1) % 3; }
+            promptQRState = qrCodes[config.QR]; disp.innerText = promptQRState; disp.classList.remove('blink'); refreshTable();
         }
     }
 
@@ -1118,42 +872,35 @@
     };
 
     setupBtnEvents('keyA', pressA, releaseA); setupBtnEvents('keyB', pressB, releaseB);
-    setupBtnEvents('btnRem1', () => { 
-        document.getElementById('btnRem1').classList.add('btn-active'); 
-        isRem1Pressed = true; checkRemPairing(); 
-        handleRemotePress(1); 
-    }, () => { 
-        document.getElementById('btnRem1').classList.remove('btn-active'); 
-        isRem1Pressed = false; checkRemPairing(); 
-    });
     
-    setupBtnEvents('btnRem2', () => { 
-        document.getElementById('btnRem2').classList.add('btn-active'); 
-        isRem2Pressed = true; checkRemPairing(); 
-        handleRemotePress(2); 
-    }, () => { 
-        document.getElementById('btnRem2').classList.remove('btn-active'); 
-        isRem2Pressed = false; checkRemPairing(); 
-    });
+    // Binding Master Remote (Keys 1-4)
+    setupBtnEvents('btnRem1', () => { document.getElementById('btnRem1').classList.add('btn-active'); isRem1Pressed = true; checkRemoteLearningCombo(); handleMasterPress(1); }, () => { document.getElementById('btnRem1').classList.remove('btn-active'); isRem1Pressed = false; checkRemoteLearningCombo(); });
+    setupBtnEvents('btnRem2', () => { document.getElementById('btnRem2').classList.add('btn-active'); isRem2Pressed = true; checkRemoteLearningCombo(); handleMasterPress(2); }, () => { document.getElementById('btnRem2').classList.remove('btn-active'); isRem2Pressed = false; checkRemoteLearningCombo(); });
+    setupBtnEvents('btnRem3', () => { document.getElementById('btnRem3').classList.add('btn-active'); handleMasterPress(3); }, () => document.getElementById('btnRem3').classList.remove('btn-active'));
+    setupBtnEvents('btnRem4', () => { document.getElementById('btnRem4').classList.add('btn-active'); isRem4Pressed = true; checkRemoteLearningCombo(); handleMasterPress(4); }, () => { document.getElementById('btnRem4').classList.remove('btn-active'); isRem4Pressed = false; checkRemoteLearningCombo(); });
 
-    setupBtnEvents('btnRem3', () => { document.getElementById('btnRem3').classList.add('btn-active'); handleRemotePress(3); }, () => document.getElementById('btnRem3').classList.remove('btn-active'));
-    setupBtnEvents('btnRem4', () => { document.getElementById('btnRem4').classList.add('btn-active'); handleRemotePress(4); }, () => document.getElementById('btnRem4').classList.remove('btn-active'));
+    // Binding New Remote (Click on UI)
+    setupBtnEvents('btnNew1', () => { document.getElementById('btnNew1').classList.add('btn-active'); handleNewRemotePress(); }, () => document.getElementById('btnNew1').classList.remove('btn-active'));
+    setupBtnEvents('btnNew2', () => { document.getElementById('btnNew2').classList.add('btn-active'); handleNewRemotePress(); }, () => document.getElementById('btnNew2').classList.remove('btn-active'));
+    setupBtnEvents('btnNew3', () => { document.getElementById('btnNew3').classList.add('btn-active'); handleNewRemotePress(); }, () => document.getElementById('btnNew3').classList.remove('btn-active'));
+    setupBtnEvents('btnNew4', () => { document.getElementById('btnNew4').classList.add('btn-active'); handleNewRemotePress(); }, () => document.getElementById('btnNew4').classList.remove('btn-active'));
+
 
     window.addEventListener('keydown', e => { 
         if(e.key.toLowerCase()==='a') pressA(); 
         if(e.key.toLowerCase()==='b') pressB(); 
-        if(e.key==='1' && !isRem1Pressed) { isRem1Pressed = true; checkRemPairing(); handleRemotePress(1); document.getElementById('btnRem1').classList.add('btn-active'); }
-        if(e.key==='2' && !isRem2Pressed) { isRem2Pressed = true; checkRemPairing(); handleRemotePress(2); document.getElementById('btnRem2').classList.add('btn-active'); }
-        if(e.key==='3') { handleRemotePress(3); document.getElementById('btnRem3').classList.add('btn-active'); }
-        if(e.key==='4') { handleRemotePress(4); document.getElementById('btnRem4').classList.add('btn-active'); }
+        if(e.key==='1' && !isRem1Pressed) { isRem1Pressed = true; document.getElementById('btnRem1').classList.add('btn-active'); checkRemoteLearningCombo(); handleMasterPress(1); }
+        if(e.key==='2' && !isRem2Pressed) { isRem2Pressed = true; document.getElementById('btnRem2').classList.add('btn-active'); checkRemoteLearningCombo(); handleMasterPress(2); }
+        if(e.key==='3') { document.getElementById('btnRem3').classList.add('btn-active'); handleMasterPress(3); }
+        if(e.key==='4' && !isRem4Pressed) { isRem4Pressed = true; document.getElementById('btnRem4').classList.add('btn-active'); checkRemoteLearningCombo(); handleMasterPress(4); }
     });
     window.addEventListener('keyup', e => { 
         if(e.key.toLowerCase()==='a') releaseA(); 
         if(e.key.toLowerCase()==='b') releaseB(); 
-        if(e.key==='1') { isRem1Pressed = false; checkRemPairing(); document.getElementById('btnRem1').classList.remove('btn-active'); }
-        if(e.key==='2') { isRem2Pressed = false; checkRemPairing(); document.getElementById('btnRem2').classList.remove('btn-active'); }
+        if(e.key==='1') { isRem1Pressed = false; document.getElementById('btnRem1').classList.remove('btn-active'); checkRemoteLearningCombo(); }
+        if(e.key==='2') { isRem2Pressed = false; document.getElementById('btnRem2').classList.remove('btn-active'); checkRemoteLearningCombo(); }
         if(e.key==='3') { document.getElementById('btnRem3').classList.remove('btn-active'); }
-        if(e.key==='4') { document.getElementById('btnRem4').classList.remove('btn-active'); }
+        if(e.key==='4') { isRem4Pressed = false; document.getElementById('btnRem4').classList.remove('btn-active'); checkRemoteLearningCombo(); }
     });
 
     window.onload = refreshTable;
