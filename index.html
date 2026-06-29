@@ -157,25 +157,33 @@
         @keyframes fastBlink { 50% { opacity: 0; } }
         .diag-lbl { font-size: 8px; color: #888; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase; }
 
-        /* NUOVA STRUTTURA TELECOMANDI (Rapporto 1:2) */
+        /* PULSANTE EMERGENZA A FUNGO */
+        .estop-container { width: 100%; display: flex; justify-content: center; margin-bottom: 20px; margin-top: 10px; }
+        #btnEStop {
+            background: radial-gradient(circle at 30% 30%, #ff4d4d, #cc0000);
+            color: #fff; border: 2px solid #660000; border-radius: 50%; width: 75px; height: 75px;
+            font-weight: 900; font-size: 15px; letter-spacing: 1px;
+            box-shadow: 0 8px 0 #7a0000, 0 12px 20px rgba(0,0,0,0.6);
+            cursor: pointer; transition: 0.1s; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            display: flex; justify-content: center; align-items: center;
+        }
+        #btnEStop.pressed {
+            transform: translateY(8px);
+            box-shadow: 0 0 0 #7a0000, 0 4px 10px rgba(0,0,0,0.6);
+            background: radial-gradient(circle at 30% 30%, #cc0000, #990000);
+            color: #ff9999; text-shadow: none;
+        }
+
+        /* STRUTTURA TELECOMANDI */
         .remotes-area { 
             display: flex; gap: 20px; align-items: center; justify-content: center;
             background: rgba(255,255,255,0.02); padding: 20px; border-radius: 16px; border: 1px solid #252525; 
         }
         
         .remote-case { 
-            width: 100px; /* Base */
-            height: 200px; /* Altezza doppia */
-            background: #222; 
-            padding: 12px 10px; 
-            border-radius: 18px; 
-            border: 2px solid #444; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            box-shadow: 0 8px 20px #000; 
-            justify-content: space-between;
-            flex-shrink: 0;
+            width: 100px; height: 200px; background: #222; padding: 12px 10px; 
+            border-radius: 18px; border: 2px solid #444; display: flex; flex-direction: column; 
+            align-items: center; box-shadow: 0 8px 20px #000; justify-content: space-between; flex-shrink: 0;
         }
         
         .remote-new { border-color: #555; background: #1a1a1a; }
@@ -267,6 +275,11 @@
                 </div>
                 
                 <div style="display:flex; flex-direction:column;">
+                    
+                    <div class="estop-container">
+                        <button id="btnEStop">STOP</button>
+                    </div>
+
                     <div class="remotes-area">
                         <div class="remote-case">
                             <div class="remote-title">TX MASTER</div>
@@ -365,6 +378,7 @@
     let promptQRState = "??";
     const qrCodes = ["AZ", "FF", "SD"];
 
+    let isEmergencyStop = false; // Variabile Sicurezza STOP
     let isPhotoAligned = true, isReducedSpeed = false, excludeAutoClose = false, isSafetyReversing = false, safetyReversalTimer = 0;
     let measuredTime = 0.0, gateLength = parseFloat(localStorage.getItem('DPlus_GateLength')) || 0.0;
     let totalRevolutions = parseFloat(localStorage.getItem('DPlus_TotalRevolutions')) || 0.0;
@@ -430,7 +444,42 @@
     const disp = document.getElementById('display'), leaf = document.getElementById('gate-leaf'), 
           bulb = document.getElementById('f-bulb'), cLed = document.getElementById('cover-led'), 
           pLed = document.getElementById('photo-led'), infoText = document.getElementById('info-text'),
-          boardLedFoto = document.getElementById('boardLedFoto');
+          boardLedFoto = document.getElementById('boardLedFoto'), boardLedStop = document.getElementById('boardLedStop');
+
+    // --- FUNZIONE PULSANTE STOP EMERGENZA ---
+    document.getElementById('btnEStop').addEventListener('click', function() {
+        isEmergencyStop = !isEmergencyStop;
+        
+        if (isEmergencyStop) {
+            playBeep(3); // 3 BEEP ALLARME STOP
+            this.classList.add('pressed');
+            boardLedStop.classList.remove('active');
+            boardLedStop.classList.add('intermittent');
+            
+            // Aborta eventuali apprendimenti o resetta lo stato del motore in movimento
+            if (mode === "AA" || mode === "QR_PROMPT") {
+                clearTimeout(aaTimeout);
+                mode = "IDLE";
+            }
+            if (gateState !== "CLOSED" && gateState !== "OPEN" && gateState !== "STOPPED") {
+                lastDir = (gateState.includes("OPEN")) ? "OPENING" : "CLOSING";
+            }
+            gateState = "STOPPED";
+            clearTimeout(preFlashTimeout);
+            clearTimeout(autoTimer);
+            endMove();
+            
+            const curL = langCodes[config.LS] || "EN";
+            infoText.innerHTML = `<b style="color:var(--red); font-size:14px;">EMERGENCY STOP</b><br><br>${curL === 'IT' ? 'Morsetto STOP aperto.<br>Motore bloccato in sicurezza.' : 'STOP terminal open.<br>Motor blocked for safety.'}<br><br><small style="color:#888;">${curL === 'IT' ? 'Rilascia il fungo per sbloccare.' : 'Release the button to unlock.'}</small>`;
+            
+        } else {
+            playBeep(1); // 1 BEEP RIARMO
+            this.classList.remove('pressed');
+            boardLedStop.classList.remove('intermittent');
+            boardLedStop.classList.add('active');
+            refreshTable(); // Ripristina il testo del display
+        }
+    });
 
     function applyMotorDirection() {
         const motorBox = document.getElementById('motor-box');
@@ -472,7 +521,7 @@
                 clearTimeout(preFlashTimeout); preFlashTimeout = null;
                 lastDir = "CLOSING"; 
                 isReducedSpeed = true; excludeAutoClose = true; isSafetyReversing = true; safetyReversalTimer = 3.0; 
-                runGate("OPENING", isPedestrian);
+                if(!isEmergencyStop) runGate("OPENING", isPedestrian);
             }
             else if (gateState === "OPENING" || gateState === "PRE_OPEN") {
                 clearTimeout(preFlashTimeout); preFlashTimeout = null;
@@ -533,7 +582,7 @@
     }
 
     function updateDiagnostics(isSlow = false, currentSpeed = 0) {
-        if (mode === "MENU" || mode === "EDIT" || mode === "EDIT_AT" || mode === "AT_LEARNING" || mode === "SAVING" || mode === "QR_PROMPT") return;
+        if (isEmergencyStop || mode === "MENU" || mode === "EDIT" || mode === "EDIT_AT" || mode === "AT_LEARNING" || mode === "SAVING" || mode === "QR_PROMPT") return;
         const curL = langCodes[config.LS] || "EN"; let statusStr = "";
         if (mode === "AA") {
             let tip = (aaPhase === 1) ? (curL === "IT" ? " (Premi A per invertire marcia)" : " (Press A to invert dir)") : "";
@@ -652,14 +701,15 @@
 
     function endMove() { toggleFlash(false); if(mode==="IDLE") { disp.innerText="--"; disp.classList.add('blink'); } }
     function startAuto() {
-        if (excludeAutoClose) return; 
+        if (excludeAutoClose || isEmergencyStop) return; 
         if (config.CA > 0 && gateState === "OPEN") {
             const d = [0, 3, 7, 10, 15][config.CA];
-            autoTimer = setTimeout(() => { if(gateState==="OPEN" && isPhotoAligned) runGate("CLOSING", isPedestrian); }, d * 1000);
+            autoTimer = setTimeout(() => { if(gateState==="OPEN" && isPhotoAligned && !isEmergencyStop) runGate("CLOSING", isPedestrian); }, d * 1000);
         }
     }
 
     function runGate(ns, ped) {
+        if (isEmergencyStop) return;
         if (ns === "CLOSING" && !isPhotoAligned) return; 
         clearTimeout(preFlashTimeout); clearTimeout(autoTimer);
         lastTime = 0; isPedestrian = ped;
@@ -679,6 +729,8 @@
     }
 
     function triggerCommand(ped) {
+        if (isEmergencyStop) return; // Se lo stop è premuto, non fa nulla!
+        
         playBeep(1); // 1 BEEP RICEZIONE COMANDO CANCELLO
         
         if (mode === "AA" || mode === "QR_PROMPT") { clearTimeout(aaTimeout); if (mode !== "QR_PROMPT") { mode = "IDLE"; gateState = "STOPPED"; endMove(); } return; }
@@ -699,6 +751,8 @@
     let isRem1Pressed = false, isRem2Pressed = false, isRem4Pressed = false, remLearnTimer = null, remBlinkInterval = null;
 
     function handleMasterPress(channel) {
+        if (isEmergencyStop) return;
+        
         if (mode === "AA" && aaPhase === 1 && (channel === 1 || channel === 2)) { invertMotorDirectionOnTheFly(); return; }
 
         if (mode === "EDIT_AT") {
@@ -721,6 +775,7 @@
 
     // Gestione Ricezione Nuovo Telecomando
     function handleNewRemotePress() {
+        if (isEmergencyStop) return;
         document.getElementById('remLedNew').classList.add('active'); 
         setTimeout(() => document.getElementById('remLedNew').classList.remove('active'), 200);
 
@@ -736,6 +791,7 @@
 
     // Controllo Apprendimento a Distanza (Combo Tasti Master)
     function checkRemoteLearningCombo() {
+        if (isEmergencyStop) return;
         if (mode === "IDLE" || mode === "STOPPED" || gateState === "CLOSED") {
             if ((isRem1Pressed && isRem4Pressed) || (isRem2Pressed && isRem4Pressed)) {
                 if (!remLearnTimer) {
@@ -839,17 +895,19 @@
     }
 
     function pressA() {
+        if(isEmergencyStop) return;
         if(isPressedA) return; isPressedA = true; document.getElementById('keyA').classList.add('btn-active'); actionFired = false; checkCombo();
         if (!isCombo && mode === "AA" && aaPhase === 1) { invertMotorDirectionOnTheFly(); return; }
     }
 
     function pressB() {
+        if(isEmergencyStop) return;
         if(isPressedB) return; isPressedB = true; document.getElementById('keyB').classList.add('btn-active'); actionFired = false; checkCombo();
         if (!isCombo && mode === "IDLE") {
             holdTimerB = setTimeout(() => {
                 if(!isCombo) {
                     actionFired = true; clearTimeout(configTimeout); mode = "QR_PROMPT"; promptQRState = "??"; disp.innerText = "??"; disp.classList.add('blink');
-                    playBeep(1); // 1 BEEP PER SEGNALARE L'ENTRATA IN FASE DI PROGRAMMAZIONE
+                    playBeep(1); // 1 BEEP LUNGO PER FASE DI PROGRAMMAZIONE
                     const curL = langCodes[config.LS] || "EN";
                     infoText.innerHTML = `<b style="color:var(--lamp-yellow); font-size:14px;">QR PRODUCT CODE</b><br><br>${curL === 'IT' ? 'Modalità Auto-Learning.<br>Seleziona prima il modello motore.' : 'Auto-Learning mode.<br>Select motor model first.'}<br><br><small style="color:#888;">${curL === 'IT' ? 'Tocca B per scorrere.<br>Tocca A per confermare e avviare.' : 'Tap B to scroll.<br>Tap A to confirm and start.'}</small>`;
                     if (navigator.vibrate) navigator.vibrate(100); 
@@ -859,6 +917,7 @@
     }
 
     function releaseA() {
+        if(isEmergencyStop) { isPressedA = false; document.getElementById('keyA').classList.remove('btn-active'); return; }
         if(!isPressedA) return; isPressedA = false; document.getElementById('keyA').classList.remove('btn-active'); clearTimeout(comboTimer);
         if (actionFired || isCombo) { if (!isPressedA && !isPressedB) isCombo = false; return; }
         if (mode === "IDLE") triggerCommand(false); 
@@ -886,6 +945,7 @@
     }
 
     function releaseB() {
+        if(isEmergencyStop) { isPressedB = false; document.getElementById('keyB').classList.remove('btn-active'); return; }
         if(!isPressedB) return; isPressedB = false; document.getElementById('keyB').classList.remove('btn-active'); clearTimeout(comboTimer); clearTimeout(holdTimerB);
         if (actionFired || isCombo) { if (!isPressedA && !isPressedB) isCombo = false; return; }
         if (mode === "IDLE") triggerCommand(true); 
