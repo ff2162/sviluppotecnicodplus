@@ -295,7 +295,7 @@
                     
                     <div class="quick-help">
                         <b style="color:#ccc;">D-Plus Remote Learning:</b><br>
-                        Use the PC keyboard while holding down <b>1+4</b> (Full open) o <b>2+4</b> (Pedestrian) on TX MASTER for 5s.<br>When *Beep* press a button on the NEW transmitter to store it remotely.
+                        Usa la tastiera del PC tenendo premuto <b>1+4</b> (Totale) o <b>2+4</b> (Pedonale) sul TX MASTER per 5s.<br>Al *Beep* premi un tasto sul TX NEW per memorizzarlo a distanza.
                     </div>
                 </div>
             </div>
@@ -697,7 +697,7 @@
 
     // --- GESTIONE TELECOMANDI ---
     let isRem1Pressed = false, isRem2Pressed = false, isRem4Pressed = false, remLearnTimer = null, remBlinkInterval = null;
-    let isNewRemoteLearned = false
+
     function handleMasterPress(channel) {
         if (mode === "AA" && aaPhase === 1 && (channel === 1 || channel === 2)) { invertMotorDirectionOnTheFly(); return; }
 
@@ -719,32 +719,18 @@
         triggerCommand((channel === 2 || channel === 4));
     }
 
-    /// Gestione Ricezione Nuovo Telecomando
-    function handleNewRemotePress(channel) {
+    // Gestione Ricezione Nuovo Telecomando
+    function handleNewRemotePress() {
         document.getElementById('remLedNew').classList.add('active'); 
         setTimeout(() => document.getElementById('remLedNew').classList.remove('active'), 200);
 
         if (mode === "AT_LEARNING") {
-            isNewRemoteLearned = true; // Segna il telecomando come memorizzato
-            
-            // "Illumina" i tasti togliendo lo sfondo scuro
-            document.getElementById('btnNew1').style.background = '';
-            document.getElementById('btnNew2').style.background = '';
-            document.getElementById('btnNew3').style.background = '';
-            document.getElementById('btnNew4').style.background = '';
-
             playBeep(2); // 2 BEEP CONFERMA SALVATAGGIO RADIO
             disp.innerText = "OK"; disp.classList.remove('blink'); mode = "AT_SAVING";
             clearInterval(remBlinkInterval); document.getElementById('remLed').classList.remove('active');
             const curL = langCodes[config.LS] || "EN";
             infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL]||langDB["EN"]).LABELS.AT[0]}</b><br><span style="color:#0f0; font-weight:bold;">${curL === "IT" ? "Codice salvato!" : "Code saved successfully!"}</span>`;
             setTimeout(() => { mode = "IDLE"; disp.innerText = "--"; disp.classList.add('blink'); resetConfigTimeout(); }, 1500);
-        }
-        else if (isNewRemoteLearned && mode !== "EDIT_AT" && mode !== "AT_LEARNING" && mode !== "MENU" && mode !== "EDIT" && mode !== "QR_PROMPT") {
-            // Comanda il motore se memorizzato e in stato di riposo
-            const rLed = document.getElementById((channel === 1 || channel === 3) ? 'boardLedR1' : 'boardLedR2');
-            if (rLed) { rLed.classList.add('active'); setTimeout(() => rLed.classList.remove('active'), 300); }
-            triggerCommand((channel === 2 || channel === 4));
         }
     }
 
@@ -820,14 +806,10 @@
 
     function executeFactoryReset() {
         clearTimeout(configTimeout); mode = "SAVING"; disp.innerText = "RS"; disp.classList.remove('blink');
+        playBeep(2); // 2 BEEP RESET DI FABBRICA OK
         config = { LS: 0, QR: 0, DM: 0, AT: 0, VM: 1, VR: 1, SR: 1, SO: 1, CA: 0, FC: 0, AP: 1, LF: 3, CL: 3, ST: 1, RS: 0 };
         gateLength = 0.0; totalRevolutions = 0.0; tempoMoltiplicato = 0.0; leafPos = 0.0; gateState = "CLOSED"; lastDir = "CLOSING";
         isPedestrian = false; isReducedSpeed = false; excludeAutoClose = false; isSafetyReversing = false;
-        isNewRemoteLearned = false;
-        document.getElementById('btnNew1').style.background = '#2b2b2b';
-        document.getElementById('btnNew2').style.background = '#2b2b2b';
-        document.getElementById('btnNew3').style.background = '#2b2b2b';
-        document.getElementById('btnNew4').style.background = '#2b2b2b';
         localStorage.removeItem('DPlus_GateLength'); localStorage.removeItem('DPlus_TotalRevolutions');
         localStorage.removeItem('DPlus_TempoMoltiplicato'); localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config));
         applyMotorDirection();
@@ -881,7 +863,14 @@
         if (actionFired || isCombo) { if (!isPressedA && !isPressedB) isCombo = false; return; }
         if (mode === "IDLE") triggerCommand(false); 
         else if (mode === "MENU") { currentIdx = (currentIdx + 1) % menuKeys.length; updateMenu(); }
-        else if (mode === "EDIT") { mode = "MENU"; updateMenu(); }
+        else if (mode === "EDIT") { 
+            if (menuKeys[currentIdx] === 'RS' && config.RS === 1) {
+                executeFactoryReset();
+            } else {
+                if (menuKeys[currentIdx] === 'RS') config.RS = 0;
+                mode = "MENU"; updateMenu(); 
+            }
+        }
         else if (mode === "EDIT_AT") {
             mode = "AT_LEARNING"; disp.innerText = "G0"; disp.classList.add('blink'); const curL = langCodes[config.LS] || "EN";
             infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL]||langDB["EN"]).LABELS.AT[0]}</b><br><span style="color:#ffeb3b;" class="blink">${curL === "IT" ? "In attesa segnale radio..." : "Waiting for radio signal..."}</span>`;
@@ -904,7 +893,8 @@
         else if (mode === "EDIT_AT") { atOption = atOption === 1 ? 2 : (atOption === 2 ? 0 : 1); updateMenuAT(); } 
         else if (mode === "EDIT") { 
             const currentKey = menuKeys[currentIdx];
-            if (currentKey === 'RS') { executeFactoryReset(); } else { config[currentKey] = (config[currentKey]+1) > maxVals[currentKey] ? 0 : config[currentKey]+1; refreshTable(); updateMenu(); }
+            config[currentKey] = (config[currentKey]+1) > maxVals[currentKey] ? 0 : config[currentKey]+1; 
+            refreshTable(); updateMenu(); 
         }
         else if (mode === "QR_PROMPT") {
             if (promptQRState === "??") { config.QR = 0; } else { config.QR = (config.QR + 1) % 3; }
@@ -927,11 +917,12 @@
     setupBtnEvents('btnRem3', () => { document.getElementById('btnRem3').classList.add('btn-active'); handleMasterPress(3); }, () => document.getElementById('btnRem3').classList.remove('btn-active'));
     setupBtnEvents('btnRem4', () => { document.getElementById('btnRem4').classList.add('btn-active'); isRem4Pressed = true; checkRemoteLearningCombo(); handleMasterPress(4); }, () => { document.getElementById('btnRem4').classList.remove('btn-active'); isRem4Pressed = false; checkRemoteLearningCombo(); });
 
-    // // Binding New Remote (Click on UI)
-    setupBtnEvents('btnNew1', () => { document.getElementById('btnNew1').classList.add('btn-active'); handleNewRemotePress(1); }, () => document.getElementById('btnNew1').classList.remove('btn-active'));
-    setupBtnEvents('btnNew2', () => { document.getElementById('btnNew2').classList.add('btn-active'); handleNewRemotePress(2); }, () => document.getElementById('btnNew2').classList.remove('btn-active'));
-    setupBtnEvents('btnNew3', () => { document.getElementById('btnNew3').classList.add('btn-active'); handleNewRemotePress(3); }, () => document.getElementById('btnNew3').classList.remove('btn-active'));
-    setupBtnEvents('btnNew4', () => { document.getElementById('btnNew4').classList.add('btn-active'); handleNewRemotePress(4); }, () => document.getElementById('btnNew4').classList.remove('btn-active'));
+    // Binding New Remote (Click on UI)
+    setupBtnEvents('btnNew1', () => { document.getElementById('btnNew1').classList.add('btn-active'); handleNewRemotePress(); }, () => document.getElementById('btnNew1').classList.remove('btn-active'));
+    setupBtnEvents('btnNew2', () => { document.getElementById('btnNew2').classList.add('btn-active'); handleNewRemotePress(); }, () => document.getElementById('btnNew2').classList.remove('btn-active'));
+    setupBtnEvents('btnNew3', () => { document.getElementById('btnNew3').classList.add('btn-active'); handleNewRemotePress(); }, () => document.getElementById('btnNew3').classList.remove('btn-active'));
+    setupBtnEvents('btnNew4', () => { document.getElementById('btnNew4').classList.add('btn-active'); handleNewRemotePress(); }, () => document.getElementById('btnNew4').classList.remove('btn-active'));
+
 
     window.addEventListener('keydown', e => { 
         if(e.key.toLowerCase()==='a') pressA(); 
