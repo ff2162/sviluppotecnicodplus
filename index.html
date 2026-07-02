@@ -507,11 +507,53 @@
         }
     }
 
+    // --- EFFETTO SCORRIMENTO "DANGER" ---
+let dangerMarqueeInt = null;
+const marqueeText = "  DANGER  "; 
+let marqueeIndex = 0;
+
+function startDangerMarquee() {
+    if (dangerMarqueeInt) return;
+    disp.classList.remove('blink', 'blink-fast');
+    marqueeIndex = 0;
+    
+    dangerMarqueeInt = setInterval(() => {
+        let char1 = marqueeText[marqueeIndex % marqueeText.length];
+        let char2 = marqueeText[(marqueeIndex + 1) % marqueeText.length];
+        
+        // TRUCCO: Se il carattere è uno spazio, stampiamo un "8" invisibile (opacity: 0).
+        // L'8 è il carattere più largo, terrà la griglia dei 2 digit perfettamente fissa!
+        let html1 = char1 === " " ? '<span style="opacity: 0;">8</span>' : char1;
+        let html2 = char2 === " " ? '<span style="opacity: 0;">8</span>' : char2;
+        
+        disp.innerHTML = html1 + html2;
+        marqueeIndex++;
+    }, 400); // Aggiorna il display ogni 400ms
+}
+
+function stopDangerMarquee() {
+    if (dangerMarqueeInt) {
+        clearInterval(dangerMarqueeInt);
+        dangerMarqueeInt = null;
+        
+        // Ripristina il testo del display in base allo stato attuale della scheda
+        if (mode === "IDLE") {
+            disp.innerText = "--";
+            disp.classList.add('blink');
+        } else if (mode === "MENU" || mode === "EDIT") {
+            updateMenu();
+        } else if (mode === "AA") {
+            disp.innerText = "AA";
+        }
+    }
+}
     document.getElementById('photocell-case').onclick = () => {
         isPhotoAligned = !isPhotoAligned;
         boardLedFoto.classList.toggle('intermittent', !isPhotoAligned);
         
         if (!isPhotoAligned) {
+            startDangerMarquee(); // <-- INIZIA LO SCORRIMENTO
+            
             if (mode === "AA" || mode === "QR_PROMPT") {
                 clearTimeout(aaTimeout);
                 mode = "IDLE"; gateState = "STOPPED"; endMove();
@@ -530,6 +572,8 @@
                 if(mode === "IDLE") disp.classList.remove('blink-fast');
                 endMove();
             }
+        } else {
+            stopDangerMarquee(); // <-- FERMA LO SCORRIMENTO E RIPRISTINA
         }
     };
 
@@ -699,7 +743,8 @@
     }
     requestAnimationFrame(physics);
 
-    function endMove() { toggleFlash(false); if(mode==="IDLE") { disp.innerText="--"; disp.classList.add('blink'); } }
+    function endMove() { toggleFlash(false); if(mode==="IDLE" && isPhotoAligned) { disp.innerText="--"; disp.classList.add('blink'); } }
+    
     function startAuto() {
         if (excludeAutoClose || isEmergencyStop) return; 
         if (config.CA > 0 && gateState === "OPEN") {
@@ -714,17 +759,18 @@
         clearTimeout(preFlashTimeout); clearTimeout(autoTimer);
         lastTime = 0; isPedestrian = ped;
         if (mode === "AA") { gateState = ns; toggleFlash(true); disp.innerText = aaPhase === 1 ? "AA" : "00"; return; }
+        
         if (config.LF === 0 || config.LF === 1) {
             gateState = (ns === "OPENING") ? "PRE_OPEN" : "PRE_CLOSE"; toggleFlash(true);
-            if(mode==="IDLE") { disp.innerText = (ns === "OPENING" ? "OP" : "CL"); disp.classList.add('blink-fast'); }
+            if(mode==="IDLE" && isPhotoAligned) { disp.innerText = (ns === "OPENING" ? "OP" : "CL"); disp.classList.add('blink-fast'); }
             preFlashTimeout = setTimeout(() => {
                 if (ns === "CLOSING" && !isPhotoAligned) { endMove(); gateState = "OPEN"; return; }
                 gateState = ns; preFlashTimeout = null; lastTime = 0;
-                if(mode==="IDLE") disp.classList.remove('blink-fast');
+                if(mode==="IDLE" && isPhotoAligned) disp.classList.remove('blink-fast');
             }, 2500);
         } else {
             gateState = ns; toggleFlash(true);
-            if(mode==="IDLE") { disp.innerText = (ns==="OPENING"?"OP":"CL"); disp.classList.remove('blink'); }
+            if(mode==="IDLE" && isPhotoAligned) { disp.innerText = (ns==="OPENING"?"OP":"CL"); disp.classList.remove('blink'); }
         }
     }
 
