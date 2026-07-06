@@ -359,7 +359,7 @@
                         <tr id="r-FC"><td>FC</td><td class="td-desc" id="lbl-FC">Condo Mode</td><td id="v-FC" style="text-align:right;">NO</td></tr>
                         <tr id="r-AP"><td>AP</td><td class="td-desc" id="lbl-AP">Pedestrian Open</td><td id="v-AP" style="text-align:right;">01</td></tr>
                         <tr id="r-LF"><td>LF</td><td class="td-desc" id="lbl-LF">Flasher Mode</td><td id="v-LF" style="text-align:right;">03</td></tr>
-                        <tr id="r-CL"><td>CL</td><td class="td-desc" id="lbl-CL">Cover LED</td><td id="v-CL" style="text-align:right;">03</td></tr>
+                        <tr id="r-LM"><td>LM</td><td class="td-desc" id="lbl-LM">LEDCover Mode</td><td id="v-LM" style="text-align:right;">03</td></tr>
                         <tr id="r-ST"><td>ST</td><td class="td-desc" id="lbl-ST">STOP pin Configuration</td><td id="v-ST" style="text-align:right;">01</td></tr>
                         <tr id="r-RS"><td>RS</td><td class="td-desc" id="lbl-RS">Factory Reset Default</td><td id="v-RS" style="text-align:right; font-weight:bold; color:var(--red);">NO</td></tr>
                     </tbody>
@@ -413,11 +413,11 @@
     let totalRevolutions = parseFloat(localStorage.getItem('DPlus_TotalRevolutions')) || 0.0;
     let tempoMoltiplicato = parseFloat(localStorage.getItem('DPlus_TempoMoltiplicato')) || 0.0;
 
-    const menuKeys = ['LS', 'QR', 'DM', 'AT', 'VM', 'VR', 'SR', 'SO', 'CA', 'FC', 'AP', 'LF', 'CL', 'ST', 'RS'];
-    const maxVals = { LS: 3, QR: 2, DM: 1, AT: 2, VM: 4, VR: 4, SR: 3, SO: 4, CA: 4, FC: 1, AP: 2, LF: 3, CL: 3, ST: 2, RS: 1 };
+    const menuKeys = ['LS', 'QR', 'DM', 'AT', 'VM', 'VR', 'SR', 'SO', 'CA', 'FC', 'AP', 'LF', 'LM', 'ST', 'RS'];
+    const maxVals = { LS: 3, QR: 2, DM: 1, AT: 2, VM: 4, VR: 4, SR: 3, SO: 4, CA: 4, FC: 1, AP: 2, LF: 3, LM: 3, ST: 2, RS: 1 };
     const langCodes = ["IT", "EN", "ES", "FR"];
 
-    let config = { LS: 0, QR: 0, DM: 0, AT: 0, VM: 1, VR: 1, SR: 1, SO: 1, CA: 0, FC: 0, AP: 1, LF: 3, CL: 3, ST: 1, RS: 0 };
+    let config = { LS: 0, QR: 0, DM: 0, AT: 0, VM: 1, VR: 1, SR: 1, SO: 1, CA: 0, FC: 0, AP: 1, LF: 3, LM: 3, ST: 1, RS: 0 };
     const saved = localStorage.getItem('DPlus_Mach_App_Config');
     if (saved) { try { config = Object.assign(config, JSON.parse(saved)); } catch(e){} }
 
@@ -440,7 +440,7 @@
                 FC: ["Condo Mode", "Condominium Mode, NO: Deactivated | SI: Activated"],
                 AP: ["Pedestrian Open", "00: 20% | 01: 30% | 02: 40% of the full opening"],
                 LF: ["Flasher Mode", "00: Pre-Lamp Fix | 01: Pre-Lamp Int. | 02: Fix | 03: Intermittent"],
-                CL: ["Cover LED Mode", "00: Always ON | 01: ON during running | 02: Flashing | 03: Breath"],
+                LM: ["LEDCover Mode", "00: Always ON | 01: ON during running | 02: Flashing | 03: Breath"],
                 ST: ["STOP Pin Config", "00: N.O | 01: N.C | 02: 8k2"],
                 RS: ["Factory Reset Default", "Set default values and delete hardware memory."]
             }
@@ -463,7 +463,7 @@
                 FC: ["Condo Mode", "Condominium Mode, NO: Deactivated | SI: Activated"],
                 AP: ["Pedestrian Open", "00: 20% | 01: 30% | 02: 40% of the full opening"],
                 LF: ["Flasher Mode", "00: Pre-Lamp Fix | 01: Pre-Lamp Int. | 02: Fix | 03: Intermittent"],
-                CL: ["Cover LED Mode", "00: Always ON | 01: ON during running | 02: Flashing | 03: Breath"],
+                LM: ["LEDCover Mode", "00: Always ON | 01: ON during running | 02: Flashing | 03: Breath"],
                 ST: ["STOP Pin Config", "00: N.O | 01: N.C | 02: 8k2"],
                 RS: ["Factory Reset Default", "Set default values and delete hardware memory."]
             }
@@ -977,7 +977,7 @@ function stopDangerMarquee() {
     function executeFactoryReset() {
         clearTimeout(configTimeout); mode = "SAVING"; disp.innerText = "RS"; disp.classList.remove('blink');
         playBeep(2); // 2 BEEP RESET DI FABBRICA OK
-        config = { LS: 0, QR: 0, DM: 0, AT: 0, VM: 1, VR: 1, SR: 1, SO: 1, CA: 0, FC: 0, AP: 1, LF: 3, CL: 3, ST: 1, RS: 0 };
+        config = { LS: 0, QR: 0, DM: 0, AT: 0, VM: 1, VR: 1, SR: 1, SO: 1, CA: 0, FC: 0, AP: 1, LF: 3, LM: 3, ST: 1, RS: 0 };
         gateLength = 0.0; totalRevolutions = 0.0; tempoMoltiplicato = 0.0; leafPos = 0.0; gateState = "CLOSED"; lastDir = "CLOSING";
         isPedestrian = false; isReducedSpeed = false; excludeAutoClose = false; isSafetyReversing = false;
         localStorage.removeItem('DPlus_GateLength'); localStorage.removeItem('DPlus_TotalRevolutions');
