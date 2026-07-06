@@ -408,7 +408,6 @@
     const qrCodes = ["AZ", "FF", "SD"];
 
     let isEmergencyStop = false; // Variabile Sicurezza STOP
-    let currentActiveCmdLed = null; // Memorizza il LED del comando attivo
     let isPhotoAligned = true, isReducedSpeed = false, excludeAutoClose = false, isSafetyReversing = false, safetyReversalTimer = 0;
     let measuredTime = 0.0, gateLength = parseFloat(localStorage.getItem('DPlus_GateLength')) || 0.0;
     let totalRevolutions = parseFloat(localStorage.getItem('DPlus_TotalRevolutions')) || 0.0;
