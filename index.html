@@ -995,7 +995,7 @@ function stopDangerMarquee() {
 
     function resetConfigTimeout() {
         clearTimeout(configTimeout);
-        if (["MENU", "EDIT", "EDIT_AT", "AT_LEARNING"].includes(mode)) { configTimeout = setTimeout(save, 15000); }
+        if (["MENU", "EDIT", "EDIT_AT", "AT_LEARNING"].includes(mode)) { configTimeout = setTimeout(save, 60000); }
     }
 
     function checkCombo() {
