@@ -431,7 +431,7 @@
                 LS: ["Lingua sistema", "IT: Italian | EN: English | ES: Spanish | FR: French"],
                 QR: ["Product Code", "Seleziona il modello: AZ:400Kg | FF:600Kg | SD:1000Kg"],
                 DM: ["Motor Direction", "00: SX Left | 01: DX Right. In Auto-Learning usa 'A' per invertire."],
-                AT: ["Remote Learning", "Premi B per scegliere (01: Normal Open, 02: Pedestrian, 00: Erase)."],
+                AT: ["Remote Learning", "Premi B per scegliere (At: Normal Open, Ap: Pedestrian, CC: Erase)."],
                 VM: ["Motor Speed", "00: Minimum | 01-03: Intermediates | 04: Maximum"],
                 VR: ["Slow Speed", "Deceleration Speed, 00: Minimum | 01-03: Intermediates | 04: Maximum (50% di VM)"],
                 SR: ["Slowdown space", "Deceleration Zone, 00: 4% | 01: 6% | 02: 8% | 03: 10%"],
@@ -454,7 +454,7 @@
                 LS: ["System Language", "IT: Italian | EN: English | ES: Spanish | FR: French"],
                 QR: ["Product Code", "Select the model: AZ:400Kg | FF:600Kg | SD:1000Kg"],
                 DM: ["Motor Direction", "00: SX Left | 01: DX Right. In Auto-Learning use 'A' to invert."],
-                AT: ["Remote Learning", "Press B to choose (01: Normal Open, 02: Pedestrian, 00: Erase)."],
+                AT: ["Remote Learning", "Press B to choose (At: Normal Open, Ap: Pedestrian, CC: Erase)."],
                 VM: ["Motor Speed", "00: Minimum | 01-03: Intermediates | 04: Maximum"],
                 VR: ["Slow Speed", "Deceleration Speed, 00: Minimum | 01-03: Intermediates | 04: Maximum (50% di VM)"],
                 SR: ["Slowdown space", "Deceleration Zone, 00: 4% | 01: 6% | 02: 8% | 03: 10%"],
@@ -612,6 +612,7 @@ function stopDangerMarquee() {
         if (key === 'FC') return val === 0 ? "NO" : "SI";
         if (key === 'RS') return val === 0 ? "NO" : "SI";
         if (key === 'QR') return qrCodes[val] || "??";
+        if (key === 'AT') return val === 1 ? "At" : (val === 2 ? "Ap" : "CC");
         return String(val).padStart(2, '0');
     }
 
@@ -954,9 +955,21 @@ function stopDangerMarquee() {
     }
 
     function updateMenuAT() {
-        manageRemoteLedBlink(); disp.innerText = String(atOption).padStart(2, '0'); disp.classList.remove('blink');
-        const curL = langCodes[config.LS] || "EN"; const atLabel = (langDB[curL] || langDB["EN"]).LABELS.AT[0];
-        let optText = atOption === 1 ? (curL === "IT" ? "01 (Totale)" : "01 (Total)") : (atOption === 2 ? (curL === "IT" ? "02 (Pedonale)" : "02 (Pedestrian)") : (curL === "IT" ? "00 (Cancella)" : "00 (Erase)"));
+        manageRemoteLedBlink(); 
+        
+        // Mappiamo i valori per il display: 1=At, 2=Ap, 0=CC
+        let dispStr = atOption === 1 ? "At" : (atOption === 2 ? "Ap" : "CC");
+        disp.innerText = dispStr; 
+        disp.classList.remove('blink');
+        
+        const curL = langCodes[config.LS] || "EN"; 
+        const atLabel = (langDB[curL] || langDB["EN"]).LABELS.AT[0];
+        
+        // Aggiorniamo anche il testo descrittivo
+        let optText = atOption === 1 ? (curL === "IT" ? "At (Totale)" : "At (Total)") : 
+                     (atOption === 2 ? (curL === "IT" ? "Ap (Pedonale)" : "Ap (Pedestrian)") : 
+                                       (curL === "IT" ? "CC (Cancella)" : "CC (Erase)"));
+                                       
         infoText.innerHTML = `<b style="color:var(--red);">${atLabel}</b><br>Option: <b>${optText}</b><br><br><small style="color:#888;">Tap B to change.<br>Tap A to confirm.</small>`;
         resetConfigTimeout();
     }
