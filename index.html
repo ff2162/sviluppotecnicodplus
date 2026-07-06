@@ -607,7 +607,7 @@ function stopDangerMarquee() {
     };
 
     function getDisplayVal(key, val) {
-        if (key === 'LS') return String(val).padStart(2, '0');
+        if (key === 'LS') return langCodes[val] || "IT";
         if (key === 'DM') return val === 0 ? "SX" : "DX";
         if (key === 'FC') return val === 0 ? "NO" : "SI";
         if (key === 'RS') return val === 0 ? "NO" : "SI";
