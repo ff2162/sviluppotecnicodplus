@@ -333,7 +333,10 @@
                     
                     <div class="quick-help">
                         <b style="color:#ccc;">D-Plus Remote Learning:</b><br>
-                        Use the PC keyboard while holding down... <b>1+4</b> (Full opening) o <b>2+4</b> (Pedestrian) on TX MASTER for 5s.<br>At the *beep*, press a button on the NEW transmitter to store it remotely.
+                        Use the PC keyboard while holding down... <b>1+4</b> (Full opening) or <b>2+4</b> (Pedestrian) on TX MASTER for 5s.<br>At the *beep*, press a button on the NEW transmitter to store it remotely.<br><br>
+                        <b style="color:#ccc;">Keypad Access Codes:</b><br>
+                        Enter <b>1234&lt;</b> for Full Opening.<br>
+                        Enter <b>1235&gt;</b> for Pedestrian Opening.
                     </div>
                 </div>
             </div>
@@ -397,6 +400,7 @@
 
     // --- STATO DEL SISTEMA ---
     let mode = "IDLE", gateState = "CLOSED", lastDir = "CLOSING", leafPos = 0.0, isPedestrian = false;
+    let currentActiveCmdLed = null; // Memorizza il LED del comando attivo
     let lastTime = 0, autoTimer = null, flashInt = null, preFlashTimeout = null, aaTimeout = null;
     let atOption = 1, aaPhase = 0;
     
@@ -404,6 +408,7 @@
     const qrCodes = ["AZ", "FF", "SD"];
 
     let isEmergencyStop = false; // Variabile Sicurezza STOP
+    let currentActiveCmdLed = null; // Memorizza il LED del comando attivo
     let isPhotoAligned = true, isReducedSpeed = false, excludeAutoClose = false, isSafetyReversing = false, safetyReversalTimer = 0;
     let measuredTime = 0.0, gateLength = parseFloat(localStorage.getItem('DPlus_GateLength')) || 0.0;
     let totalRevolutions = parseFloat(localStorage.getItem('DPlus_TotalRevolutions')) || 0.0;
@@ -646,8 +651,13 @@ function stopDangerMarquee() {
                 if (config.LF === 1 || config.LF === 3) bulb.classList.toggle('f-on', s);
                 else bulb.classList.add('f-on');
                 updateLeds(true, s);
+                // Fa lampeggiare anche il led del comando in uso
+                if (currentActiveCmdLed) currentActiveCmdLed.classList.toggle('active', s);
             }, 500);
-        } else { bulb.classList.remove('f-on'); updateLeds(false); }
+        } else { 
+            bulb.classList.remove('f-on'); 
+            updateLeds(false); 
+        }
     }
 
     function updateDiagnostics(isSlow = false, currentSpeed = 0) {
@@ -768,7 +778,12 @@ function stopDangerMarquee() {
     }
     requestAnimationFrame(physics);
 
-    function endMove() { toggleFlash(false); if(mode==="IDLE" && isPhotoAligned) { disp.innerText="--"; disp.classList.add('blink'); } }
+    function endMove() { 
+        toggleFlash(false); 
+        if(mode==="IDLE" && isPhotoAligned) { disp.innerText="--"; disp.classList.add('blink'); } 
+        // Spegne e resetta il led del comando quando il motore si ferma
+        if(currentActiveCmdLed) { currentActiveCmdLed.classList.remove('active'); currentActiveCmdLed = null; }
+    }
     
     function startAuto() {
         if (excludeAutoClose || isEmergencyStop) return; 
@@ -813,15 +828,31 @@ function stopDangerMarquee() {
         
         // Mappatura LED e Modalità
         if (cmdType === 'SBS') {
-            ledTrg = document.getElementById('boardLedFoto2'); // ID di SbS
+            ledTrg = document.getElementById('boardLedFoto2');
         } else if (cmdType === 'AP') {
             ledTrg = document.getElementById('boardLedAP');
-            ped = true; // Attiva apertura pedonale
+            ped = true;
         } else if (cmdType === 'START') {
             ledTrg = document.getElementById('boardLedStart');
         }
 
-        if (ledTrg) { ledTrg.classList.add('active'); setTimeout(() => ledTrg.classList.remove('active'), 300); }
+        // --- NUOVA LOGICA LED COMANDO ---
+        if (currentActiveCmdLed) currentActiveCmdLed.classList.remove('active');
+        currentActiveCmdLed = ledTrg;
+        
+        if (currentActiveCmdLed) {
+            currentActiveCmdLed.classList.add('active');
+            // Timeout di sicurezza per dare un feedback visivo breve se il comando ferma il motore o viene ignorato
+            setTimeout(() => {
+                if (gateState === "STOPPED" || gateState === "OPEN" || gateState === "CLOSED") {
+                    if (currentActiveCmdLed) {
+                        currentActiveCmdLed.classList.remove('active');
+                        currentActiveCmdLed = null;
+                    }
+                }
+            }, 400);
+        }
+        // ---------------------------------
 
         if (gateState === "CLOSED") { lastDir = "OPENING"; runGate("OPENING", ped); }
         else if (gateState === "OPEN") { lastDir = "CLOSING"; runGate("CLOSING", ped); }
