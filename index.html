@@ -1064,7 +1064,7 @@ function stopDangerMarquee() {
         if (actionFired || isCombo) { if (!isPressedA && !isPressedB) isCombo = false; return; }
         if (mode === "IDLE") triggerCommand('AP'); 
         else if (mode === "MENU") { if (menuKeys[currentIdx] === 'AT') { mode = "EDIT_AT"; atOption = 1; updateMenuAT(); } else { mode = "EDIT"; updateMenu(); } } 
-        else if (mode === "EDIT_AT") { atOption = atOption === 1 ? 2 : 1; updateMenuAT(); } 
+        else if (mode === "EDIT_AT") { atOption = atOption === 1 ? 2 : (atOption === 2 ? 0 : 1); updateMenuAT(); } 
         else if (mode === "EDIT") { 
             const currentKey = menuKeys[currentIdx];
             config[currentKey] = (config[currentKey]+1) > maxVals[currentKey] ? 0 : config[currentKey]+1; 
