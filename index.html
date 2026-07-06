@@ -199,6 +199,11 @@
 
         .quick-help { font-size: 11px; color: #888; line-height: 1.3; width: 100%; margin-top: 10px; padding: 10px; background: #111; border-radius: 8px;}
 
+        /* STILI TASTIERINO NUMERICO */
+        .keypad-case { width: 145px; }
+        .keypad-btn-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; width: 100%; margin-top: 10px; }
+        .kp-btn { height: 32px; font-size: 14px; border-radius: 6px; background: #2b2b2b; padding: 0; }
+
         /* TABELLA PARAMETRI */
         .right-col { flex: 1; display: flex; flex-direction: column; gap: 15px; min-width: 0; }
         
@@ -281,6 +286,26 @@
                     </div>
 
                     <div class="remotes-area">
+                        <div class="remotes-area">
+                        
+                        <div class="remote-case keypad-case">
+                            <div class="remote-title">TASTIERINO</div>
+                            <div id="kpLed" class="remote-led"></div>
+                            <div class="remote-btn-group keypad-btn-group">
+                                <button id="btnKp1" class="btn btn-rem kp-btn">1</button>
+                                <button id="btnKp2" class="btn btn-rem kp-btn">2</button>
+                                <button id="btnKp3" class="btn btn-rem kp-btn">3</button>
+                                <button id="btnKp4" class="btn btn-rem kp-btn">4</button>
+                                <button id="btnKp5" class="btn btn-rem kp-btn">5</button>
+                                <button id="btnKp6" class="btn btn-rem kp-btn">6</button>
+                                <button id="btnKp7" class="btn btn-rem kp-btn">7</button>
+                                <button id="btnKp8" class="btn btn-rem kp-btn">8</button>
+                                <button id="btnKp9" class="btn btn-rem kp-btn">9</button>
+                                <button id="btnKpLt" class="btn btn-rem kp-btn">&lt;</button>
+                                <button id="btnKp0" class="btn btn-rem kp-btn">0</button>
+                                <button id="btnKpGt" class="btn btn-rem kp-btn">&gt;</button>
+                            </div>
+                        </div>
                         <div class="remote-case">
                             <div class="remote-title">TX MASTER</div>
                             <div id="remLed" class="remote-led"></div>
@@ -774,7 +799,7 @@ function stopDangerMarquee() {
         }
     }
 
-    function triggerCommand(ped) {
+    function triggerCommand(cmdType) {
         if (isEmergencyStop) return; // Se lo stop è premuto, non fa nulla!
         
         playBeep(1); // 1 BEEP RICEZIONE COMANDO CANCELLO
@@ -782,7 +807,20 @@ function stopDangerMarquee() {
         if (mode === "AA" || mode === "QR_PROMPT") { clearTimeout(aaTimeout); if (mode !== "QR_PROMPT") { mode = "IDLE"; gateState = "STOPPED"; endMove(); } return; }
         if (config.FC === 1 && (gateState !== "CLOSED" && gateState !== "OPEN" && gateState !== "STOPPED")) return;
         isReducedSpeed = false; excludeAutoClose = false; isSafetyReversing = false; safetyReversalTimer = 0;
-        const ledTrg = ped ? document.getElementById('boardLedAP') : document.getElementById('boardLedStart');
+        
+        let ledTrg;
+        let ped = false;
+        
+        // Mappatura LED e Modalità
+        if (cmdType === 'SBS') {
+            ledTrg = document.getElementById('boardLedFoto2'); // ID di SbS
+        } else if (cmdType === 'AP') {
+            ledTrg = document.getElementById('boardLedAP');
+            ped = true; // Attiva apertura pedonale
+        } else if (cmdType === 'START') {
+            ledTrg = document.getElementById('boardLedStart');
+        }
+
         if (ledTrg) { ledTrg.classList.add('active'); setTimeout(() => ledTrg.classList.remove('active'), 300); }
 
         if (gateState === "CLOSED") { lastDir = "OPENING"; runGate("OPENING", ped); }
@@ -816,7 +854,7 @@ function stopDangerMarquee() {
         if (rLed) { rLed.classList.add('active'); setTimeout(() => rLed.classList.remove('active'), 300); }
         if (mode !== "EDIT_AT" && mode !== "AT_LEARNING") { document.getElementById('remLed').classList.add('active'); setTimeout(() => document.getElementById('remLed').classList.remove('active'), 200); }
         
-        triggerCommand((channel === 2 || channel === 4));
+        triggerCommand((channel === 2 || channel === 4) ? 'AP' : 'SBS');
     }
 
     // Gestione Ricezione Nuovo Telecomando
@@ -966,7 +1004,7 @@ function stopDangerMarquee() {
         if(isEmergencyStop) { isPressedA = false; document.getElementById('keyA').classList.remove('btn-active'); return; }
         if(!isPressedA) return; isPressedA = false; document.getElementById('keyA').classList.remove('btn-active'); clearTimeout(comboTimer);
         if (actionFired || isCombo) { if (!isPressedA && !isPressedB) isCombo = false; return; }
-        if (mode === "IDLE") triggerCommand(false); 
+        if (mode === "IDLE") triggerCommand('SBS'); 
         else if (mode === "MENU") { currentIdx = (currentIdx + 1) % menuKeys.length; updateMenu(); }
         else if (mode === "EDIT") { 
             if (menuKeys[currentIdx] === 'RS' && config.RS === 1) {
@@ -994,7 +1032,7 @@ function stopDangerMarquee() {
         if(isEmergencyStop) { isPressedB = false; document.getElementById('keyB').classList.remove('btn-active'); return; }
         if(!isPressedB) return; isPressedB = false; document.getElementById('keyB').classList.remove('btn-active'); clearTimeout(comboTimer); clearTimeout(holdTimerB);
         if (actionFired || isCombo) { if (!isPressedA && !isPressedB) isCombo = false; return; }
-        if (mode === "IDLE") triggerCommand(true); 
+        if (mode === "IDLE") triggerCommand('AP'); 
         else if (mode === "MENU") { if (menuKeys[currentIdx] === 'AT') { mode = "EDIT_AT"; atOption = 1; updateMenuAT(); } else { mode = "EDIT"; updateMenu(); } } 
         else if (mode === "EDIT_AT") { atOption = atOption === 1 ? 2 : (atOption === 2 ? 0 : 1); updateMenuAT(); } 
         else if (mode === "EDIT") { 
@@ -1029,7 +1067,42 @@ function stopDangerMarquee() {
     setupBtnEvents('btnNew3', () => { document.getElementById('btnNew3').classList.add('btn-active'); handleNewRemotePress(); }, () => document.getElementById('btnNew3').classList.remove('btn-active'));
     setupBtnEvents('btnNew4', () => { document.getElementById('btnNew4').classList.add('btn-active'); handleNewRemotePress(); }, () => document.getElementById('btnNew4').classList.remove('btn-active'));
 
+    // --- GESTIONE TASTIERINO NUMERICO ---
+    let keypadBuffer = "";
+    let keypadTimer = null;
 
+    function handleKeypadPress(val) {
+        if (isEmergencyStop) return;
+        playBeep(1);
+        
+        const kLed = document.getElementById('kpLed');
+        if (kLed) { kLed.classList.add('active'); setTimeout(() => kLed.classList.remove('active'), 200); }
+
+        keypadBuffer += val;
+        
+        // Svuota la sequenza se passano più di 3 secondi dall'ultimo tocco
+        clearTimeout(keypadTimer);
+        keypadTimer = setTimeout(() => { keypadBuffer = ""; }, 3000);
+
+        if (keypadBuffer.endsWith("1234<")) {
+            keypadBuffer = "";
+            triggerCommand('START'); // Attiva START
+        } else if (keypadBuffer.endsWith("1235>")) {
+            keypadBuffer = "";
+            triggerCommand('AP'); // Attiva AP
+        }
+    }
+
+    // Associazione Eventi per il tastierino
+    const kpKeys = ['1','2','3','4','5','6','7','8','9','Lt','0','Gt'];
+    const kpVals = ['1','2','3','4','5','6','7','8','9','<','0','>'];
+    kpKeys.forEach((k, i) => {
+        setupBtnEvents('btnKp' + k, 
+            () => { document.getElementById('btnKp' + k).classList.add('btn-active'); handleKeypadPress(kpVals[i]); }, 
+            () => document.getElementById('btnKp' + k).classList.remove('btn-active')
+        );
+    });
+    
     window.addEventListener('keydown', e => { 
         if(e.key.toLowerCase()==='a') pressA(); 
         if(e.key.toLowerCase()==='b') pressB(); 
