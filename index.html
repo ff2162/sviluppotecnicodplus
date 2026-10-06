@@ -350,7 +350,7 @@
                     
                     <div class="quick-help">
                         <b style="color:#ccc;">D-Plus Remote Learning:</b><br>
-                        Hold <b>1+4</b> (Full opening, 1 beep) or <b>1+2</b> (Pedestrian, 2 beeps) together on TX MASTER for 5s.<br>
+                        Hold <b>1+2</b> (Full opening, 1 beep) or <b>1+4</b> (Pedestrian, 2 beeps) together on TX MASTER for 5s.<br>
                         Then press a button on the NEW transmitter: the board stores it and confirms with 1 beep (Full) or 2 beeps (Pedestrian).
                         The memory stays open for 5s after the last code; a long beep closes it.<br><br>
                         <b style="color:#ccc;">Keypad Access Codes:</b><br>
@@ -408,7 +408,7 @@
     </div>
 
     <div class="footer-info">
-        MACH1 APP SIMULATOR PRO v6.02 | DPLUS AUTOMATION
+        MACH1 APP SIMULATOR PRO v6.03 | DPLUS AUTOMATION
     </div>
 
 </div>
@@ -481,7 +481,7 @@
                 LS: ["Lingua sistema", "IT: Italian | EN: English | ES: Spanish | FR: French"],
                 QR: ["Product Code", "Seleziona il modello: AZ:400Kg | FF:600Kg | SD:1000Kg"],
                 DM: ["Motor Direction", "00: SX Left | 01: DX Right. In Auto-Learning usa 'A' per invertire."],
-                AT: ["Remote Learning", "Premi B per scegliere (At: Normal Open, Ap: Pedestrian, CC: Erase)."],
+                AT: ["Remote Learning", "Premi B per scegliere: 00 cancella codice | 01 apertura totale | 02 apertura pedonale | 09 cancella tutti i codici. A per confermare."],
                 VM: ["Motor Speed", "00: Minimum | 01-03: Intermediates | 04: Maximum"],
                 VR: ["Slow Speed", "Deceleration Speed, 00: Minimum | 01-03: Intermediates | 04: Maximum (50% di VM)"],
                 SR: ["Slowdown space", "Deceleration Zone, 00: 4% | 01: 6% | 02: 8% | 03: 10%"],
@@ -505,7 +505,7 @@
                 LS: ["System Language", "IT: Italian | EN: English | ES: Spanish | FR: French"],
                 QR: ["Product Code", "Select the model: AZ:400Kg | FF:600Kg | SD:1000Kg"],
                 DM: ["Motor Direction", "00: SX Left | 01: DX Right. In Auto-Learning use 'A' to invert."],
-                AT: ["Remote Learning", "Press B to choose (At: Normal Open, Ap: Pedestrian, CC: Erase)."],
+                AT: ["Remote Learning", "Press B to choose: 00 erase code | 01 full opening | 02 pedestrian opening | 09 erase all codes. A to confirm."],
                 VM: ["Motor Speed", "00: Minimum | 01-03: Intermediates | 04: Maximum"],
                 VR: ["Slow Speed", "Deceleration Speed, 00: Minimum | 01-03: Intermediates | 04: Maximum (50% di VM)"],
                 SR: ["Slowdown space", "Deceleration Zone, 00: 4% | 01: 6% | 02: 8% | 03: 10%"],
@@ -550,6 +550,9 @@
     if (!txNew || typeof txNew.serial !== 'number') txNew = newTxIdentity();
 
     let learnWindowTimer = null, learnFromMenu = false, masterCmdTimer = null;
+    const AT_OPTS = [0, 1, 2, 9];   // 00 cancella codice, 01 totale, 02 pedonale, 09 cancella tutti
+    function nextAtOption() { atOption = AT_OPTS[(AT_OPTS.indexOf(atOption) + 1) % AT_OPTS.length]; }
+    function learnLabel() { return atOption === 1 ? "At" : (atOption === 2 ? "Ap" : "00"); }
 
     function saveTx() { localStorage.setItem('DPlus_TxNew', JSON.stringify(txNew)); }
     function saveCodes() { localStorage.setItem('DPlus_RemoteCodes', JSON.stringify(remoteCodes)); }
@@ -584,7 +587,7 @@
         const tb = document.getElementById('codes-body');
         document.getElementById('codes-count').innerText = remoteCodes.length;
         if (!remoteCodes.length) {
-            tb.innerHTML = '<tr><td colspan="7" style="color:#666; text-align:center;">No transmitters stored. Hold 1+4 or 1+2 on TX MASTER to open the memory.</td></tr>';
+            tb.innerHTML = '<tr><td colspan="7" style="color:#666; text-align:center;">No transmitters stored. Hold 1+2 or 1+4 on TX MASTER to open the memory.</td></tr>';
             return;
         }
         tb.innerHTML = remoteCodes.map((c, i) =>
@@ -618,10 +621,14 @@
     function learnInfo(extra) {
         const curL = langCodes[config.LS] || "EN";
         const IT = curL === "IT";
-        const fnTxt = atOption === 1 ? (IT ? "Apertura totale (At)" : "Full opening (At)") : (IT ? "Apertura pedonale (Ap)" : "Pedestrian opening (Ap)");
+        const fnTxt = atOption === 1 ? (IT ? "Apertura totale (At)" : "Full opening (At)") :
+                      atOption === 2 ? (IT ? "Apertura pedonale (Ap)" : "Pedestrian opening (Ap)") :
+                                       (IT ? "Cancellazione codice (00)" : "Erase code (00)");
+        const azione = atOption === 0 ? (IT ? "Memoria aperta: premi il tasto del telecomando da cancellare..." : "Memory open: press the button of the transmitter to erase...")
+                                      : (IT ? "Memoria aperta: premi un tasto del nuovo telecomando..." : "Memory open: press a button on the new transmitter...");
         infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL] || langDB["EN"]).LABELS.AT[0]}: ${fnTxt}</b><br>` +
             (extra ? extra + '<br>' : '') +
-            `<span style="color:#ffeb3b;" class="blink">${IT ? "Memoria aperta: premi un tasto del nuovo telecomando..." : "Memory open: press a button on the new transmitter..."}</span><br>` +
+            `<span style="color:#ffeb3b;" class="blink">${azione}</span><br>` +
             `<small style="color:#888;">${IT ? "La memoria si chiude dopo 5 s senza nuovi codici (beep lungo)." : "Memory closes after 5 s without new codes (long beep)."}</small>`;
     }
 
@@ -634,11 +641,25 @@
         learnFromMenu = fromMenu;
         clearTimeout(configTimeout);
         mode = "AT_LEARNING";
-        disp.innerText = atOption === 1 ? "At" : "Ap";
+        disp.innerText = learnLabel();
         disp.classList.add('blink');
         manageRemoteLedBlink();
         learnInfo('');
         apriFinestraMemoria();
+    }
+
+    function confermaOpzioneAT() {
+        if (atOption === 9) {
+            // 09: cancellazione di tutti i telecomandi memorizzati
+            cancellaCodici();
+            playBeep(3);
+            disp.innerText = "OK"; disp.classList.remove('blink');
+            setTimeout(() => { if (mode === "EDIT_AT") { mode = "MENU"; manageRemoteLedBlink(); updateMenu(); } }, 1000);
+        } else {
+            // 00: cancella un codice | 01: memorizza totale | 02: memorizza pedonale
+            playBeep(atOption === 0 ? 1 : atOption);
+            avviaMemorizzazione(true);
+        }
     }
 
     function chiudiMemoria() {
@@ -757,7 +778,7 @@ function stopDangerMarquee() {
         } else if (mode === "AA") {
             disp.innerText = "AA";
         } else if (mode === "AT_LEARNING") {
-            disp.innerText = atOption === 1 ? "At" : "Ap";
+            disp.innerText = learnLabel();
             disp.classList.add('blink');
         }
     }
@@ -798,7 +819,7 @@ function stopDangerMarquee() {
         if (key === 'FC') return val === 0 ? "NO" : "SI";
         if (key === 'RS') return val === 0 ? "NO" : "SI";
         if (key === 'QR') return qrCodes[val] || "??";
-        if (key === 'AT') return val === 1 ? "At" : (val === 2 ? "Ap" : "CC");
+        if (key === 'AT') return String(val).padStart(2, '0');
         return String(val).padStart(2, '0');
     }
 
@@ -1059,11 +1080,8 @@ function stopDangerMarquee() {
         if (mode === "AA" && aaPhase === 1 && (channel === 1 || channel === 2)) { invertMotorDirectionOnTheFly(); return; }
 
         if (mode === "EDIT_AT") {
-            if (channel === 1 || channel === 2) { atOption = atOption === 1 ? 2 : 1; updateMenuAT(); } 
-            else if ((channel === 3 || channel === 4) && atOption !== 0) {
-                playBeep(atOption);
-                avviaMemorizzazione(true);
-            }
+            if (channel === 1 || channel === 2) { nextAtOption(); updateMenuAT(); } 
+            else if (channel === 3 || channel === 4) { confermaOpzioneAT(); }
             return;
         }
 
@@ -1094,6 +1112,23 @@ function stopDangerMarquee() {
         const tx = hcsTransmit(btn);
         const curL = langCodes[config.LS] || "EN";
         const IT = curL === "IT";
+
+        if (mode === "AT_LEARNING" && atOption === 0) {
+            const i = remoteCodes.findIndex(c => c.serial === tx.serial && c.btn === btn);
+            if (i >= 0) {
+                remoteCodes.splice(i, 1); saveCodes(); renderCodes();
+                playBeep(3); // 3 BEEP: CODICE CANCELLATO
+                disp.innerText = "OK";
+                learnInfo(`<span style="color:#0f0; font-weight:bold;">${IT ? "Codice cancellato" : "Code erased"}: SN ${hex(tx.serial, 7)}, ${IT ? "tasto" : "button"} ${btn}</span>`);
+            } else {
+                disp.innerText = "NO";
+                learnInfo(`<span style="color:var(--red); font-weight:bold;">${IT ? "Codice non presente in memoria" : "Code not in memory"}: SN ${hex(tx.serial, 7)}, ${IT ? "tasto" : "button"} ${btn}</span>`);
+            }
+            disp.classList.remove('blink');
+            setTimeout(() => { if (mode === "AT_LEARNING") { disp.innerText = learnLabel(); disp.classList.add('blink'); } }, 700);
+            apriFinestraMemoria(); // la memoria resta aperta altri 5 s
+            return;
+        }
 
         if (mode === "AT_LEARNING") {
             const fn = atOption === 1 ? 'At' : 'Ap';
@@ -1126,18 +1161,18 @@ function stopDangerMarquee() {
         triggerCommand(c.fn === 'At' ? 'SBS' : 'AP');
     }
 
-    // Controllo Apprendimento a Distanza (Combo Tasti Master): 1+4 = Totale, 1+2 = Pedonale
+    // Controllo Apprendimento a Distanza (Combo Tasti Master): 1+2 = Totale, 1+4 = Pedonale
     function checkRemoteLearningCombo() {
         if (isEmergencyStop) return;
-        const comboTot = isRem1Pressed && isRem4Pressed;
-        const comboPed = isRem1Pressed && isRem2Pressed;
+        const comboTot = isRem1Pressed && isRem2Pressed;
+        const comboPed = isRem1Pressed && isRem4Pressed;
         if (mode === "IDLE" && (comboTot || comboPed)) {
             if (!remLearnTimer) {
                 remLearnTimer = setTimeout(() => {
                     remLearnTimer = null;
                     if (mode !== "IDLE" || isEmergencyStop) return;
-                    atOption = (isRem1Pressed && isRem4Pressed) ? 1 : 2;
-                    playBeep(atOption); // 1 BEEP (1+4, TOTALE) / 2 BEEP (1+2, PEDONALE)
+                    atOption = (isRem1Pressed && isRem2Pressed) ? 1 : 2;
+                    playBeep(atOption); // 1 BEEP (1+2, TOTALE) / 2 BEEP (1+4, PEDONALE)
                     avviaMemorizzazione(false);
                     if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
                 }, 5000);
@@ -1155,6 +1190,7 @@ function stopDangerMarquee() {
             remBlinkInterval = setInterval(() => {
                 if (atOption === 1) { document.getElementById('remLed').classList.toggle('active', step === 0); step = (step + 1) % 4; } 
                 else if (atOption === 2) { document.getElementById('remLed').classList.toggle('active', step === 0 || step === 2); step = (step + 1) % 6; }
+                else { document.getElementById('remLed').classList.toggle('active', step % 2 === 0); step = (step + 1) % 2; }
             }, 250);
         } else { document.getElementById('remLed').classList.remove('active'); }
     }
@@ -1174,8 +1210,8 @@ function stopDangerMarquee() {
     function updateMenuAT() {
         manageRemoteLedBlink(); 
         
-        // Mappiamo i valori per il display: 1=At, 2=Ap, 0=CC
-        let dispStr = atOption === 1 ? "At" : (atOption === 2 ? "Ap" : "CC");
+        // Display: 00 cancella codice, 01 totale, 02 pedonale, 09 cancella tutti
+        let dispStr = String(atOption).padStart(2, '0');
         disp.innerText = dispStr; 
         disp.classList.remove('blink');
         
@@ -1183,9 +1219,11 @@ function stopDangerMarquee() {
         const atLabel = (langDB[curL] || langDB["EN"]).LABELS.AT[0];
         
         // Aggiorniamo anche il testo descrittivo
-        let optText = atOption === 1 ? (curL === "IT" ? "At (Totale)" : "At (Total)") : 
-                     (atOption === 2 ? (curL === "IT" ? "Ap (Pedonale)" : "Ap (Pedestrian)") : 
-                                       (curL === "IT" ? "CC (Cancella tutti i telecomandi)" : "CC (Erase all transmitters)"));
+        const IT = curL === "IT";
+        let optText = atOption === 1 ? (IT ? "01 - Memorizza apertura totale" : "01 - Store full opening") :
+                      atOption === 2 ? (IT ? "02 - Memorizza apertura pedonale" : "02 - Store pedestrian opening") :
+                      atOption === 0 ? (IT ? "00 - Cancella un codice" : "00 - Erase one code") :
+                                       (IT ? "09 - Cancella tutti i codici" : "09 - Erase all codes");
                                        
         infoText.innerHTML = `<b style="color:var(--red);">${atLabel}</b><br>Option: <b>${optText}</b><br><br><small style="color:#888;">Tap B to change.<br>Tap A to confirm.</small>`;
         resetConfigTimeout();
@@ -1275,18 +1313,8 @@ function stopDangerMarquee() {
                 mode = "MENU"; updateMenu(); 
             }
         }
-        else if (mode === "EDIT_AT") {
-            if (atOption === 0) {
-                // CC: cancellazione di tutti i telecomandi memorizzati
-                cancellaCodici();
-                playBeep(3);
-                disp.innerText = "OK"; disp.classList.remove('blink');
-                setTimeout(() => { if (mode === "EDIT_AT") { mode = "MENU"; manageRemoteLedBlink(); updateMenu(); } }, 1000);
-            } else {
-                playBeep(atOption);
-                avviaMemorizzazione(true);
-            }
-        } else if (mode === "AT_LEARNING") { chiudiMemoria(); }
+        else if (mode === "EDIT_AT") { confermaOpzioneAT(); }
+        else if (mode === "AT_LEARNING") { chiudiMemoria(); }
         else if (mode === "QR_PROMPT") {
             if (promptQRState === "??") return; 
             clearTimeout(configTimeout); localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config)); 
@@ -1302,7 +1330,7 @@ function stopDangerMarquee() {
         if (actionFired || isCombo) { if (!isPressedA && !isPressedB) isCombo = false; return; }
         if (mode === "IDLE") triggerCommand('AP'); 
         else if (mode === "MENU") { if (menuKeys[currentIdx] === 'AT') { mode = "EDIT_AT"; atOption = 1; updateMenuAT(); } else { mode = "EDIT"; updateMenu(); } } 
-        else if (mode === "EDIT_AT") { atOption = atOption === 1 ? 2 : (atOption === 2 ? 0 : 1); updateMenuAT(); } 
+        else if (mode === "EDIT_AT") { nextAtOption(); updateMenuAT(); } 
         else if (mode === "EDIT") { 
             const currentKey = menuKeys[currentIdx];
             config[currentKey] = (config[currentKey]+1) > maxVals[currentKey] ? 0 : config[currentKey]+1; 
