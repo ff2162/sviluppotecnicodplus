@@ -186,10 +186,11 @@
             align-items: center; box-shadow: 0 8px 20px #000; justify-content: space-between; flex-shrink: 0;
         }
         
-        .remote-new { border-color: #555; background: #1a1a1a; }
+        .remote-new { border-color: #555; background: #1a1a1a; height: 212px; }
         .remote-title { font-size: 10px; color: #888; font-weight: bold; letter-spacing: 1px; }
         .remote-led { width: 8px; height: 8px; background: #300; border-radius: 50%; }
         .remote-led.active { background: #0f0; box-shadow: 0 0 10px #0f0; }
+        .remote-sn { font-size: 8px; color: #777; font-family: Menlo, Consolas, monospace; letter-spacing: 0.3px; }
         
         .remote-logo { height: 16px; width: 100%; display: flex; justify-content: center; align-items: center; }
         .remote-logo img { max-height: 100%; max-width: 80%; opacity: 0.8; filter: drop-shadow(0 0 2px rgba(227,30,36,0.3)); }
@@ -215,6 +216,21 @@
         .active-row { background: rgba(227, 30, 36, 0.2); border-left: 4px solid var(--red); }
         
         #info-box { background: #1a1a1a; border-radius: 14px; padding: 15px; border-left: 4px solid var(--red); font-size: 13px; line-height: 1.5; box-shadow: 0 6px 18px rgba(0,0,0,0.4); flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
+
+        /* MEMORIA RADIO (CODICI HCS) */
+        .codes-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 10px; background: #222; }
+        .codes-title { color: var(--red); font-size: 9.5px; text-transform: uppercase; font-weight: 800; }
+        .mini-btn { background: #333; color: #ccc; border: 1px solid #444; border-radius: 6px; font-size: 10px; padding: 4px 8px; cursor: pointer; }
+        .mini-btn:active { background: var(--red); color: #fff; }
+        #codes-table { min-width: 420px; }
+        #codes-table th { background: #1c1c1c; }
+        #codes-table td { padding: 6px 10px; font-size: 10.5px; }
+        .mono { font-family: Menlo, Consolas, monospace; }
+        .code-new { animation: rowNew 1.4s ease-out; }
+        .code-used { animation: rowUsed 1s ease-out; }
+        @keyframes rowNew { 0% { background: rgba(0, 255, 0, 0.35); } 100% { background: transparent; } }
+        @keyframes rowUsed { 0% { background: rgba(255, 235, 59, 0.3); } 100% { background: transparent; } }
+        @media (prefers-reduced-motion: reduce) { .code-new, .code-used { animation: none; } }
         
         .blink { animation: blk 1s step-end infinite; }
         .blink-fast { animation: blk 0.4s step-end infinite; }
@@ -321,6 +337,7 @@
                         <div class="remote-case remote-new">
                             <div class="remote-title">TX NEW</div>
                             <div id="remLedNew" class="remote-led"></div>
+                            <div id="txNewSn" class="remote-sn">SN -------</div>
                             <div class="remote-logo"><img src="D-Plus_Logo.svg" alt="D-Plus" onerror="this.style.display='none';"></div>
                             <div class="remote-btn-group">
                                 <button id="btnNew1" class="btn btn-rem" style="background:#2b2b2b;">1</button>
@@ -333,7 +350,9 @@
                     
                     <div class="quick-help">
                         <b style="color:#ccc;">D-Plus Remote Learning:</b><br>
-                        Use the PC keyboard while holding down... <b>1+4</b> (Full opening) or <b>2+4</b> (Pedestrian) on TX MASTER for 5s.<br>At the *beep*, press a button on the NEW transmitter to store it remotely.<br><br>
+                        Hold <b>1+4</b> (Full opening, 1 beep) or <b>1+2</b> (Pedestrian, 2 beeps) together on TX MASTER for 5s.<br>
+                        Then press a button on the NEW transmitter: the board stores it and confirms with 1 beep (Full) or 2 beeps (Pedestrian).
+                        The memory stays open for 5s after the last code; a long beep closes it.<br><br>
                         <b style="color:#ccc;">Keypad Access Codes:</b><br>
                         Enter <b>1234&lt;</b> for Full Opening.<br>
                         Enter <b>1235&gt;</b> for Pedestrian Opening.
@@ -370,11 +389,26 @@
             <div id="info-box">
                 <span id="info-text">Caricamento Telemetria...</span>
             </div>
+
+            <!-- MEMORIA RADIO: codici HCS memorizzati -->
+            <div class="table-wrapper">
+                <div class="codes-head">
+                    <span class="codes-title">Radio memory, HCS rolling code (<span id="codes-count">0</span>/64)</span>
+                    <span style="display:flex; gap:6px;">
+                        <button class="mini-btn" id="btnNewTx" title="Simulate a different new transmitter (new serial number)">New TX</button>
+                        <button class="mini-btn" id="btnClearCodes" title="Erase all stored transmitters">Erase all</button>
+                    </span>
+                </div>
+                <table id="codes-table">
+                    <thead><tr><th>#</th><th>Serial</th><th>Btn</th><th>Func</th><th>Counter</th><th>Last hopping</th><th>Stored</th></tr></thead>
+                    <tbody id="codes-body"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <div class="footer-info">
-        MACH1 APP SIMULATOR PRO v6.01 | DPLUS AUTOMATION
+        MACH1 APP SIMULATOR PRO v6.02 | DPLUS AUTOMATION
     </div>
 
 </div>
@@ -397,6 +431,21 @@
             osc.stop(time + 0.15); // Durata del singolo beep
             time += 0.35; // Pausa
         }
+    }
+
+    // Beep prolungato (chiusura della memoria radio)
+    function playLongBeep(duration = 1.2) {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const t = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(2400, t);
+        gain.gain.setValueAtTime(0.05, t);
+        osc.start(t);
+        osc.stop(t + duration);
     }
 
     // --- STATO DEL SISTEMA ---
@@ -478,6 +527,133 @@
           pLed = document.getElementById('photo-led'), infoText = document.getElementById('info-text'),
           boardLedFoto = document.getElementById('boardLedFoto'), boardLedStop = document.getElementById('boardLedStop');
 
+    // =====================================================================
+    // --- MEMORIA RADIO: SIMULAZIONE TELECOMANDI HCS (KEELOQ ROLLING CODE) ---
+    // Trama HCS301 simulata: 32 bit hopping cifrati (4 bit tasti, 2 bit overflow,
+    // 10 bit di discriminazione, 16 bit contatore di sincronismo) + 28 bit seriale
+    // in chiaro + 4 bit tasti. La chiave e' SOLO di simulazione.
+    // =====================================================================
+    const HCS_KEY_HI = 0x5A3C9E17, HCS_KEY_LO = 0xC0FFEE42; // chiave produttore di simulazione (non reale)
+    const MAX_CODES = 64;                                   // capienza simulata della memoria radio
+    const LEARN_WINDOW_MS = 5000;                           // memoria aperta 5 s dopo l'ultimo codice
+    const ROLLING_WINDOW = 16;                              // finestra di accettazione del contatore
+
+    let remoteCodes = [];
+    try { remoteCodes = JSON.parse(localStorage.getItem('DPlus_RemoteCodes') || '[]'); } catch(e) { remoteCodes = []; }
+    if (!Array.isArray(remoteCodes)) remoteCodes = [];
+
+    function newTxIdentity() {
+        return { serial: Math.floor(Math.random() * 0x0FFFFFFE) + 1, counter: Math.floor(Math.random() * 500) };
+    }
+    let txNew = null;
+    try { txNew = JSON.parse(localStorage.getItem('DPlus_TxNew') || 'null'); } catch(e) { txNew = null; }
+    if (!txNew || typeof txNew.serial !== 'number') txNew = newTxIdentity();
+
+    let learnWindowTimer = null, learnFromMenu = false, masterCmdTimer = null;
+
+    function saveTx() { localStorage.setItem('DPlus_TxNew', JSON.stringify(txNew)); }
+    function saveCodes() { localStorage.setItem('DPlus_RemoteCodes', JSON.stringify(remoteCodes)); }
+    function hex(v, n) { return (v >>> 0).toString(16).toUpperCase().padStart(n, '0'); }
+    function updateTxSn() { document.getElementById('txNewSn').innerText = 'SN ' + hex(txNew.serial, 7); }
+
+    // Cifratura KeeLoq (528 round, NLF 0x3A5C742E)
+    function keeloqEncrypt(data, keyHi, keyLo) {
+        const NLF = 0x3A5C742E;
+        let x = data >>> 0;
+        for (let r = 0; r < 528; r++) {
+            const kb = r % 64;
+            const keyBit = kb < 32 ? (keyLo >>> kb) & 1 : (keyHi >>> (kb - 32)) & 1;
+            const idx = (((x >>> 31) & 1) << 4) | (((x >>> 26) & 1) << 3) | (((x >>> 20) & 1) << 2) | (((x >>> 9) & 1) << 1) | ((x >>> 1) & 1);
+            const nb = ((NLF >>> idx) & 1) ^ ((x >>> 16) & 1) ^ (x & 1) ^ keyBit;
+            x = ((x >>> 1) | (nb << 31)) >>> 0;
+        }
+        return x >>> 0;
+    }
+
+    // Il TX NEW trasmette: il contatore avanza ad ogni pressione
+    function hcsTransmit(btn) {
+        txNew.counter = (txNew.counter + 1) & 0xFFFF;
+        saveTx();
+        const btnBits = (1 << (btn - 1)) & 0xF;
+        const disc = txNew.serial & 0x3FF;
+        const plain = ((btnBits << 28) | (disc << 16) | txNew.counter) >>> 0;
+        return { serial: txNew.serial, btn: btn, counter: txNew.counter, hopping: keeloqEncrypt(plain, HCS_KEY_HI, HCS_KEY_LO) };
+    }
+
+    function renderCodes(hl = -1, cls = '') {
+        const tb = document.getElementById('codes-body');
+        document.getElementById('codes-count').innerText = remoteCodes.length;
+        if (!remoteCodes.length) {
+            tb.innerHTML = '<tr><td colspan="7" style="color:#666; text-align:center;">No transmitters stored. Hold 1+4 or 1+2 on TX MASTER to open the memory.</td></tr>';
+            return;
+        }
+        tb.innerHTML = remoteCodes.map((c, i) =>
+            `<tr class="${i === hl ? cls : ''}"><td>${String(i + 1).padStart(2, '0')}</td>` +
+            `<td class="mono">${hex(c.serial, 7)}</td><td>${c.btn}</td>` +
+            `<td style="font-weight:bold; color:${c.fn === 'At' ? '#0f0' : 'var(--lamp-yellow)'};">${c.fn === 'At' ? 'At (Full)' : 'Ap (Ped.)'}</td>` +
+            `<td class="mono">${c.counter}</td><td class="mono">${hex(c.hopping, 8)}</td><td>${c.date}</td></tr>`
+        ).join('');
+    }
+
+    // Memorizza (o aggiorna) un codice: ritorna l'indice, oppure -1 se la memoria e' piena
+    function storeCode(tx, fn) {
+        const d = new Date();
+        const entry = { serial: tx.serial, btn: tx.btn, fn: fn, counter: tx.counter, hopping: tx.hopping,
+                        date: d.toLocaleDateString('it-IT') + ' ' + d.toLocaleTimeString('it-IT') };
+        let idx = remoteCodes.findIndex(c => c.serial === tx.serial && c.btn === tx.btn);
+        if (idx >= 0) remoteCodes[idx] = entry;
+        else {
+            if (remoteCodes.length >= MAX_CODES) return -1;
+            remoteCodes.push(entry);
+            idx = remoteCodes.length - 1;
+        }
+        saveCodes();
+        renderCodes(idx, 'code-new');
+        return idx;
+    }
+
+    function cancellaCodici() { remoteCodes = []; saveCodes(); renderCodes(); }
+
+    // --- FINESTRA DI MEMORIZZAZIONE ---
+    function learnInfo(extra) {
+        const curL = langCodes[config.LS] || "EN";
+        const IT = curL === "IT";
+        const fnTxt = atOption === 1 ? (IT ? "Apertura totale (At)" : "Full opening (At)") : (IT ? "Apertura pedonale (Ap)" : "Pedestrian opening (Ap)");
+        infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL] || langDB["EN"]).LABELS.AT[0]}: ${fnTxt}</b><br>` +
+            (extra ? extra + '<br>' : '') +
+            `<span style="color:#ffeb3b;" class="blink">${IT ? "Memoria aperta: premi un tasto del nuovo telecomando..." : "Memory open: press a button on the new transmitter..."}</span><br>` +
+            `<small style="color:#888;">${IT ? "La memoria si chiude dopo 5 s senza nuovi codici (beep lungo)." : "Memory closes after 5 s without new codes (long beep)."}</small>`;
+    }
+
+    function apriFinestraMemoria() {
+        clearTimeout(learnWindowTimer);
+        learnWindowTimer = setTimeout(chiudiMemoria, LEARN_WINDOW_MS);
+    }
+
+    function avviaMemorizzazione(fromMenu) {
+        learnFromMenu = fromMenu;
+        clearTimeout(configTimeout);
+        mode = "AT_LEARNING";
+        disp.innerText = atOption === 1 ? "At" : "Ap";
+        disp.classList.add('blink');
+        manageRemoteLedBlink();
+        learnInfo('');
+        apriFinestraMemoria();
+    }
+
+    function chiudiMemoria() {
+        clearTimeout(learnWindowTimer); learnWindowTimer = null;
+        if (mode !== "AT_LEARNING") return;
+        playLongBeep(); // BEEP PROLUNGATO: CHIUSURA MEMORIA
+        clearTimeout(configTimeout);
+        if (learnFromMenu) {
+            mode = "MENU"; manageRemoteLedBlink(); updateMenu();
+        } else {
+            mode = "IDLE"; manageRemoteLedBlink();
+            disp.innerText = "--"; disp.classList.add('blink');
+        }
+    }
+
     // --- FUNZIONE PULSANTE STOP EMERGENZA ---
     document.getElementById('btnEStop').addEventListener('click', function() {
         isEmergencyStop = !isEmergencyStop;
@@ -492,6 +668,10 @@
             if (mode === "AA" || mode === "QR_PROMPT") {
                 clearTimeout(aaTimeout);
                 mode = "IDLE";
+            }
+            if (mode === "AT_LEARNING") {
+                clearTimeout(learnWindowTimer); learnWindowTimer = null;
+                mode = "IDLE"; manageRemoteLedBlink();
             }
             if (gateState !== "CLOSED" && gateState !== "OPEN" && gateState !== "STOPPED") {
                 lastDir = (gateState.includes("OPEN")) ? "OPENING" : "CLOSING";
@@ -576,6 +756,9 @@ function stopDangerMarquee() {
             updateMenu();
         } else if (mode === "AA") {
             disp.innerText = "AA";
+        } else if (mode === "AT_LEARNING") {
+            disp.innerText = atOption === 1 ? "At" : "Ap";
+            disp.classList.add('blink');
         }
     }
 }
@@ -868,6 +1051,8 @@ function stopDangerMarquee() {
     // --- GESTIONE TELECOMANDI ---
     let isRem1Pressed = false, isRem2Pressed = false, isRem4Pressed = false, remLearnTimer = null, remBlinkInterval = null;
 
+    function masterHeldCount() { return (isRem1Pressed ? 1 : 0) + (isRem2Pressed ? 1 : 0) + (isRem4Pressed ? 1 : 0); }
+
     function handleMasterPress(channel) {
         if (isEmergencyStop) return;
         
@@ -875,62 +1060,91 @@ function stopDangerMarquee() {
 
         if (mode === "EDIT_AT") {
             if (channel === 1 || channel === 2) { atOption = atOption === 1 ? 2 : 1; updateMenuAT(); } 
-            else if (channel === 3 || channel === 4) {
-                mode = "AT_LEARNING"; disp.innerText = "G0"; disp.classList.add('blink');
-                const curL = langCodes[config.LS] || "EN";
-                infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL]||langDB["EN"]).LABELS.AT[0]}</b><br><span style="color:#ffeb3b;" class="blink">${curL === "IT" ? "In attesa segnale radio..." : "Waiting for radio signal..."}</span>`;
-                resetConfigTimeout();
+            else if ((channel === 3 || channel === 4) && atOption !== 0) {
+                playBeep(atOption);
+                avviaMemorizzazione(true);
             }
             return;
         }
 
+        // Durante la memorizzazione il TX MASTER non comanda il cancello
+        if (mode === "AT_LEARNING") return;
+
         const rLed = document.getElementById((channel === 1 || channel === 3) ? 'boardLedR1' : 'boardLedR2');
         if (rLed) { rLed.classList.add('active'); setTimeout(() => rLed.classList.remove('active'), 300); }
-        if (mode !== "EDIT_AT" && mode !== "AT_LEARNING") { document.getElementById('remLed').classList.add('active'); setTimeout(() => document.getElementById('remLed').classList.remove('active'), 200); }
+        document.getElementById('remLed').classList.add('active'); setTimeout(() => document.getElementById('remLed').classList.remove('active'), 200);
         
-        triggerCommand((channel === 2 || channel === 4) ? 'AP' : 'SBS');
+        // Combinazione di tasti (1+4 / 1+2): nessun comando al cancello
+        clearTimeout(masterCmdTimer); masterCmdTimer = null;
+        if (masterHeldCount() > 1) return;
+        // Comando ritardato di 250 ms: se nel frattempo viene premuto un secondo tasto, e' una combinazione
+        masterCmdTimer = setTimeout(() => {
+            masterCmdTimer = null;
+            if (masterHeldCount() > 1 || mode === "AT_LEARNING") return;
+            triggerCommand((channel === 2 || channel === 4) ? 'AP' : 'SBS');
+        }, 250);
     }
 
-    // Gestione Ricezione Nuovo Telecomando
-    function handleNewRemotePress() {
+    // Telecomando nuovo: in memorizzazione viene memorizzato, altrimenti comanda (se presente in memoria)
+    function handleNewRemotePress(btn) {
         if (isEmergencyStop) return;
-        document.getElementById('remLedNew').classList.add('active'); 
-        setTimeout(() => document.getElementById('remLedNew').classList.remove('active'), 200);
+        const nLed = document.getElementById('remLedNew');
+        nLed.classList.add('active'); setTimeout(() => nLed.classList.remove('active'), 200);
+
+        const tx = hcsTransmit(btn);
+        const curL = langCodes[config.LS] || "EN";
+        const IT = curL === "IT";
 
         if (mode === "AT_LEARNING") {
-            playBeep(2); // 2 BEEP CONFERMA SALVATAGGIO RADIO
-            disp.innerText = "OK"; disp.classList.remove('blink'); mode = "AT_SAVING";
-            clearInterval(remBlinkInterval); document.getElementById('remLed').classList.remove('active');
-            const curL = langCodes[config.LS] || "EN";
-            infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL]||langDB["EN"]).LABELS.AT[0]}</b><br><span style="color:#0f0; font-weight:bold;">${curL === "IT" ? "Codice salvato!" : "Code saved successfully!"}</span>`;
-            setTimeout(() => { mode = "IDLE"; disp.innerText = "--"; disp.classList.add('blink'); resetConfigTimeout(); }, 1500);
+            const fn = atOption === 1 ? 'At' : 'Ap';
+            const idx = storeCode(tx, fn);
+            if (idx < 0) {
+                playBeep(3);
+                learnInfo(`<span style="color:var(--red); font-weight:bold;">${IT ? "Memoria piena (" + MAX_CODES + " codici)." : "Memory full (" + MAX_CODES + " codes)."}</span>`);
+                apriFinestraMemoria();
+                return;
+            }
+            playBeep(atOption); // 1 BEEP TOTALE / 2 BEEP PEDONALE: CODICE MEMORIZZATO
+            disp.innerText = "OK"; disp.classList.remove('blink');
+            setTimeout(() => { if (mode === "AT_LEARNING") { disp.innerText = fn; disp.classList.add('blink'); } }, 700);
+            learnInfo(`<span style="color:#0f0; font-weight:bold;">${IT ? "Codice memorizzato" : "Code stored"}: SN ${hex(tx.serial, 7)}, ${IT ? "tasto" : "button"} ${btn}</span>`);
+            apriFinestraMemoria(); // la memoria resta aperta altri 5 s
+            return;
         }
+
+        // Uso normale: verifica seriale + tasto e contatore rolling code
+        if (mode !== "IDLE") return;
+        const idx = remoteCodes.findIndex(c => c.serial === tx.serial && c.btn === btn);
+        if (idx < 0) return; // telecomando non memorizzato: la centralina ignora il segnale
+        const c = remoteCodes[idx];
+        const diff = (tx.counter - c.counter) & 0xFFFF;
+        if (diff === 0 || diff > ROLLING_WINDOW) return; // codice ripetuto o fuori finestra: ignorato
+        c.counter = tx.counter; c.hopping = tx.hopping;
+        saveCodes(); renderCodes(idx, 'code-used');
+        const rLed = document.getElementById(c.fn === 'At' ? 'boardLedR1' : 'boardLedR2');
+        if (rLed) { rLed.classList.add('active'); setTimeout(() => rLed.classList.remove('active'), 300); }
+        triggerCommand(c.fn === 'At' ? 'SBS' : 'AP');
     }
 
-    // Controllo Apprendimento a Distanza (Combo Tasti Master)
+    // Controllo Apprendimento a Distanza (Combo Tasti Master): 1+4 = Totale, 1+2 = Pedonale
     function checkRemoteLearningCombo() {
         if (isEmergencyStop) return;
-        if (mode === "IDLE" || mode === "STOPPED" || gateState === "CLOSED") {
-            if ((isRem1Pressed && isRem4Pressed) || (isRem2Pressed && isRem4Pressed)) {
-                if (!remLearnTimer) {
-                    remLearnTimer = setTimeout(() => {
-                        mode = "AT_LEARNING"; 
-                        atOption = (isRem1Pressed && isRem4Pressed) ? 1 : 2; 
-                        
-                        playBeep(atOption); // BEEP OPZIONE RADIO SELEZIONATA
-
-                        disp.innerText = "G0"; disp.classList.add('blink');
-                        manageRemoteLedBlink(); 
-                        
-                        const curL = langCodes[config.LS] || "EN";
-                        infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL]||langDB["EN"]).LABELS.AT[0]}</b><br><span style="color:#ffeb3b;" class="blink">${curL === "IT" ? "Remote Learning: In attesa nuovo radio..." : "Remote Learning: Waiting for new radio..."}</span>`;
-                        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-                    }, 5000);
-                }
-            } else {
-                clearTimeout(remLearnTimer);
-                remLearnTimer = null;
+        const comboTot = isRem1Pressed && isRem4Pressed;
+        const comboPed = isRem1Pressed && isRem2Pressed;
+        if (mode === "IDLE" && (comboTot || comboPed)) {
+            if (!remLearnTimer) {
+                remLearnTimer = setTimeout(() => {
+                    remLearnTimer = null;
+                    if (mode !== "IDLE" || isEmergencyStop) return;
+                    atOption = (isRem1Pressed && isRem4Pressed) ? 1 : 2;
+                    playBeep(atOption); // 1 BEEP (1+4, TOTALE) / 2 BEEP (1+2, PEDONALE)
+                    avviaMemorizzazione(false);
+                    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                }, 5000);
             }
+        } else {
+            clearTimeout(remLearnTimer);
+            remLearnTimer = null;
         }
     }
 
@@ -971,7 +1185,7 @@ function stopDangerMarquee() {
         // Aggiorniamo anche il testo descrittivo
         let optText = atOption === 1 ? (curL === "IT" ? "At (Totale)" : "At (Total)") : 
                      (atOption === 2 ? (curL === "IT" ? "Ap (Pedonale)" : "Ap (Pedestrian)") : 
-                                       (curL === "IT" ? "CC (Cancella)" : "CC (Erase)"));
+                                       (curL === "IT" ? "CC (Cancella tutti i telecomandi)" : "CC (Erase all transmitters)"));
                                        
         infoText.innerHTML = `<b style="color:var(--red);">${atLabel}</b><br>Option: <b>${optText}</b><br><br><small style="color:#888;">Tap B to change.<br>Tap A to confirm.</small>`;
         resetConfigTimeout();
@@ -998,6 +1212,7 @@ function stopDangerMarquee() {
         isPedestrian = false; isReducedSpeed = false; excludeAutoClose = false; isSafetyReversing = false;
         localStorage.removeItem('DPlus_GateLength'); localStorage.removeItem('DPlus_TotalRevolutions');
         localStorage.removeItem('DPlus_TempoMoltiplicato'); localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config));
+        cancellaCodici(); // il reset cancella anche la memoria radio
         applyMotorDirection();
         setTimeout(() => { 
             mode = "QR_PROMPT"; promptQRState = "??"; disp.innerText = "??"; disp.classList.add('blink'); refreshTable();
@@ -1011,7 +1226,7 @@ function stopDangerMarquee() {
 
     function resetConfigTimeout() {
         clearTimeout(configTimeout);
-        if (["MENU", "EDIT", "EDIT_AT", "AT_LEARNING"].includes(mode)) { configTimeout = setTimeout(save, 60000); }
+        if (["MENU", "EDIT", "EDIT_AT"].includes(mode)) { configTimeout = setTimeout(save, 60000); }
     }
 
     function checkCombo() {
@@ -1061,10 +1276,17 @@ function stopDangerMarquee() {
             }
         }
         else if (mode === "EDIT_AT") {
-            mode = "AT_LEARNING"; disp.innerText = "G0"; disp.classList.add('blink'); const curL = langCodes[config.LS] || "EN";
-            infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL]||langDB["EN"]).LABELS.AT[0]}</b><br><span style="color:#ffeb3b;" class="blink">${curL === "IT" ? "In attesa segnale radio..." : "Waiting for radio signal..."}</span>`;
-            resetConfigTimeout();
-        } else if (mode === "AT_LEARNING") { mode = "MENU"; updateMenu(); }
+            if (atOption === 0) {
+                // CC: cancellazione di tutti i telecomandi memorizzati
+                cancellaCodici();
+                playBeep(3);
+                disp.innerText = "OK"; disp.classList.remove('blink');
+                setTimeout(() => { if (mode === "EDIT_AT") { mode = "MENU"; manageRemoteLedBlink(); updateMenu(); } }, 1000);
+            } else {
+                playBeep(atOption);
+                avviaMemorizzazione(true);
+            }
+        } else if (mode === "AT_LEARNING") { chiudiMemoria(); }
         else if (mode === "QR_PROMPT") {
             if (promptQRState === "??") return; 
             clearTimeout(configTimeout); localStorage.setItem('DPlus_Mach_App_Config', JSON.stringify(config)); 
@@ -1107,11 +1329,18 @@ function stopDangerMarquee() {
     setupBtnEvents('btnRem3', () => { document.getElementById('btnRem3').classList.add('btn-active'); handleMasterPress(3); }, () => document.getElementById('btnRem3').classList.remove('btn-active'));
     setupBtnEvents('btnRem4', () => { document.getElementById('btnRem4').classList.add('btn-active'); isRem4Pressed = true; checkRemoteLearningCombo(); handleMasterPress(4); }, () => { document.getElementById('btnRem4').classList.remove('btn-active'); isRem4Pressed = false; checkRemoteLearningCombo(); });
 
-    // Binding New Remote (Click on UI)
-    setupBtnEvents('btnNew1', () => { document.getElementById('btnNew1').classList.add('btn-active'); handleNewRemotePress(); }, () => document.getElementById('btnNew1').classList.remove('btn-active'));
-    setupBtnEvents('btnNew2', () => { document.getElementById('btnNew2').classList.add('btn-active'); handleNewRemotePress(); }, () => document.getElementById('btnNew2').classList.remove('btn-active'));
-    setupBtnEvents('btnNew3', () => { document.getElementById('btnNew3').classList.add('btn-active'); handleNewRemotePress(); }, () => document.getElementById('btnNew3').classList.remove('btn-active'));
-    setupBtnEvents('btnNew4', () => { document.getElementById('btnNew4').classList.add('btn-active'); handleNewRemotePress(); }, () => document.getElementById('btnNew4').classList.remove('btn-active'));
+    // Binding New Remote (Click on UI): ogni tasto trasmette il proprio codice HCS
+    [1, 2, 3, 4].forEach(n => {
+        setupBtnEvents('btnNew' + n, () => { document.getElementById('btnNew' + n).classList.add('btn-active'); handleNewRemotePress(n); }, () => document.getElementById('btnNew' + n).classList.remove('btn-active'));
+    });
+
+    // Pulsanti della tabella memoria radio
+    document.getElementById('btnNewTx').addEventListener('click', () => { txNew = newTxIdentity(); saveTx(); updateTxSn(); });
+    document.getElementById('btnClearCodes').addEventListener('click', () => {
+        const curL = langCodes[config.LS] || "EN";
+        if (!remoteCodes.length) return;
+        if (confirm(curL === 'IT' ? 'Cancellare tutti i telecomandi memorizzati?' : 'Erase all stored transmitters?')) { cancellaCodici(); playBeep(3); }
+    });
 
     // --- GESTIONE TASTIERINO NUMERICO ---
     let keypadBuffer = "";
@@ -1150,6 +1379,7 @@ function stopDangerMarquee() {
     });
     
     window.addEventListener('keydown', e => { 
+        if (e.repeat) return;
         if(e.key.toLowerCase()==='a') pressA(); 
         if(e.key.toLowerCase()==='b') pressB(); 
         if(e.key==='1' && !isRem1Pressed) { isRem1Pressed = true; document.getElementById('btnRem1').classList.add('btn-active'); checkRemoteLearningCombo(); handleMasterPress(1); }
@@ -1166,7 +1396,7 @@ function stopDangerMarquee() {
         if(e.key==='4') { isRem4Pressed = false; document.getElementById('btnRem4').classList.remove('btn-active'); checkRemoteLearningCombo(); }
     });
 
-    window.onload = refreshTable;
+    window.onload = () => { refreshTable(); updateTxSn(); renderCodes(); };
 </script>
 </body>
 </html>
