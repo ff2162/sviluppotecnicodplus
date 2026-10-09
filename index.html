@@ -411,7 +411,7 @@
     </div>
 
     <div class="footer-info">
-        MACH1 APP SIMULATOR PRO v6.04 | DPLUS AUTOMATION
+        MACH1 APP SIMULATOR PRO v6.05 | DPLUS AUTOMATION
     </div>
 
 </div>
@@ -473,12 +473,14 @@
 
     // AT non fa piu' parte del menu: si richiama con pressione lunga del tasto A
     const menuKeys = ['LS', 'QR', 'DM', 'VM', 'VR', 'SR', 'SO', 'CA', 'FC', 'AP', 'LF', 'LM', 'ST', 'SW', 'RS'];
-    const maxVals = { LS: 3, QR: 2, DM: 1, VM: 4, VR: 4, SR: 3, SO: 4, CA: 4, FC: 1, AP: 2, LF: 3, LM: 3, ST: 2, SW: 1, RS: 1 };
+    const maxVals = { LS: 3, QR: 2, DM: 1, VM: 4, VR: 1, SR: 3, SO: 4, CA: 4, FC: 1, AP: 1, LF: 3, LM: 3, ST: 2, SW: 1, RS: 1 };
     const langCodes = ["IT", "EN", "ES", "FR"];
 
-    let config = { LS: 0, QR: 0, DM: 0, AT: 0, VM: 1, VR: 1, SR: 1, SO: 1, CA: 0, FC: 0, AP: 1, LF: 3, LM: 3, ST: 1, SW: 0, RS: 0 };
+    let config = { LS: 0, QR: 0, DM: 0, AT: 0, VM: 2, VR: 1, SR: 1, SO: 1, CA: 0, FC: 0, AP: 1, LF: 3, LM: 3, ST: 1, SW: 0, RS: 0 };
     const saved = localStorage.getItem('DPlus_Mach_App_Config');
     if (saved) { try { config = Object.assign(config, JSON.parse(saved)); } catch(e){} }
+    // Valori salvati da versioni precedenti fuori dai nuovi limiti: riportati al massimo ammesso
+    Object.keys(maxVals).forEach(k => { if (!(config[k] >= 0 && config[k] <= maxVals[k])) config[k] = maxVals[k]; });
 
     const langDB = {
         IT: {
@@ -491,13 +493,13 @@
                 QR: ["Product Code", "Seleziona il modello: AZ:400Kg | FF:600Kg | SD:1000Kg"],
                 DM: ["Motor Direction", "00: SX Left | 01: DX Right. In Auto-Learning usa 'A' per invertire."],
                 AT: ["Remote Learning", "Premi B per scegliere: 00 cancella tutti i codici | 01 apertura totale | 02 apertura pedonale | 09 cancella un codice. A per confermare."],
-                VM: ["Motor Speed", "00: Minimum | 01-03: Intermediates | 04: Maximum"],
-                VR: ["Slow Speed", "Deceleration Speed, 00: Minimum | 01-03: Intermediates | 04: Maximum (50% di VM)"],
+                VM: ["Velocità motore", "00: 10 m/min | 01: 12 m/min | 02: 14 m/min | 03: 16,5 m/min | 04: 19 m/min"],
+                VR: ["Velocità rallentamento", "00: 50% di VM | 01: 75% di VM"],
                 SR: ["Slowdown space", "Deceleration Zone, 00: 4% | 01: 6% | 02: 8% | 03: 10%"],
                 SO: ["Obstacle Sensitivity", "00: Off | 01-03: Intermediates | 04: Maximum"],
                 CA: ["Auto Close", "Automatic Close, 00: Off | 01: 3s | 02: 7s | 03: 10s | 04: 15s"],
                 FC: ["Condo Mode", "Condominium Mode, NO: Deactivated | SI: Activated"],
-                AP: ["Pedestrian Open", "00: 20% | 01: 30% | 02: 40% of the full opening"],
+                AP: ["Apertura pedonale", "00: 4 s di apertura | 01: 6 s di apertura"],
                 LF: ["Flasher Mode", "00: Pre-Lamp Fix | 01: Pre-Lamp Int. | 02: Fix | 03: Intermittent"],
                 LM: ["LEDCover Mode", "00: Always ON | 01: ON during running | 02: Flashing | 03: Breath"],
                 ST: ["STOP Pin Config", "00: N.O | 01: N.C | 02: 8k2"],
@@ -515,13 +517,13 @@
                 QR: ["Product Code", "Select the model: AZ:400Kg | FF:600Kg | SD:1000Kg"],
                 DM: ["Motor Direction", "00: SX Left | 01: DX Right. In Auto-Learning use 'A' to invert."],
                 AT: ["Remote Learning", "Press B to choose: 00 erase all codes | 01 full opening | 02 pedestrian opening | 09 erase one code. A to confirm."],
-                VM: ["Motor Speed", "00: Minimum | 01-03: Intermediates | 04: Maximum"],
-                VR: ["Slow Speed", "Deceleration Speed, 00: Minimum | 01-03: Intermediates | 04: Maximum (50% di VM)"],
+                VM: ["Motor Speed", "00: 10 m/min | 01: 12 m/min | 02: 14 m/min | 03: 16.5 m/min | 04: 19 m/min"],
+                VR: ["Slow Speed", "00: 50% of VM | 01: 75% of VM"],
                 SR: ["Slowdown space", "Deceleration Zone, 00: 4% | 01: 6% | 02: 8% | 03: 10%"],
                 SO: ["Obstacle Sensitivity", "00: Off | 01-03: Intermediates | 04: Maximum"],
                 CA: ["Auto Close", "Automatic Close, 00: Off | 01: 3s | 02: 7s | 03: 10s | 04: 15s"],
                 FC: ["Condo Mode", "Condominium Mode, NO: Deactivated | SI: Activated"],
-                AP: ["Pedestrian Open", "00: 20% | 01: 30% | 02: 40% of the full opening"],
+                AP: ["Pedestrian Open", "00: 4 s of opening | 01: 6 s of opening"],
                 LF: ["Flasher Mode", "00: Pre-Lamp Fix | 01: Pre-Lamp Int. | 02: Fix | 03: Intermittent"],
                 LM: ["LEDCover Mode", "00: Always ON | 01: ON during running | 02: Flashing | 03: Breath"],
                 ST: ["STOP Pin Config", "00: N.O | 01: N.C | 02: 8k2"],
@@ -918,7 +920,7 @@ function stopDangerMarquee() {
         const posPct = Math.round(leafPos * 100);
         const safeVM = isNaN(parseInt(config.VM)) ? 1 : parseInt(config.VM);
         const safeVR = isNaN(parseInt(config.VR)) ? 1 : parseInt(config.VR);
-        const powerPct = (gateState === "OPENING" || gateState === "CLOSING") ? (isSlow || isReducedSpeed ? 30 + safeVR * 8 : 55 + safeVM * 10) : 0;
+        const powerPct = (gateState === "OPENING" || gateState === "CLOSING") ? (isSlow || isReducedSpeed ? 35 + safeVR * 15 : 55 + safeVM * 10) : 0;
         const lenStr = gateLength > 0 ? `${gateLength.toFixed(2)} m` : (curL === "IT" ? "Non appresa" : "Not learned");
         const revStr = totalRevolutions > 0 ? `${totalRevolutions.toFixed(1)} giri` : (curL === "IT" ? "Non calcolati" : "Not computed");
         const tMoltStr = tempoMoltiplicato > 0 ? `${tempoMoltiplicato.toFixed(1)} s` : (curL === "IT" ? "Non calcolato" : "Not computed");
@@ -931,14 +933,21 @@ function stopDangerMarquee() {
                 <div><b>Motor speed:</b></div><div>${(currentSpeed * 60).toFixed(1)} m/min</div>
                 <div><b>Power Delivered:</b></div><div>${powerPct}%</div>
                 <div style="grid-column: span 2; margin-top: 5px; border-top: 1px solid #333; padding-top: 4px; color: #ffeb3b; font-weight: bold; font-size: 11.5px;">Mechanical stroke mapping:</div>
-                <div><b>Measured Time:</b></div><div>${(mode === "AA" && aaPhase === 2) ? measuredTime.toFixed(1) + ' s' : (gateLength > 0 ? (gateLength / 0.2).toFixed(1) + ' s' : '---')}</div>
+                <div><b>Measured Time:</b></div><div>${(mode === "AA" && aaPhase === 2) ? measuredTime.toFixed(1) + ' s' : (tempoMoltiplicato > 0 ? (tempoMoltiplicato / 2).toFixed(1) + ' s' : '---')}</div>
                 <div><b>Time x2 (Set):</b></div><div>${tMoltStr}</div>
                 <div><b>Pinion Rotation:</b></div><div>${revStr}</div>
                 <div><b>Gate Length:</b></div><div style="color:#0f0; font-weight:bold;">${lenStr}</div>
             </div>`;
     }
 
-    const baseSpeedList = [0.15, 0.20, 0.25, 0.29, 0.34], slowSpeedList = [0.05, 0.07, 0.09, 0.11, 0.13];
+    // --- MODELLO FISICO: cancello da 4 m, velocita' reali del motore ---
+    const GATE_LENGTH_M = 4.0;                    // corsa del cancello simulato (m)
+    const VM_MPM = [10, 12, 14, 16.5, 19];        // VM 00-04 in m/min (media 14, min 10, max 19)
+    const VR_PCT = [0.50, 0.75];                  // VR 00: 50% di VM | 01: 75% di VM
+    const AP_SEC = [4, 6];                        // AP 00: 4 s | 01: 6 s di apertura pedonale
+    function vmSpeed() { return VM_MPM[config.VM] / 60; }                 // m/s nominale
+    function vrSpeed() { return vmSpeed() * VR_PCT[config.VR]; }          // m/s rallentamento
+    function pedTarget() { return Math.min(1, AP_SEC[config.AP] * vmSpeed() / GATE_LENGTH_M); } // frazione di corsa
 
     function physics(timestamp) {
         if (!lastTime) lastTime = timestamp;
@@ -950,14 +959,12 @@ function stopDangerMarquee() {
         document.getElementById('boardLedFCC').classList.toggle('active', leafPos <= 0.01);
 
         let speed = 0.0, slowActive = false;
-        const currentVM = isNaN(parseInt(config.VM)) ? 1 : parseInt(config.VM);
-        const currentVR = isNaN(parseInt(config.VR)) ? 1 : parseInt(config.VR);
 
         if (gateState === "OPENING" || gateState === "CLOSING") {
             if (mode === "AA") {
-                slowActive = true; speed = baseSpeedList[currentVM] / 2.0; 
+                slowActive = true; speed = vmSpeed() / 2.0; 
                 if (aaPhase === 1) {
-                    leafPos += (speed / 4.0) * dt; 
+                    leafPos += (speed / GATE_LENGTH_M) * dt; 
                     if (leafPos >= 1.0) {
                         leafPos = 1.0; gateState = "STOPPED"; toggleFlash(false);
                         disp.innerText = "A1"; aaPhase = 1.5; 
@@ -965,12 +972,12 @@ function stopDangerMarquee() {
                     }
                 } 
                 else if (aaPhase === 2) {
-                    leafPos -= (speed / 4.0) * dt; measuredTime += dt;
+                    leafPos -= (speed / GATE_LENGTH_M) * dt; measuredTime += dt;
                     disp.innerText = Math.floor(measuredTime).toString().padStart(2, '0');
                     if (leafPos <= 0) {
                         leafPos = 0; gateState = "CLOSED"; toggleFlash(false);
                         playBeep(2); // 2 BEEP ALLA FINE DELL'APPRENDIMENTO
-                        let realSpeedUsed = baseSpeedList[currentVM] / 2.0;
+                        let realSpeedUsed = vmSpeed() / 2.0;
                         gateLength = measuredTime * realSpeedUsed; 
                         totalRevolutions = gateLength / 0.2; tempoMoltiplicato = measuredTime * 2; 
                         localStorage.setItem('DPlus_GateLength', gateLength);
@@ -982,18 +989,18 @@ function stopDangerMarquee() {
                 }
             } 
             else {
-                const target = isPedestrian ? [0.2, 0.3, 0.4][config.AP] : 1.0;
+                const target = isPedestrian ? pedTarget() : 1.0;
                 if (gateLength > 0) { slowActive = (gateState === "OPENING" && leafPos > target * 0.85) || (gateState === "CLOSING" && leafPos < 0.15); } 
                 else { const srP = [0.04, 0.06, 0.08, 0.10][config.SR]; slowActive = (gateState === "OPENING" && leafPos > target - srP) || (gateState === "CLOSING" && leafPos < srP); }
                 
-                let physSpeed = slowActive ? slowSpeedList[currentVR] : baseSpeedList[currentVM];
-                if (isReducedSpeed && gateState === "OPENING") physSpeed = slowSpeedList[currentVR];
+                let physSpeed = slowActive ? vrSpeed() : vmSpeed();
+                if (isReducedSpeed && gateState === "OPENING") physSpeed = vrSpeed();
                 speed = physSpeed;
                 
                 if (gateState === "OPENING") {
                     if (!isPhotoAligned && !isReducedSpeed && !isSafetyReversing) { lastDir = "OPENING"; gateState = "STOPPED"; endMove(); } 
                     else {
-                        leafPos += (speed / 4.0) * dt;
+                        leafPos += (speed / GATE_LENGTH_M) * dt;
                         if (isSafetyReversing) {
                             safetyReversalTimer -= dt;
                             if (safetyReversalTimer <= 0) { isSafetyReversing = false; isReducedSpeed = false; lastDir = "CLOSING"; gateState = "STOPPED"; endMove(); }
@@ -1005,7 +1012,7 @@ function stopDangerMarquee() {
                     if (!isPhotoAligned) {
                         clearTimeout(preFlashTimeout); preFlashTimeout = null; lastDir = "CLOSING"; isReducedSpeed = true; excludeAutoClose = true; isSafetyReversing = true; safetyReversalTimer = 3.0; runGate("OPENING", isPedestrian);
                     } else {
-                        leafPos -= (speed / 4.0) * dt;
+                        leafPos -= (speed / GATE_LENGTH_M) * dt;
                         if (leafPos <= 0) { leafPos = 0; gateState = "CLOSED"; isReducedSpeed = false; endMove(); }
                     }
                 }
@@ -1278,7 +1285,7 @@ function stopDangerMarquee() {
     function executeFactoryReset() {
         clearTimeout(configTimeout); mode = "SAVING"; disp.innerText = "RS"; disp.classList.remove('blink');
         playBeep(2); // 2 BEEP RESET DI FABBRICA OK
-        config = { LS: 0, QR: 0, DM: 0, AT: 0, VM: 1, VR: 1, SR: 1, SO: 1, CA: 0, FC: 0, AP: 1, LF: 3, LM: 3, ST: 1, SW: 0, RS: 0 };
+        config = { LS: 0, QR: 0, DM: 0, AT: 0, VM: 2, VR: 1, SR: 1, SO: 1, CA: 0, FC: 0, AP: 1, LF: 3, LM: 3, ST: 1, SW: 0, RS: 0 };
         gateLength = 0.0; totalRevolutions = 0.0; tempoMoltiplicato = 0.0; leafPos = 0.0; gateState = "CLOSED"; lastDir = "CLOSING";
         isPedestrian = false; isReducedSpeed = false; excludeAutoClose = false; isSafetyReversing = false;
         localStorage.removeItem('DPlus_GateLength'); localStorage.removeItem('DPlus_TotalRevolutions');
