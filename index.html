@@ -144,6 +144,7 @@
             border: 2px solid #111; color: #ccc; font-weight: bold; font-size: 20px; 
             display: flex; justify-content: center; align-items: center; 
             box-shadow: 0 4px 0 #000; outline: none; transition: all 0.08s ease; cursor: pointer; flex-shrink: 0;
+            touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
         }
         .btn:active, .btn-active { transform: translateY(3px); box-shadow: 0 1px 0 #000; background: var(--red) !important; color: #fff !important; }
 
@@ -236,6 +237,12 @@
         .blink-fast { animation: blk 0.4s step-end infinite; }
         @keyframes blk { 50% { opacity: 0; } }
 
+        .at-opts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 8px 0 6px 0; }
+        .at-opt { background: #111; border: 1px solid #333; border-radius: 6px; padding: 6px 4px; text-align: center; font-size: 10px; color: #888; line-height: 1.25; }
+        .at-opt b { display: block; font-size: 15px; color: #aaa; font-family: Menlo, Consolas, monospace; }
+        .at-opt.sel { border-color: var(--red); background: rgba(227,30,36,0.18); color: #fff; }
+        .at-opt.sel b { color: #ff3333; }
+
         .footer-info { width: 100%; text-align: center; font-size: 10px; color: #555; padding-top: 10px; border-top: 1px solid #222; margin-top: auto; }
     </style>
 </head>
@@ -244,7 +251,7 @@
 <div class="app-container">
     
     <div class="header-bar">
-        <img src="D-Plus_Logo.svg" alt="D-Plus Automation" class="logo-main" onerror="this.src='https://placehold.co/180x40/111/e31e24?text=D-PLUS+LOGO'">
+        <img src="D-Plus_Logo.svg" alt="D-Plus Automation" class="logo-main" onerror="this.onerror=null; this.src='https://placehold.co/180x40/111/e31e24?text=D-PLUS+LOGO'">
         <div class="app-subtitle">MACH1 ENGINE<br>PRO 5.5 CALIBRATION CONTEXT</div>
     </div>
 
@@ -411,7 +418,7 @@
     </div>
 
     <div class="footer-info">
-        MACH1 APP SIMULATOR PRO v6.05 | DPLUS AUTOMATION
+        MACH1 APP SIMULATOR PRO v6.07 | DPLUS AUTOMATION
     </div>
 
 </div>
@@ -455,6 +462,7 @@
     const HOLD_MENU_MS = 5000; // A+B premuti insieme: ingresso/uscita menu
     const HOLD_AT_MS   = 5000; // A premuto da solo: Remote Learning (AT)
     const HOLD_AA_MS   = 5000; // B premuto da solo: autoapprendimento corsa
+    const AT_IDLE_MS   = 5000; // funzione AT: uscita dopo 5 s di inattivita'
 
     // --- STATO DEL SISTEMA ---
     let mode = "IDLE", gateState = "CLOSED", lastDir = "CLOSING", leafPos = 0.0, isPedestrian = false;
@@ -563,7 +571,7 @@
     let learnWindowTimer = null, learnFromMenu = false, masterCmdTimer = null;
     const AT_OPTS = [0, 1, 2, 9];   // 00 cancella tutti, 01 totale, 02 pedonale, 09 cancella un codice
     function nextAtOption() { atOption = AT_OPTS[(AT_OPTS.indexOf(atOption) + 1) % AT_OPTS.length]; }
-    function learnLabel() { return atOption === 1 ? "At" : (atOption === 2 ? "Ap" : "09"); }
+    function learnLabel() { return "GO"; } // display durante la memoria aperta (opzione confermata)
 
     function saveTx() { localStorage.setItem('DPlus_TxNew', JSON.stringify(txNew)); }
     function saveCodes() { localStorage.setItem('DPlus_RemoteCodes', JSON.stringify(remoteCodes)); }
@@ -668,7 +676,8 @@
         if (navigator.vibrate) navigator.vibrate(100);
     }
 
-    function esciAT() {
+    function esciAT(longBeep) {
+        if (longBeep === true) playLongBeep(); // BEEP PROLUNGATO: USCITA DALLA FUNZIONE AT
         clearTimeout(configTimeout);
         mode = "IDLE"; manageRemoteLedBlink();
         disp.innerText = "--"; disp.classList.add('blink');
@@ -682,8 +691,8 @@
             playBeep(3);
             clearTimeout(configTimeout);
             mode = "SAVING"; manageRemoteLedBlink();
-            disp.innerText = "OK"; disp.classList.remove('blink');
-            setTimeout(() => { if (mode === "SAVING") esciAT(); }, 1000);
+            disp.innerText = "GO"; disp.classList.add('blink');
+            setTimeout(() => { if (mode === "SAVING") esciAT(true); }, AT_IDLE_MS); // uscita dopo 5 s
         } else {
             // 09: cancella un codice | 01: memorizza totale | 02: memorizza pedonale
             playBeep(atOption === 9 ? 1 : atOption);
@@ -1181,7 +1190,7 @@ function stopDangerMarquee() {
             }
             playBeep(atOption); // 1 BEEP TOTALE / 2 BEEP PEDONALE: CODICE MEMORIZZATO
             disp.innerText = "OK"; disp.classList.remove('blink');
-            setTimeout(() => { if (mode === "AT_LEARNING") { disp.innerText = fn; disp.classList.add('blink'); } }, 700);
+            setTimeout(() => { if (mode === "AT_LEARNING") { disp.innerText = learnLabel(); disp.classList.add('blink'); } }, 700);
             learnInfo(`<span style="color:#0f0; font-weight:bold;">${IT ? "Codice memorizzato" : "Code stored"}: SN ${hex(tx.serial, 7)}, ${IT ? "tasto" : "button"} ${btn}</span>`);
             apriFinestraMemoria(); // la memoria resta aperta altri 5 s
             return;
@@ -1258,14 +1267,16 @@ function stopDangerMarquee() {
         const curL = langCodes[config.LS] || "EN"; 
         const atLabel = (langDB[curL] || langDB["EN"]).LABELS.AT[0];
         
-        // Aggiorniamo anche il testo descrittivo
+        // Tutte le opzioni AT visibili, con quella selezionata evidenziata
         const IT = curL === "IT";
-        let optText = atOption === 1 ? (IT ? "01 - Memorizza apertura totale" : "01 - Store full opening") :
-                      atOption === 2 ? (IT ? "02 - Memorizza apertura pedonale" : "02 - Store pedestrian opening") :
-                      atOption === 0 ? (IT ? "00 - Cancella tutti i codici" : "00 - Erase all codes") :
-                                       (IT ? "09 - Cancella un codice" : "09 - Erase one code");
-                                       
-        infoText.innerHTML = `<b style="color:var(--red);">${atLabel}</b><br>${IT ? "Opzione" : "Option"}: <b>${optText}</b><br><br><small style="color:#888;">${IT ? "Tocca B per cambiare.<br>Tocca A per confermare." : "Tap B to change.<br>Tap A to confirm."}</small>`;
+        const opts = [
+            [1, IT ? "Totale" : "Full"],
+            [2, IT ? "Pedonale" : "Pedestrian"],
+            [9, IT ? "Cancella 1 codice" : "Erase 1 code"],
+            [0, IT ? "Cancella tutti" : "Erase all"]
+        ];
+        const grid = opts.map(([v, t]) => `<div class="at-opt${v === atOption ? ' sel' : ''}"><b>${String(v).padStart(2, '0')}</b>${t}</div>`).join('');
+        infoText.innerHTML = `<b style="color:var(--red);">${atLabel}</b><div class="at-opts">${grid}</div><small style="color:#888;">${IT ? "B: opzione successiva | A: conferma" : "B: next option | A: confirm"}</small>`;
         resetConfigTimeout();
     }
 
@@ -1305,7 +1316,7 @@ function stopDangerMarquee() {
     function resetConfigTimeout() {
         clearTimeout(configTimeout);
         if (mode === "MENU" || mode === "EDIT") { configTimeout = setTimeout(save, 60000); }
-        else if (mode === "EDIT_AT") { configTimeout = setTimeout(esciAT, 60000); } // uscita automatica dalla funzione AT
+        else if (mode === "EDIT_AT") { configTimeout = setTimeout(() => esciAT(true), AT_IDLE_MS); } // 5 s senza tasti: uscita da AT
     }
 
     function checkCombo() {
@@ -1471,7 +1482,8 @@ function stopDangerMarquee() {
         if(e.key==='4') { isRem4Pressed = false; document.getElementById('btnRem4').classList.remove('btn-active'); checkRemoteLearningCombo(); }
     });
 
-    window.onload = () => { refreshTable(); updateTxSn(); renderCodes(); };
+    document.addEventListener('contextmenu', e => e.preventDefault()); // la pressione lunga non apre il menu del browser
+    refreshTable(); updateTxSn(); renderCodes(); // inizializzazione subito, senza attendere font e immagini
 </script>
 </body>
 </html>
