@@ -349,6 +349,10 @@
                     </div>
                     
                     <div class="quick-help">
+                        <b style="color:#ccc;">Board Keys A / B:</b><br>
+                        Hold <b>A+B</b> together for 5s: parameters menu (A+B again for 5s to save).<br>
+                        Hold <b>A</b> for 5s: Remote Learning (AT). B to choose 00 / 01 / 02 / 09, A to confirm.<br>
+                        Hold <b>B</b> for 5s: stroke Auto-Learning (QR product code, then AA).<br><br>
                         <b style="color:#ccc;">D-Plus Remote Learning:</b><br>
                         Hold <b>1+2</b> (Full opening, 1 beep) or <b>1+4</b> (Pedestrian, 2 beeps) together on TX MASTER for 5s.<br>
                         Then press a button on the NEW transmitter: the board stores it and confirms with 1 beep (Full) or 2 beeps (Pedestrian).
@@ -369,7 +373,6 @@
                         <tr id="r-LS"><td>LS</td><td class="td-desc" id="lbl-LS">System Language</td><td id="v-LS" style="text-align:right; font-weight:bold;">00</td></tr>
                         <tr id="r-QR"><td>QR</td><td class="td-desc" id="lbl-QR">Product Code</td><td id="v-QR" style="text-align:right; font-weight:bold; color:var(--lamp-yellow);">AZ</td></tr>
                         <tr id="r-DM"><td>DM</td><td class="td-desc" id="lbl-DM">Motor Direction</td><td id="v-DM" style="text-align:right; font-weight:bold; color:var(--lamp-yellow);">SX</td></tr>
-                        <tr id="r-AT"><td>AT</td><td class="td-desc" id="lbl-AT">Remote Learning</td><td id="v-AT" style="text-align:right;">00</td></tr>
                         <tr id="r-VM"><td>VM</td><td class="td-desc" id="lbl-VM">Motor Speed</td><td id="v-VM" style="text-align:right;">01</td></tr>
                         <tr id="r-VR"><td>VR</td><td class="td-desc" id="lbl-VR">Slow Speed</td><td id="v-VR" style="text-align:right;">01</td></tr>
                         <tr id="r-SR"><td>SR</td><td class="td-desc" id="lbl-SR">Slow Space</td><td id="v-SR" style="text-align:right;">01</td></tr>
@@ -448,6 +451,11 @@
         osc.stop(t + duration);
     }
 
+    // --- TEMPI DI PRESSIONE PULSANTI SCHEDA ---
+    const HOLD_MENU_MS = 5000; // A+B premuti insieme: ingresso/uscita menu
+    const HOLD_AT_MS   = 5000; // A premuto da solo: Remote Learning (AT)
+    const HOLD_AA_MS   = 5000; // B premuto da solo: autoapprendimento corsa
+
     // --- STATO DEL SISTEMA ---
     let mode = "IDLE", gateState = "CLOSED", lastDir = "CLOSING", leafPos = 0.0, isPedestrian = false;
     let currentActiveCmdLed = null; // Memorizza il LED del comando attivo
@@ -463,8 +471,9 @@
     let totalRevolutions = parseFloat(localStorage.getItem('DPlus_TotalRevolutions')) || 0.0;
     let tempoMoltiplicato = parseFloat(localStorage.getItem('DPlus_TempoMoltiplicato')) || 0.0;
 
-    const menuKeys = ['LS', 'QR', 'DM', 'AT', 'VM', 'VR', 'SR', 'SO', 'CA', 'FC', 'AP', 'LF', 'LM', 'ST', 'SW', 'RS'];
-    const maxVals = { LS: 3, QR: 2, DM: 1, AT: 2, VM: 4, VR: 4, SR: 3, SO: 4, CA: 4, FC: 1, AP: 2, LF: 3, LM: 3, ST: 2, SW: 1, RS: 1 };
+    // AT non fa piu' parte del menu: si richiama con pressione lunga del tasto A
+    const menuKeys = ['LS', 'QR', 'DM', 'VM', 'VR', 'SR', 'SO', 'CA', 'FC', 'AP', 'LF', 'LM', 'ST', 'SW', 'RS'];
+    const maxVals = { LS: 3, QR: 2, DM: 1, VM: 4, VR: 4, SR: 3, SO: 4, CA: 4, FC: 1, AP: 2, LF: 3, LM: 3, ST: 2, SW: 1, RS: 1 };
     const langCodes = ["IT", "EN", "ES", "FR"];
 
     let config = { LS: 0, QR: 0, DM: 0, AT: 0, VM: 1, VR: 1, SR: 1, SO: 1, CA: 0, FC: 0, AP: 1, LF: 3, LM: 3, ST: 1, SW: 0, RS: 0 };
@@ -474,14 +483,14 @@
     const langDB = {
         IT: {
             READY: "Pronto.",
-            SAVE_MSG: "Tocca B per cambiare. A+B per Salvare.",
+            SAVE_MSG: "Tocca B per cambiare. A+B per 5 s per salvare.",
             SAVING: "Salvataggio in corso...",
             LRN: "In attesa segnale radio...",
             LABELS: {
                 LS: ["Lingua sistema", "IT: Italian | EN: English | ES: Spanish | FR: French"],
                 QR: ["Product Code", "Seleziona il modello: AZ:400Kg | FF:600Kg | SD:1000Kg"],
                 DM: ["Motor Direction", "00: SX Left | 01: DX Right. In Auto-Learning usa 'A' per invertire."],
-                AT: ["Remote Learning", "Premi B per scegliere: 00 cancella codice | 01 apertura totale | 02 apertura pedonale | 09 cancella tutti i codici. A per confermare."],
+                AT: ["Remote Learning", "Premi B per scegliere: 00 cancella tutti i codici | 01 apertura totale | 02 apertura pedonale | 09 cancella un codice. A per confermare."],
                 VM: ["Motor Speed", "00: Minimum | 01-03: Intermediates | 04: Maximum"],
                 VR: ["Slow Speed", "Deceleration Speed, 00: Minimum | 01-03: Intermediates | 04: Maximum (50% di VM)"],
                 SR: ["Slowdown space", "Deceleration Zone, 00: 4% | 01: 6% | 02: 8% | 03: 10%"],
@@ -498,14 +507,14 @@
         },
         EN: {
             READY: "Ready.",
-            SAVE_MSG: "Tap B to change. A+B to Save.",
+            SAVE_MSG: "Tap B to change. Hold A+B for 5 s to save.",
             SAVING: "Saving settings...",
             LRN: "Waiting for radio signal...",
             LABELS: {
                 LS: ["System Language", "IT: Italian | EN: English | ES: Spanish | FR: French"],
                 QR: ["Product Code", "Select the model: AZ:400Kg | FF:600Kg | SD:1000Kg"],
                 DM: ["Motor Direction", "00: SX Left | 01: DX Right. In Auto-Learning use 'A' to invert."],
-                AT: ["Remote Learning", "Press B to choose: 00 erase code | 01 full opening | 02 pedestrian opening | 09 erase all codes. A to confirm."],
+                AT: ["Remote Learning", "Press B to choose: 00 erase all codes | 01 full opening | 02 pedestrian opening | 09 erase one code. A to confirm."],
                 VM: ["Motor Speed", "00: Minimum | 01-03: Intermediates | 04: Maximum"],
                 VR: ["Slow Speed", "Deceleration Speed, 00: Minimum | 01-03: Intermediates | 04: Maximum (50% di VM)"],
                 SR: ["Slowdown space", "Deceleration Zone, 00: 4% | 01: 6% | 02: 8% | 03: 10%"],
@@ -550,9 +559,9 @@
     if (!txNew || typeof txNew.serial !== 'number') txNew = newTxIdentity();
 
     let learnWindowTimer = null, learnFromMenu = false, masterCmdTimer = null;
-    const AT_OPTS = [0, 1, 2, 9];   // 00 cancella codice, 01 totale, 02 pedonale, 09 cancella tutti
+    const AT_OPTS = [0, 1, 2, 9];   // 00 cancella tutti, 01 totale, 02 pedonale, 09 cancella un codice
     function nextAtOption() { atOption = AT_OPTS[(AT_OPTS.indexOf(atOption) + 1) % AT_OPTS.length]; }
-    function learnLabel() { return atOption === 1 ? "At" : (atOption === 2 ? "Ap" : "00"); }
+    function learnLabel() { return atOption === 1 ? "At" : (atOption === 2 ? "Ap" : "09"); }
 
     function saveTx() { localStorage.setItem('DPlus_TxNew', JSON.stringify(txNew)); }
     function saveCodes() { localStorage.setItem('DPlus_RemoteCodes', JSON.stringify(remoteCodes)); }
@@ -587,7 +596,7 @@
         const tb = document.getElementById('codes-body');
         document.getElementById('codes-count').innerText = remoteCodes.length;
         if (!remoteCodes.length) {
-            tb.innerHTML = '<tr><td colspan="7" style="color:#666; text-align:center;">No transmitters stored. Hold 1+2 or 1+4 on TX MASTER to open the memory.</td></tr>';
+            tb.innerHTML = '<tr><td colspan="7" style="color:#666; text-align:center;">No transmitters stored. Hold A for 5s on the board, or 1+2 / 1+4 on TX MASTER, to open the memory.</td></tr>';
             return;
         }
         tb.innerHTML = remoteCodes.map((c, i) =>
@@ -623,8 +632,8 @@
         const IT = curL === "IT";
         const fnTxt = atOption === 1 ? (IT ? "Apertura totale (At)" : "Full opening (At)") :
                       atOption === 2 ? (IT ? "Apertura pedonale (Ap)" : "Pedestrian opening (Ap)") :
-                                       (IT ? "Cancellazione codice (00)" : "Erase code (00)");
-        const azione = atOption === 0 ? (IT ? "Memoria aperta: premi il tasto del telecomando da cancellare..." : "Memory open: press the button of the transmitter to erase...")
+                                       (IT ? "Cancellazione codice (09)" : "Erase code (09)");
+        const azione = atOption === 9 ? (IT ? "Memoria aperta: premi il tasto del telecomando da cancellare..." : "Memory open: press the button of the transmitter to erase...")
                                       : (IT ? "Memoria aperta: premi un tasto del nuovo telecomando..." : "Memory open: press a button on the new transmitter...");
         infoText.innerHTML = `<b style="color:var(--red);">${(langDB[curL] || langDB["EN"]).LABELS.AT[0]}: ${fnTxt}</b><br>` +
             (extra ? extra + '<br>' : '') +
@@ -648,17 +657,35 @@
         apriFinestraMemoria();
     }
 
+    // --- FUNZIONE AT (pressione lunga di A) ---
+    function entraAT() {
+        clearTimeout(configTimeout);
+        mode = "EDIT_AT"; atOption = 1;
+        playBeep(1); // 1 BEEP: INGRESSO FUNZIONE AT
+        updateMenuAT();
+        if (navigator.vibrate) navigator.vibrate(100);
+    }
+
+    function esciAT() {
+        clearTimeout(configTimeout);
+        mode = "IDLE"; manageRemoteLedBlink();
+        disp.innerText = "--"; disp.classList.add('blink');
+        refreshTable();
+    }
+
     function confermaOpzioneAT() {
-        if (atOption === 9) {
-            // 09: cancellazione di tutti i telecomandi memorizzati
+        if (atOption === 0) {
+            // 00: cancellazione di tutti i telecomandi memorizzati
             cancellaCodici();
             playBeep(3);
+            clearTimeout(configTimeout);
+            mode = "SAVING"; manageRemoteLedBlink();
             disp.innerText = "OK"; disp.classList.remove('blink');
-            setTimeout(() => { if (mode === "EDIT_AT") { mode = "MENU"; manageRemoteLedBlink(); updateMenu(); } }, 1000);
+            setTimeout(() => { if (mode === "SAVING") esciAT(); }, 1000);
         } else {
-            // 00: cancella un codice | 01: memorizza totale | 02: memorizza pedonale
-            playBeep(atOption === 0 ? 1 : atOption);
-            avviaMemorizzazione(true);
+            // 09: cancella un codice | 01: memorizza totale | 02: memorizza pedonale
+            playBeep(atOption === 9 ? 1 : atOption);
+            avviaMemorizzazione(false); // a fine memorizzazione si torna in IDLE
         }
     }
 
@@ -694,6 +721,11 @@
                 clearTimeout(learnWindowTimer); learnWindowTimer = null;
                 mode = "IDLE"; manageRemoteLedBlink();
             }
+            if (mode === "EDIT_AT") {
+                clearTimeout(configTimeout);
+                mode = "IDLE"; manageRemoteLedBlink();
+            }
+            clearTimeout(holdTimerA); clearTimeout(holdTimerB);
             if (gateState !== "CLOSED" && gateState !== "OPEN" && gateState !== "STOPPED") {
                 lastDir = (gateState.includes("OPEN")) ? "OPENING" : "CLOSING";
             }
@@ -775,6 +807,8 @@ function stopDangerMarquee() {
             disp.classList.add('blink');
         } else if (mode === "MENU" || mode === "EDIT") {
             updateMenu();
+        } else if (mode === "EDIT_AT") {
+            updateMenuAT();
         } else if (mode === "AA") {
             disp.innerText = "AA";
         } else if (mode === "AT_LEARNING") {
@@ -819,7 +853,6 @@ function stopDangerMarquee() {
         if (key === 'FC') return val === 0 ? "NO" : "SI";
         if (key === 'RS') return val === 0 ? "NO" : "SI";
         if (key === 'QR') return qrCodes[val] || "??";
-        if (key === 'AT') return String(val).padStart(2, '0');
         return String(val).padStart(2, '0');
     }
 
@@ -1113,7 +1146,7 @@ function stopDangerMarquee() {
         const curL = langCodes[config.LS] || "EN";
         const IT = curL === "IT";
 
-        if (mode === "AT_LEARNING" && atOption === 0) {
+        if (mode === "AT_LEARNING" && atOption === 9) {
             const i = remoteCodes.findIndex(c => c.serial === tx.serial && c.btn === btn);
             if (i >= 0) {
                 remoteCodes.splice(i, 1); saveCodes(); renderCodes();
@@ -1210,7 +1243,7 @@ function stopDangerMarquee() {
     function updateMenuAT() {
         manageRemoteLedBlink(); 
         
-        // Display: 00 cancella codice, 01 totale, 02 pedonale, 09 cancella tutti
+        // Display: 00 cancella tutti, 01 totale, 02 pedonale, 09 cancella un codice
         let dispStr = String(atOption).padStart(2, '0');
         disp.innerText = dispStr; 
         disp.classList.remove('blink');
@@ -1222,10 +1255,10 @@ function stopDangerMarquee() {
         const IT = curL === "IT";
         let optText = atOption === 1 ? (IT ? "01 - Memorizza apertura totale" : "01 - Store full opening") :
                       atOption === 2 ? (IT ? "02 - Memorizza apertura pedonale" : "02 - Store pedestrian opening") :
-                      atOption === 0 ? (IT ? "00 - Cancella un codice" : "00 - Erase one code") :
-                                       (IT ? "09 - Cancella tutti i codici" : "09 - Erase all codes");
+                      atOption === 0 ? (IT ? "00 - Cancella tutti i codici" : "00 - Erase all codes") :
+                                       (IT ? "09 - Cancella un codice" : "09 - Erase one code");
                                        
-        infoText.innerHTML = `<b style="color:var(--red);">${atLabel}</b><br>Option: <b>${optText}</b><br><br><small style="color:#888;">Tap B to change.<br>Tap A to confirm.</small>`;
+        infoText.innerHTML = `<b style="color:var(--red);">${atLabel}</b><br>${IT ? "Opzione" : "Option"}: <b>${optText}</b><br><br><small style="color:#888;">${IT ? "Tocca B per cambiare.<br>Tocca A per confermare." : "Tap B to change.<br>Tap A to confirm."}</small>`;
         resetConfigTimeout();
     }
 
@@ -1259,21 +1292,22 @@ function stopDangerMarquee() {
         }, 1500);
     }
 
-    let holdTimerB = null, comboTimer = null, configTimeout = null;
+    let holdTimerA = null, holdTimerB = null, comboTimer = null, configTimeout = null;
     let isPressedA = false, isPressedB = false, isCombo = false, actionFired = false; 
 
     function resetConfigTimeout() {
         clearTimeout(configTimeout);
-        if (["MENU", "EDIT", "EDIT_AT"].includes(mode)) { configTimeout = setTimeout(save, 60000); }
+        if (mode === "MENU" || mode === "EDIT") { configTimeout = setTimeout(save, 60000); }
+        else if (mode === "EDIT_AT") { configTimeout = setTimeout(esciAT, 60000); } // uscita automatica dalla funzione AT
     }
 
     function checkCombo() {
         if (isPressedA && isPressedB) {
-            isCombo = true; clearTimeout(holdTimerB); 
+            isCombo = true; clearTimeout(holdTimerA); clearTimeout(holdTimerB); 
             comboTimer = setTimeout(() => {
                 actionFired = true; 
                 if (mode === "IDLE") { mode = "MENU"; currentIdx = 0; updateMenu(); } else if (mode === "MENU" || mode === "EDIT") { save(); }
-            }, 1200);
+            }, HOLD_MENU_MS);
         }
     }
 
@@ -1281,6 +1315,12 @@ function stopDangerMarquee() {
         if(isEmergencyStop) return;
         if(isPressedA) return; isPressedA = true; document.getElementById('keyA').classList.add('btn-active'); actionFired = false; checkCombo();
         if (!isCombo && mode === "AA" && aaPhase === 1) { invertMotorDirectionOnTheFly(); return; }
+        // Pressione lunga di A (da solo, a riposo): funzione AT, Remote Learning
+        if (!isCombo && mode === "IDLE") {
+            holdTimerA = setTimeout(() => {
+                if (!isCombo && mode === "IDLE" && !isEmergencyStop) { actionFired = true; entraAT(); }
+            }, HOLD_AT_MS);
+        }
     }
 
     function pressB() {
@@ -1295,13 +1335,13 @@ function stopDangerMarquee() {
                     infoText.innerHTML = `<b style="color:var(--lamp-yellow); font-size:14px;">QR PRODUCT CODE</b><br><br>${curL === 'IT' ? 'Modalità Auto-Learning.<br>Seleziona prima il modello motore.' : 'Auto-Learning mode.<br>Select motor model first.'}<br><br><small style="color:#888;">${curL === 'IT' ? 'Tocca B per scorrere.<br>Tocca A per confermare e avviare.' : 'Tap B to scroll.<br>Tap A to confirm and start.'}</small>`;
                     if (navigator.vibrate) navigator.vibrate(100); 
                 }
-            }, 5000);
+            }, HOLD_AA_MS);
         }
     }
 
     function releaseA() {
-        if(isEmergencyStop) { isPressedA = false; document.getElementById('keyA').classList.remove('btn-active'); return; }
-        if(!isPressedA) return; isPressedA = false; document.getElementById('keyA').classList.remove('btn-active'); clearTimeout(comboTimer);
+        if(isEmergencyStop) { isPressedA = false; clearTimeout(holdTimerA); document.getElementById('keyA').classList.remove('btn-active'); return; }
+        if(!isPressedA) return; isPressedA = false; document.getElementById('keyA').classList.remove('btn-active'); clearTimeout(comboTimer); clearTimeout(holdTimerA);
         if (actionFired || isCombo) { if (!isPressedA && !isPressedB) isCombo = false; return; }
         if (mode === "IDLE") triggerCommand('SBS'); 
         else if (mode === "MENU") { currentIdx = (currentIdx + 1) % menuKeys.length; updateMenu(); }
@@ -1325,11 +1365,11 @@ function stopDangerMarquee() {
     }
 
     function releaseB() {
-        if(isEmergencyStop) { isPressedB = false; document.getElementById('keyB').classList.remove('btn-active'); return; }
+        if(isEmergencyStop) { isPressedB = false; clearTimeout(holdTimerB); document.getElementById('keyB').classList.remove('btn-active'); return; }
         if(!isPressedB) return; isPressedB = false; document.getElementById('keyB').classList.remove('btn-active'); clearTimeout(comboTimer); clearTimeout(holdTimerB);
         if (actionFired || isCombo) { if (!isPressedA && !isPressedB) isCombo = false; return; }
         if (mode === "IDLE") triggerCommand('AP'); 
-        else if (mode === "MENU") { if (menuKeys[currentIdx] === 'AT') { mode = "EDIT_AT"; atOption = 1; updateMenuAT(); } else { mode = "EDIT"; updateMenu(); } } 
+        else if (mode === "MENU") { mode = "EDIT"; updateMenu(); } 
         else if (mode === "EDIT_AT") { nextAtOption(); updateMenuAT(); } 
         else if (mode === "EDIT") { 
             const currentKey = menuKeys[currentIdx];
