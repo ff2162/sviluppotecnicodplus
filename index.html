@@ -243,6 +243,52 @@
         .at-opt.sel { border-color: var(--red); background: rgba(227,30,36,0.18); color: #fff; }
         .at-opt.sel b { color: #ff3333; }
 
+
+        /* --- COVER MACH1 26v1 (come la scocca reale) --- */
+        .cover {
+            position: relative; border-radius: 18px; padding: 18px 16px 14px 16px; margin-bottom: 6px;
+            background-color: #0c0c0c;
+            background-image: radial-gradient(ellipse at 30% 0%, rgba(255,255,255,0.06), transparent 60%), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='48' viewBox='0 0 28 48'%3E%3Cpath d='M14 0 L28 8 L28 24 L14 32 L0 24 L0 8 Z M14 32 L14 48 M0 24 L0 40 L14 48 L28 40 L28 24' fill='none' stroke='%23262626' stroke-width='1.4'/%3E%3C/svg%3E");
+            border: 1px solid #2a2a2a;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -6px 14px rgba(0,0,0,0.8), 0 10px 24px rgba(0,0,0,0.7);
+        }
+        .cover-top { display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; }
+        .cover-pad {
+            display: flex; gap: 14px; padding: 12px 16px; border-radius: 40px;
+            background-color: #111;
+            background-image: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(0,0,0,0.25)), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='48' viewBox='0 0 28 48'%3E%3Cpath d='M14 0 L28 8 L28 24 L14 32 L0 24 L0 8 Z M14 32 L14 48 M0 24 L0 40 L14 48 L28 40 L28 24' fill='none' stroke='%23262626' stroke-width='1.4'/%3E%3C/svg%3E");
+            border: 1px solid #2c2c2c;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.08);
+        }
+        .btn.cover-btn {
+            width: 54px; height: 54px; color: #2a2a2a; font-size: 15px; font-weight: 800;
+            background: radial-gradient(circle at 35% 30%, #f2f2f2, #b9b9b9 45%, #8a8a8a 80%, #6d6d6d);
+            border: 2px solid #3a3a3a;
+            box-shadow: 0 4px 0 #1a1a1a, 0 6px 10px rgba(0,0,0,0.7), inset 0 -2px 3px rgba(0,0,0,0.35);
+        }
+        .btn.cover-btn:active, .btn.cover-btn.btn-active {
+            transform: translateY(3px);
+            background: radial-gradient(circle at 35% 30%, #d8d8d8, #9a9a9a 50%, #6a6a6a) !important;
+            color: var(--red) !important; box-shadow: 0 1px 0 #1a1a1a, inset 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .display-window {
+            padding: 8px; border-radius: 10px; background: linear-gradient(160deg, #1d1f22, #050505 60%);
+            border: 1px solid #333; box-shadow: inset 0 2px 8px rgba(0,0,0,0.9), 0 4px 10px rgba(0,0,0,0.6);
+        }
+        .display-window #display { margin: 0; }
+        .cover-leds { margin-top: 16px; padding-top: 12px; border-top: 1px solid #1f1f1f; }
+        .cover-leds .led-grid { gap: 10px; }
+        .cover-logo { display: flex; align-items: baseline; gap: 8px; margin-top: 14px; padding-left: 4px; }
+        .cover-logo .mach {
+            font-weight: 900; font-style: italic; font-size: 22px; letter-spacing: 1px; color: var(--red);
+            text-shadow: 0 0 10px rgba(227,30,36,0.45), 0 1px 0 #000;
+        }
+        .cover-logo .ver { font-weight: 800; font-style: italic; font-size: 17px; color: #e6e6e6; }
+        .cover-logo .sub { font-size: 11px; color: #9a9a9a; letter-spacing: 0.4px; }
+        .cover-screw { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #666, #222); border: 1px solid #000; }
+        .cover-screw.s1 { top: 10px; left: 10px; } .cover-screw.s2 { top: 10px; right: 10px; }
+        .cover-screw.s3 { bottom: 10px; right: 10px; }
+
         .footer-info { width: 100%; text-align: center; font-size: 10px; color: #555; padding-top: 10px; border-top: 1px solid #222; margin-top: auto; }
     </style>
 </head>
@@ -272,14 +318,16 @@
         
         <div class="central-col">
             <div id="mach-panel">
-                <div>
-                    <div class="board-title">MACH1 26v1</div>
-                    <div id="display" class="blink">--</div>
-                    <div class="white-band"></div>
-                    
-                    <div class="controls-matrix">
-                        <button id="keyA" class="btn">A</button>
-                        
+                <div class="cover">
+                    <span class="cover-screw s1"></span><span class="cover-screw s2"></span><span class="cover-screw s3"></span>
+                    <div class="cover-top">
+                        <div class="cover-pad">
+                            <button id="keyA" class="btn cover-btn" aria-label="Tasto A">A</button>
+                            <button id="keyB" class="btn cover-btn" aria-label="Tasto B">B</button>
+                        </div>
+                        <div class="display-window"><div id="display" class="blink">--</div></div>
+                    </div>
+                    <div class="cover-leds">
                         <div class="led-grid">
                             <div class="led-row" style="gap: 20px;">
                                 <div class="diag-box"><span class="diag-lbl">Radio1</span><div id="boardLedR1" class="diag-led"></div></div>
@@ -297,11 +345,10 @@
                                 <div class="diag-box"><span class="diag-lbl" style="color:#0f0">AP</span><div id="boardLedAP" class="diag-led"></div></div>
                             </div>
                         </div>
-
-                        <button id="keyB" class="btn">B</button>
                     </div>
+                    <div class="cover-logo"><span class="mach">MACH1</span><span class="ver">26v1</span><span class="sub">scorrevole inverter</span></div>
                 </div>
-                
+
                 <div style="display:flex; flex-direction:column;">
                     
                     <div class="estop-container">
@@ -375,11 +422,11 @@
         <div class="right-col">
             <div class="table-wrapper">
                 <table>
-                    <thead><tr><th>Par</th><th>Description</th><th style="text-align:right;">Val</th></tr></thead>
+                    <thead><tr><th>Display</th><th>Description</th><th style="text-align:right;">Val</th></tr></thead>
                     <tbody id="menu-table">
-                        <tr id="r-LS"><td>LS</td><td class="td-desc" id="lbl-LS">System Language</td><td id="v-LS" style="text-align:right; font-weight:bold;">00</td></tr>
-                        <tr id="r-QR"><td>QR</td><td class="td-desc" id="lbl-QR">Product Code</td><td id="v-QR" style="text-align:right; font-weight:bold; color:var(--lamp-yellow);">AZ</td></tr>
-                        <tr id="r-DM"><td>DM</td><td class="td-desc" id="lbl-DM">Motor Direction</td><td id="v-DM" style="text-align:right; font-weight:bold; color:var(--lamp-yellow);">SX</td></tr>
+                        <tr id="r-LS"><td style="color:var(--lamp-yellow); font-weight:bold;">LS</td><td class="td-desc" id="lbl-LS">System Language</td><td id="v-LS" style="text-align:right; font-weight:bold;">00</td></tr>
+                        <tr id="r-QR"><td style="color:var(--lamp-yellow); font-weight:bold;">QR</td><td class="td-desc" id="lbl-QR">Product Code</td><td id="v-QR" style="text-align:right;">AZ</td></tr>
+                        <tr id="r-DM"><td>DM</td><td class="td-desc" id="lbl-DM">Motor Direction</td><td id="v-DM" style="text-align:right;">SX</td></tr>
                         <tr id="r-VM"><td>VM</td><td class="td-desc" id="lbl-VM">Motor Speed</td><td id="v-VM" style="text-align:right;">01</td></tr>
                         <tr id="r-VR"><td>VR</td><td class="td-desc" id="lbl-VR">Slow Speed</td><td id="v-VR" style="text-align:right;">01</td></tr>
                         <tr id="r-SR"><td>SR</td><td class="td-desc" id="lbl-SR">Slow Space</td><td id="v-SR" style="text-align:right;">01</td></tr>
@@ -418,7 +465,7 @@
     </div>
 
     <div class="footer-info">
-        MACH1 APP SIMULATOR PRO v6.07 | DPLUS AUTOMATION
+        MACH1 APP SIMULATOR PRO v6.08 | DPLUS AUTOMATION
     </div>
 
 </div>
